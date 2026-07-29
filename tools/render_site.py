@@ -109,7 +109,7 @@ def thumb_display_width(inner):
     return widest
 
 
-def compose_layout(body):
+def compose_layout(body, path=""):
     """プロジェクト紹介の並びを、サムネイル画像と説明文の段組みに組み直す。
 
     元サイトはプロジェクトを「画像とその説明文」の対で並べている。
@@ -141,6 +141,18 @@ def compose_layout(body):
 
     out = []
     i = 0
+
+    # トップページの冒頭に並ぶ写真（顔写真と書影）は、横に並べて小さく見せる。
+    # ここだけは扱いが違うため、まとめてひとつの入れ物に入れる。
+    if path in ("/", "/home"):
+        lead = 0
+        while lead < len(blocks) and blocks[lead][1] == "image":
+            lead += 1
+        if lead >= 2:
+            joined = "\n".join(blocks[j][0] for j in range(lead))
+            out.append(f'<div class="header-images">\n{joined}\n</div>')
+            i = lead
+
     while i < len(blocks):
         inner, _kind = blocks[i]
         if i in run_pairs:
@@ -249,7 +261,7 @@ def main():
         if not os.path.exists(frag_path):
             continue
         body = open(frag_path, encoding="utf-8").read()
-        body = compose_layout(body)
+        body = compose_layout(body, entry["path"])
 
         title_page = clean_title(entry["title"])
         full_title = SITE_NAME if entry["path"] in ("/", "/home") else f"{title_page} | {SITE_NAME}"

@@ -20,6 +20,10 @@
      この値を変えたときは tools/render_site.py の THUMB_COLUMN も同じ値にする。 */
   --thumb-h: 100px;
   --thumb-w: 240px;
+
+  /* トップページ冒頭の写真（顔写真と書影）の高さ。
+     元の画像は高さが344ピクセルと319ピクセルあるため、170pxにするとほぼ半分になる。 */
+  --header-img-h: 170px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -235,6 +239,29 @@ body {
   margin: 0;
 }
 
+/* トップページ冒頭の写真（顔写真と書影）。
+   広い画面では左右に並べ、狭い画面では縦に並べる。
+   高さを --header-img-h に揃えることで、元の大きさが違っても並びが整う。 */
+.header-images {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 18px;
+  margin: 0 0 22px;
+}
+
+.header-images img {
+  height: var(--header-img-h);
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+}
+
+@media (max-width: 560px) {
+  .header-images { gap: 12px; }
+  .header-images img { height: calc(var(--header-img-h) * 0.8); }
+}
+
 /* プロジェクト紹介の段組み。左にサムネイル画像、右に説明文を置く。
 
    サムネイルは元の画像ファイルの高さが100ピクセルに揃えてある。
@@ -264,20 +291,19 @@ body {
   width: auto;
   max-width: none;
   margin: 0;
+  /* 幅が制限される場面でも画像が引き伸ばされないようにする */
+  object-fit: contain;
 }
 
-/* 高さを揃えると列の幅を超えてしまうほど横長の画像は、
-   説明文の上に置いて、必要な幅を確保する。高さは他と同じままにする。 */
+/* 高さを揃えると列の幅を超えてしまうほど横長の画像も、説明文とは左右に並べる。
+   この場合だけ、列の幅を画像に合わせて広げる。高さは他と同じままにする。 */
 .thumb-row.wide {
-  grid-template-columns: 1fr;
-  gap: 10px;
+  grid-template-columns: auto minmax(180px, 1fr);
 }
 .thumb-row.wide .thumb {
   justify-content: flex-start;
 }
 .thumb-row.wide .thumb img {
-  /* 高さは他のサムネイルと揃えたままにする。
-     本文の幅いっぱいまで使えるため、横長でも収まる。 */
   height: var(--thumb-h);
   width: auto;
   max-width: 100%;
@@ -289,9 +315,21 @@ body {
 .thumb-body h3 { margin-top: 0; }
 
 @media (max-width: 700px) {
-  /* 画面が狭いときは、サムネイルを上、説明文を下にする */
-  .thumb-row { grid-template-columns: 1fr; gap: 10px; }
+  /* 画面が狭いときは、サムネイルを上、説明文を下にする。
+     横長のものも同じ扱いにする（.wide の指定より後に書いて上書きする）。 */
+  .thumb-row,
+  .thumb-row.wide { grid-template-columns: 1fr; gap: 10px; }
   .thumb { justify-content: flex-start; min-height: 0; }
+
+  /* 画面の幅に収まらない画像は、高さを保つと横に潰れてしまう。
+     狭い画面では縦横の比率を守ることを優先し、高さは100ピクセルを上限とする。 */
+  .thumb img,
+  .thumb-row.wide .thumb img {
+    height: auto;
+    width: auto;
+    max-width: 100%;
+    max-height: var(--thumb-h);
+  }
 }
 
 .content blockquote {
