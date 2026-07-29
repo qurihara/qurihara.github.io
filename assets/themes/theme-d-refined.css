@@ -1,0 +1,412 @@
+/* 候補D「現行版の洗練」
+
+   方向性。いまの見た目の骨組みは変えず、読みやすさに関わるところだけを整える。
+   変えたのは次の4点である。
+     1. 差し色の青を少し落ち着かせ、灰色にもわずかに青みを混ぜて、色が揃って見えるようにした。
+     2. 本文の行長を860ピクセルから780ピクセルに縮めた。1行あたりの文字数が減って目で追いやすくなる。
+     3. 見出しの大きさの段差をはっきりさせ、見出しの前後の余白を広げた。
+     4. 数字が並ぶ表で桁が揃うようにした。
+
+   慣れた見た目を保ちたい場合はこれを選ぶ。変化はいちばん小さい。 */
+
+/* unryu.org — 素のHTMLで組んだ静的サイトの見た目を整える。
+   元のGoogle Sitesに近い、読みやすさ優先の構成にしてある。 */
+
+:root {
+  --bg: #ffffff;
+  --fg: #1b2026;
+  --muted: #5a646f;
+  --accent: #1558b0;
+  --line: #e1e5ea;
+  --sidebar-bg: #f6f8fa;
+  --header-h: 56px;
+  --sidebar-w: 300px;
+  --maxw: 780px;
+
+  /* プロジェクト紹介のサムネイル画像。
+     --thumb-h が表示上の高さである。元の画像の大きさは問わず、すべてこの高さに揃える。
+     ここを変えると全プロジェクトの画像が一斉に変わる。
+     --thumb-w はサムネイルを置く列の幅。高さを揃えたときにこの幅を超えるほど
+     横長の画像は、説明文の上に置いて幅を確保する。
+     この値を変えたときは tools/render_site.py の THUMB_COLUMN も同じ値にする。 */
+  --thumb-h: 100px;
+  --thumb-w: 240px;
+
+  /* トップページ冒頭の写真（顔写真と書影）の高さ。
+     元の画像は高さが344ピクセルと319ピクセルあるため、170pxにするとほぼ半分になる。 */
+  --header-img-h: 170px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14181c;
+    --fg: #e6eaee;
+    --muted: #96a1ac;
+    --accent: #82b4f7;
+    --line: #2a3037;
+    --sidebar-bg: #191e23;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN",
+               "Hiragino Sans", Meiryo, sans-serif;
+  line-height: 1.75;
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+.skip-link:focus {
+  left: 8px;
+  top: 8px;
+  z-index: 100;
+  background: var(--accent);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 6px;
+}
+
+/* ヘッダー */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 18px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+
+.site-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--fg);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+}
+
+.nav-toggle {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--fg);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* レイアウト */
+.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.sidebar {
+  flex: 0 0 var(--sidebar-w);
+  width: var(--sidebar-w);
+  position: sticky;
+  top: var(--header-h);
+  max-height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+  padding: 20px 14px 40px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--line);
+}
+
+.content {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--maxw);
+  padding: 28px 32px 80px;
+}
+
+/* ナビゲーション */
+.site-nav a {
+  color: var(--fg);
+  text-decoration: none;
+  display: block;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.92rem;
+}
+.site-nav a:hover { background: rgba(127, 127, 127, 0.14); }
+.site-nav a[aria-current="page"] {
+  background: rgba(26, 115, 232, 0.14);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.nav-top { font-weight: 600; margin: 2px 0; }
+
+.nav-group { margin: 6px 0; }
+.nav-group > summary {
+  cursor: pointer;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 6px;
+  list-style: none;
+  font-size: 0.95rem;
+}
+.nav-group > summary::-webkit-details-marker { display: none; }
+.nav-group > summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 1em;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+.nav-group[open] > summary::before { transform: rotate(90deg); }
+.nav-group > summary:hover { background: rgba(127, 127, 127, 0.14); }
+.nav-group ul {
+  list-style: none;
+  margin: 2px 0 8px;
+  padding-left: 12px;
+  border-left: 2px solid var(--line);
+}
+
+/* 本文 */
+.content h1 {
+  font-size: 1.78rem;
+  line-height: 1.4;
+  margin: 0 0 28px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--line);
+  text-wrap: balance;
+}
+.content h2 {
+  font-size: 1.34rem;
+  margin: 48px 0 16px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--line);
+  text-wrap: balance;
+}
+.content h3 { font-size: 1.11rem; margin: 32px 0 10px; }
+.content h4 { font-size: 1rem; margin: 22px 0 8px; }
+
+.content p { margin: 0 0 14px; }
+
+.content a { color: var(--accent); }
+.content a:hover { text-decoration: none; }
+
+.content ul, .content ol { margin: 0 0 16px; padding-left: 1.6em; }
+.content li { margin: 4px 0; }
+.content li > p { margin: 0 0 4px; }
+
+/* 元サイトは段組みの中に画像を置いていたため、そのまま原寸で出すと大きすぎる。
+   読みやすい幅で頭打ちにしつつ、幅を明示してある小さな画像はその指定を活かす。 */
+.content img {
+  max-width: min(100%, 560px);
+  height: auto;
+  border-radius: 6px;
+  display: block;
+  margin: 12px 0;
+}
+.content img[width] {
+  max-width: min(100%, 560px);
+  width: auto;
+}
+/* 並んだ小さなアイコンは横に並べる */
+.content img[width="28"] {
+  display: inline-block;
+  margin: 4px 6px 4px 0;
+  border-radius: 0;
+}
+
+.content iframe {
+  max-width: 100%;
+  border: 0;
+  border-radius: 8px;
+  margin: 12px 0;
+}
+
+/* YouTube などの埋め込みを16:9で保つ */
+.embed-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  aspect-ratio: 16 / 9;
+  margin: 16px 0;
+}
+.embed-wrap iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+/* トップページ冒頭の写真（顔写真と書影）。
+   広い画面では左右に並べ、狭い画面では縦に並べる。
+   高さを --header-img-h に揃えることで、元の大きさが違っても並びが整う。 */
+.header-images {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 18px;
+  margin: 0 0 22px;
+}
+
+.header-images img {
+  height: var(--header-img-h);
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+}
+
+@media (max-width: 560px) {
+  .header-images { gap: 12px; }
+  .header-images img { height: calc(var(--header-img-h) * 0.8); }
+}
+
+/* プロジェクト紹介の段組み。左にサムネイル画像、右に説明文を置く。
+
+   サムネイルは元の画像ファイルの高さが100ピクセルに揃えてある。
+   そこで表示でも高さを揃え、横幅のほうを内容に応じて変えることで、
+   縦の並びとしての統一感を出す。元のGoogle Sitesは列の幅に合わせて
+   画像を拡大するため、この揃えが崩れていた。 */
+.thumb-row {
+  display: grid;
+  grid-template-columns: var(--thumb-w) 1fr;
+  gap: 20px;
+  align-items: start;
+  margin: 18px 0;
+}
+
+.thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--thumb-h);
+}
+
+/* サムネイルの高さを揃える。元の画像の大きさは問わず、
+   すべて --thumb-h の高さになるよう拡大または縮小する。
+   横幅は縦横の比率に従って決まるため、画像ごとに変わる。 */
+.thumb img {
+  height: var(--thumb-h);
+  width: auto;
+  max-width: none;
+  margin: 0;
+  /* 幅が制限される場面でも画像が引き伸ばされないようにする */
+  object-fit: contain;
+}
+
+/* 高さを揃えると列の幅を超えてしまうほど横長の画像も、説明文とは左右に並べる。
+   この場合だけ、列の幅を画像に合わせて広げる。高さは他と同じままにする。 */
+.thumb-row.wide {
+  grid-template-columns: auto minmax(180px, 1fr);
+}
+.thumb-row.wide .thumb {
+  justify-content: flex-start;
+}
+.thumb-row.wide .thumb img {
+  height: var(--thumb-h);
+  width: auto;
+  max-width: 100%;
+}
+
+.thumb-body > :first-child { margin-top: 0; }
+.thumb-body > :last-child { margin-bottom: 0; }
+.thumb-body h2,
+.thumb-body h3 { margin-top: 0; }
+
+@media (max-width: 700px) {
+  /* 画面が狭いときは、サムネイルを上、説明文を下にする。
+     横長のものも同じ扱いにする（.wide の指定より後に書いて上書きする）。 */
+  .thumb-row,
+  .thumb-row.wide { grid-template-columns: 1fr; gap: 10px; }
+  .thumb { justify-content: flex-start; min-height: 0; }
+
+  /* 画面の幅に収まらない画像は、高さを保つと横に潰れてしまう。
+     狭い画面では縦横の比率を守ることを優先し、高さは100ピクセルを上限とする。 */
+  .thumb img,
+  .thumb-row.wide .thumb img {
+    height: auto;
+    width: auto;
+    max-width: 100%;
+    max-height: var(--thumb-h);
+  }
+}
+
+.content blockquote {
+  margin: 16px 0;
+  padding: 8px 18px;
+  border-left: 4px solid var(--line);
+  color: var(--muted);
+}
+
+.content pre {
+  overflow-x: auto;
+  background: rgba(127, 127, 127, 0.12);
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+.content code {
+  background: rgba(127, 127, 127, 0.14);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.92em;
+}
+.content pre code { background: none; padding: 0; }
+
+/* 表は横スクロールできるようにして、レイアウトを壊さない */
+.table-wrap { overflow-x: auto; margin: 16px 0; }
+.content table { border-collapse: collapse; min-width: 100%; }
+.content th, .content td {
+  border: 1px solid var(--line);
+  padding: 7px 11px;
+  text-align: left;
+  vertical-align: top;
+}
+.content th { background: rgba(127, 127, 127, 0.1); font-weight: 600; }
+.content td { font-variant-numeric: tabular-nums; }
+
+.content hr { border: 0; border-top: 1px solid var(--line); margin: 30px 0; }
+
+/* フッター */
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 22px 32px 40px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+.site-footer a { color: var(--muted); }
+
+/* 画面が狭いとき */
+@media (max-width: 900px) {
+  .nav-toggle { display: block; }
+  .layout { display: block; }
+  .sidebar {
+    display: none;
+    position: static;
+    width: auto;
+    max-height: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .sidebar.open { display: block; }
+  .content { max-width: none; padding: 22px 18px 60px; }
+  .site-footer { padding: 20px 18px 36px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

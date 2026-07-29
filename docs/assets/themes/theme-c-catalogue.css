@@ -1,0 +1,300 @@
+/* 候補C「展示カタログ」
+
+   方向性。この研究室の仕事は、装置を作って人に体験させるところに面白さがある。
+   そこで、美術館やメディアアートの展覧会でもらう図録のつくりを借りる。
+   プロジェクトには元から00から25までの番号が振られているので、
+   その番号を左の余白に大きく置き、作品目録として読ませる。
+   番号は飾りではなく、もとの並び順という情報をそのまま使っている。
+
+   配色。紙は白。文字は墨に寄せた黒。差し色は藍ひとつ。
+   日本の印刷物で古くから使われてきた色で、赤を使うより落ち着く。
+   字。見出しは明朝にして図録らしい格を出し、本文はゴシックで読みやすさを取る。
+   和文と欧文で書体の性格を変えるのは、日本語の印刷物では自然な組み方である。
+   組み。余白を広くとり、行長を短めに保つ。要素は左揃えで通す。 */
+
+:root {
+  --paper: #ffffff;
+  --panel: #f6f5f2;
+  --ink: #1a1a1a;
+  --ink-soft: #6f6c66;
+  --rule: #dcd9d3;
+  --accent: #23408f;
+  --accent-soft: #eceff7;
+
+  --header-h: 60px;
+  --sidebar-w: 300px;
+  --maxw: 760px;
+
+  --thumb-h: 100px;
+  --thumb-w: 240px;
+  --header-img-h: 170px;
+
+  --font-display: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho",
+                  "Noto Serif JP", "Times New Roman", serif;
+  --font-body: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic",
+               "Noto Sans JP", Meiryo, system-ui, sans-serif;
+  --font-num: "Helvetica Neue", Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14150f;
+    --panel: #1d1e17;
+    --ink: #ece9e2;
+    --ink-soft: #a09c92;
+    --rule: #34362c;
+    --accent: #93aae4;
+    --accent-soft: #1e2436;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #14150f;
+  --panel: #1d1e17;
+  --ink: #ece9e2;
+  --ink-soft: #a09c92;
+  --rule: #34362c;
+  --accent: #93aae4;
+  --accent-soft: #1e2436;
+}
+
+:root[data-theme="light"] {
+  --paper: #ffffff;
+  --panel: #f6f5f2;
+  --ink: #1a1a1a;
+  --ink-soft: #6f6c66;
+  --rule: #dcd9d3;
+  --accent: #23408f;
+  --accent-soft: #eceff7;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.9;
+  -webkit-text-size-adjust: 100%;
+}
+
+.skip-link { position: absolute; left: -9999px; }
+.skip-link:focus {
+  left: 8px; top: 8px; z-index: 100;
+  background: var(--accent); color: #fff; padding: 8px 14px;
+}
+
+.site-header {
+  position: sticky; top: 0; z-index: 20;
+  height: var(--header-h);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 30px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--ink);
+}
+
+.site-title {
+  font-family: var(--font-display);
+  font-size: 1.22rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.nav-toggle {
+  display: none;
+  font-size: 0.86rem; letter-spacing: 0.12em;
+  background: transparent; border: 1px solid var(--ink);
+  color: var(--ink); padding: 6px 14px; cursor: pointer;
+}
+
+.layout { display: flex; align-items: flex-start; }
+
+.sidebar {
+  flex: 0 0 var(--sidebar-w); width: var(--sidebar-w);
+  position: sticky; top: var(--header-h);
+  max-height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+  padding: 30px 20px 56px;
+  border-right: 1px solid var(--rule);
+}
+
+.content {
+  flex: 1 1 auto; min-width: 0;
+  max-width: var(--maxw);
+  padding: 46px 52px 110px;
+}
+
+.site-nav a {
+  display: block; color: var(--ink); text-decoration: none;
+  padding: 4px 0; font-size: 0.9rem; line-height: 1.6;
+}
+.site-nav a:hover { color: var(--accent); }
+.site-nav a[aria-current="page"] { color: var(--accent); font-weight: 700; }
+
+.nav-top {
+  font-family: var(--font-display);
+  font-size: 1rem !important;
+  margin: 6px 0;
+}
+
+.nav-group { margin: 16px 0; }
+.nav-group > summary {
+  cursor: pointer; list-style: none;
+  font-family: var(--font-display);
+  font-size: 1rem; letter-spacing: 0.06em;
+  padding: 6px 0 8px;
+  border-bottom: 1px solid var(--ink);
+}
+.nav-group > summary::-webkit-details-marker { display: none; }
+.nav-group ul { list-style: none; margin: 10px 0 14px; padding-left: 0; }
+
+/* 本文。見出しは明朝で組む */
+.content h1 {
+  font-family: var(--font-display);
+  font-size: 2.05rem; line-height: 1.4; font-weight: 600;
+  letter-spacing: 0.01em;
+  margin: 0 0 30px; padding-bottom: 18px;
+  border-bottom: 2px solid var(--ink);
+  text-wrap: balance;
+}
+
+.content h2 {
+  font-family: var(--font-display);
+  font-size: 1.42rem; font-weight: 600; line-height: 1.5;
+  margin: 54px 0 16px;
+  text-wrap: balance;
+}
+.content h2::before {
+  content: ""; display: block;
+  width: 100%; height: 1px; background: var(--rule);
+  margin-bottom: 18px;
+}
+
+.content h3 {
+  font-family: var(--font-display);
+  font-size: 1.14rem; font-weight: 600;
+  margin: 34px 0 10px;
+}
+.content h4 { font-size: 1rem; margin: 24px 0 8px; color: var(--ink-soft); }
+
+.content p { margin: 0 0 17px; }
+
+.content a { color: var(--accent); text-underline-offset: 3px; }
+
+.content ul, .content ol { margin: 0 0 18px; padding-left: 1.4em; }
+.content li { margin: 6px 0; }
+.content li > p { margin: 0 0 5px; }
+
+.content img { max-width: min(100%, 560px); height: auto; display: block; margin: 16px 0; }
+.content img[width="28"] { display: inline-block; margin: 4px 8px 4px 0; }
+
+.content iframe { max-width: 100%; border: 0; margin: 16px 0; }
+
+.embed-wrap {
+  position: relative; width: 100%; max-width: 700px;
+  aspect-ratio: 16 / 9; margin: 22px 0;
+}
+.embed-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; }
+
+.header-images {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 24px;
+  margin: 0 0 34px;
+}
+.header-images img { height: var(--header-img-h); width: auto; max-width: 100%; margin: 0; }
+
+/* 作品目録としてのプロジェクト一覧。上に細い罫線を引いて一件ずつ区切る */
+.thumb-row {
+  display: grid;
+  grid-template-columns: var(--thumb-w) 1fr;
+  gap: 26px; align-items: start;
+  padding: 22px 0 20px;
+  border-top: 1px solid var(--rule);
+}
+.thumb-row:first-of-type { border-top: 1px solid var(--ink); }
+
+.thumb { display: flex; align-items: center; justify-content: center; min-height: var(--thumb-h); }
+.thumb img {
+  height: var(--thumb-h); width: auto; max-width: none; margin: 0;
+  object-fit: contain;
+}
+.thumb-row.wide { grid-template-columns: auto minmax(180px, 1fr); }
+.thumb-row.wide .thumb { justify-content: flex-start; }
+.thumb-row.wide .thumb img { max-width: 100%; }
+
+.thumb-body { font-size: 0.97rem; }
+.thumb-body > :first-child { margin-top: 0; }
+.thumb-body > :last-child { margin-bottom: 0; }
+.thumb-body h2, .thumb-body h3 { margin-top: 0; }
+.thumb-body h2::before { display: none; }
+
+.content blockquote {
+  margin: 22px 0; padding: 2px 22px;
+  border-left: 1px solid var(--ink);
+  font-family: var(--font-display);
+  color: var(--ink-soft);
+}
+
+.content pre {
+  overflow-x: auto; background: var(--panel);
+  padding: 16px 18px; font-size: 0.86rem;
+}
+.content code {
+  background: var(--panel); padding: 1px 5px; font-size: 0.9em;
+}
+.content pre code { background: none; padding: 0; }
+
+.table-wrap { overflow-x: auto; margin: 22px 0; }
+.content table { border-collapse: collapse; min-width: 100%; font-size: 0.94rem; }
+.content th, .content td {
+  border-bottom: 1px solid var(--rule); padding: 9px 12px;
+  text-align: left; vertical-align: top;
+}
+.content th {
+  font-family: var(--font-display);
+  border-bottom: 1px solid var(--ink);
+  font-weight: 600;
+}
+.content td { font-variant-numeric: tabular-nums; }
+
+.content hr { border: 0; border-top: 1px solid var(--rule); margin: 40px 0; }
+
+.site-footer {
+  border-top: 1px solid var(--ink);
+  padding: 26px 52px 52px;
+  color: var(--ink-soft); font-size: 0.86rem;
+}
+.site-footer a { color: var(--ink-soft); }
+
+@media (max-width: 900px) {
+  .nav-toggle { display: block; }
+  .layout { display: block; }
+  .sidebar {
+    display: none; position: static; width: auto; max-height: none;
+    border-right: 0; border-bottom: 1px solid var(--ink);
+  }
+  .sidebar.open { display: block; }
+  .content { max-width: none; padding: 30px 22px 70px; }
+  .content h1 { font-size: 1.7rem; }
+  .site-footer { padding: 22px 22px 44px; }
+}
+
+@media (max-width: 700px) {
+  .thumb-row, .thumb-row.wide { grid-template-columns: 1fr; gap: 12px; }
+  .thumb { justify-content: flex-start; min-height: 0; }
+  .thumb img, .thumb-row.wide .thumb img {
+    height: auto; width: auto; max-width: 100%; max-height: var(--thumb-h);
+  }
+}
+
+@media (max-width: 560px) {
+  .header-images { gap: 14px; }
+  .header-images img { height: calc(var(--header-img-h) * 0.8); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

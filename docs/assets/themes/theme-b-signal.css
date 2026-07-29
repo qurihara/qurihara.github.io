@@ -1,0 +1,272 @@
+/* 候補B「信号」
+
+   方向性。SpeechJammer、音声ペン、Picognizerと、音を測って扱う研究が並んでいる。
+   そこで計測機器の画面を思わせる暗い配色にする。
+   差し色は蛍光色ではなく、古い計測器の表示に使われていた琥珀色にする。
+   青白い蛍光色より目に優しく、写真とも喧嘩しない。
+
+   この候補は明るい配色を用意せず、暗い配色ひとつで通す。
+   中途半端に両対応させるより、機器の画面という見立てを貫くほうが筋が通ると考えた。
+   これは省略ではなく選択である。
+
+   配色。地は青みのある濃紺。真っ黒にしないことで写真が沈まない。
+   字。本文はゴシック、数値と標識は等幅にして計器らしさを出す。
+   組み。左のナビゲーションを操作盤に見立て、現在位置に琥珀色の印を出す。 */
+
+:root {
+  --ground: #0e1319;
+  --panel: #141b23;
+  --panel-hi: #1b242e;
+  --ink: #dde3e8;
+  --ink-soft: #8d99a5;
+  --rule: #26313c;
+  --accent: #e8a33d;
+  --accent-soft: #2a2317;
+  --teal: #3e8e8e;
+
+  --header-h: 54px;
+  --sidebar-w: 296px;
+  --maxw: 780px;
+
+  --thumb-h: 100px;
+  --thumb-w: 240px;
+  --header-img-h: 170px;
+
+  --font-body: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic",
+               "Noto Sans JP", Meiryo, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.85;
+  -webkit-text-size-adjust: 100%;
+}
+
+.skip-link { position: absolute; left: -9999px; }
+.skip-link:focus {
+  left: 8px; top: 8px; z-index: 100;
+  background: var(--accent); color: #14100a; padding: 8px 14px;
+}
+
+.site-header {
+  position: sticky; top: 0; z-index: 20;
+  height: var(--header-h);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 22px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--rule);
+}
+
+.site-title {
+  font-size: 1.02rem; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--ink); text-decoration: none;
+}
+.site-title::before {
+  content: "";
+  display: inline-block;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent);
+  margin-right: 10px; vertical-align: middle;
+}
+
+.nav-toggle {
+  display: none;
+  font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.1em;
+  background: transparent; border: 1px solid var(--rule);
+  color: var(--ink); padding: 5px 12px; cursor: pointer;
+}
+
+.layout { display: flex; align-items: flex-start; }
+
+.sidebar {
+  flex: 0 0 var(--sidebar-w); width: var(--sidebar-w);
+  position: sticky; top: var(--header-h);
+  max-height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+  padding: 22px 14px 52px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+}
+
+.content {
+  flex: 1 1 auto; min-width: 0;
+  max-width: var(--maxw);
+  padding: 34px 42px 100px;
+}
+
+.site-nav a {
+  display: block; color: var(--ink-soft); text-decoration: none;
+  padding: 4px 10px; font-size: 0.9rem;
+  border-left: 2px solid transparent;
+}
+.site-nav a:hover { color: var(--ink); background: var(--panel-hi); }
+.site-nav a[aria-current="page"] {
+  color: var(--accent); border-left-color: var(--accent);
+  background: var(--accent-soft); font-weight: 600;
+}
+
+.nav-top { color: var(--ink) !important; font-weight: 600; margin: 3px 0; }
+
+.nav-group { margin: 12px 0; }
+.nav-group > summary {
+  cursor: pointer; list-style: none;
+  font-family: var(--font-mono);
+  font-size: 0.76rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--teal);
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--rule);
+}
+.nav-group > summary::-webkit-details-marker { display: none; }
+.nav-group > summary::after { content: " ▸"; }
+.nav-group[open] > summary::after { content: " ▾"; }
+.nav-group ul { list-style: none; margin: 6px 0 12px; padding-left: 0; }
+
+/* 本文。見出しの下に波形を思わせる区切りを置く */
+.content h1 {
+  font-size: 1.66rem; line-height: 1.45; margin: 0 0 10px;
+  text-wrap: balance;
+}
+.content h1::after {
+  content: ""; display: block;
+  height: 4px; margin-top: 14px;
+  background: repeating-linear-gradient(
+    90deg, var(--accent) 0 3px, transparent 3px 9px);
+  opacity: 0.85;
+}
+
+.content h2 {
+  font-size: 1.26rem; margin: 46px 0 14px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+  text-wrap: balance;
+}
+.content h3 { font-size: 1.07rem; margin: 30px 0 10px; color: var(--accent); }
+.content h4 { font-size: 0.98rem; margin: 22px 0 8px; color: var(--ink-soft); }
+
+.content p { margin: 0 0 15px; }
+
+.content a { color: var(--accent); text-underline-offset: 3px; }
+.content a:hover { color: #f5bc63; }
+
+.content ul, .content ol { margin: 0 0 17px; padding-left: 1.5em; }
+.content li { margin: 5px 0; }
+.content li > p { margin: 0 0 5px; }
+
+.content img {
+  max-width: min(100%, 560px); height: auto; display: block; margin: 14px 0;
+  border-radius: 2px;
+}
+.content img[width="28"] {
+  display: inline-block; margin: 4px 8px 4px 0;
+  /* 暗い地の上で黒いアイコンが沈むため、明るく反転させる */
+  filter: invert(1) brightness(0.85);
+}
+
+.content iframe { max-width: 100%; border: 1px solid var(--rule); margin: 14px 0; }
+
+.embed-wrap {
+  position: relative; width: 100%; max-width: 700px;
+  aspect-ratio: 16 / 9; margin: 18px 0;
+}
+.embed-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; }
+
+.header-images {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 18px;
+  margin: 0 0 28px; padding-bottom: 24px;
+  border-bottom: 1px solid var(--rule);
+}
+.header-images img { height: var(--header-img-h); width: auto; max-width: 100%; margin: 0; }
+
+.thumb-row {
+  display: grid;
+  grid-template-columns: var(--thumb-w) 1fr;
+  gap: 22px; align-items: start;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.thumb { display: flex; align-items: center; justify-content: center; min-height: var(--thumb-h); }
+.thumb img {
+  height: var(--thumb-h); width: auto; max-width: none; margin: 0;
+  object-fit: contain; border-radius: 2px;
+}
+.thumb-row.wide { grid-template-columns: auto minmax(180px, 1fr); }
+.thumb-row.wide .thumb { justify-content: flex-start; }
+.thumb-row.wide .thumb img { max-width: 100%; }
+
+.thumb-body > :first-child { margin-top: 0; }
+.thumb-body > :last-child { margin-bottom: 0; }
+.thumb-body h2, .thumb-body h3 { margin-top: 0; border: 0; padding: 0; }
+
+.content blockquote {
+  margin: 18px 0; padding: 4px 18px;
+  border-left: 2px solid var(--teal); color: var(--ink-soft);
+}
+
+.content pre {
+  overflow-x: auto; background: var(--panel);
+  border: 1px solid var(--rule);
+  padding: 14px 16px; font-size: 0.86rem; font-family: var(--font-mono);
+}
+.content code {
+  font-family: var(--font-mono);
+  background: var(--panel-hi); padding: 1px 5px; font-size: 0.9em;
+}
+.content pre code { background: none; padding: 0; }
+
+.table-wrap { overflow-x: auto; margin: 18px 0; }
+.content table { border-collapse: collapse; min-width: 100%; font-size: 0.94rem; }
+.content th, .content td {
+  border: 1px solid var(--rule); padding: 7px 11px;
+  text-align: left; vertical-align: top;
+}
+.content th {
+  background: var(--panel-hi);
+  font-family: var(--font-mono); font-size: 0.8rem;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--teal);
+}
+.content td { font-variant-numeric: tabular-nums; }
+
+.content hr { border: 0; border-top: 1px solid var(--rule); margin: 34px 0; }
+
+.site-footer {
+  border-top: 1px solid var(--rule);
+  padding: 22px 42px 48px;
+  color: var(--ink-soft);
+  font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.05em;
+}
+.site-footer a { color: var(--teal); }
+
+@media (max-width: 900px) {
+  .nav-toggle { display: block; }
+  .layout { display: block; }
+  .sidebar {
+    display: none; position: static; width: auto; max-height: none;
+    border-right: 0; border-bottom: 1px solid var(--rule);
+  }
+  .sidebar.open { display: block; }
+  .content { max-width: none; padding: 26px 20px 66px; }
+  .site-footer { padding: 20px 20px 42px; }
+}
+
+@media (max-width: 700px) {
+  .thumb-row, .thumb-row.wide { grid-template-columns: 1fr; gap: 10px; }
+  .thumb { justify-content: flex-start; min-height: 0; }
+  .thumb img, .thumb-row.wide .thumb img {
+    height: auto; width: auto; max-width: 100%; max-height: var(--thumb-h);
+  }
+}
+
+@media (max-width: 560px) {
+  .header-images { gap: 12px; }
+  .header-images img { height: calc(var(--header-img-h) * 0.8); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

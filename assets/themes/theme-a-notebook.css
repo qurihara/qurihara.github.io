@@ -1,0 +1,329 @@
+/* 候補A「実験ノート」
+
+   方向性。ヒューマンコンピュータインタラクションの研究は、作って測って確かめる仕事である。
+   そこで、方眼紙のうえに手で記録していくノートの見た目を借りる。
+   見出しの前には等幅の小さな標識を置き、節ごとに罫線で区切る。
+   派手さは加えず、記録として読みやすいことを優先する。
+
+   配色。紙は少し灰みのある白。文字は黒に寄せた濃い灰。
+   差し色は製図用のインクを思わせる青ひとつに絞る。
+   字。本文は端末の丸ゴシック系、標識と数値は等幅にして、記録らしさを出す。
+   組み。左に細い罫線で区切ったナビゲーション、本文は読みやすい幅で止める。 */
+
+:root {
+  --paper: #f7f7f4;
+  --panel: #f1f1ec;
+  --ink: #191b1e;
+  --ink-soft: #5e646b;
+  --rule: #d6d8d1;
+  --rule-soft: #e6e7e1;
+  --accent: #1b4fa0;
+  --accent-soft: #e8eef8;
+
+  --header-h: 54px;
+  --sidebar-w: 292px;
+  --maxw: 780px;
+
+  --thumb-h: 100px;
+  --thumb-w: 240px;
+  --header-img-h: 170px;
+
+  --font-body: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic",
+               "Noto Sans JP", Meiryo, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Hiragino Kaku Gothic ProN", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #16181a;
+    --panel: #1c1f22;
+    --ink: #e7e9ea;
+    --ink-soft: #9aa1a8;
+    --rule: #2f3438;
+    --rule-soft: #262b2e;
+    --accent: #7fb0f2;
+    --accent-soft: #1d2a3d;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #16181a;
+  --panel: #1c1f22;
+  --ink: #e7e9ea;
+  --ink-soft: #9aa1a8;
+  --rule: #2f3438;
+  --rule-soft: #262b2e;
+  --accent: #7fb0f2;
+  --accent-soft: #1d2a3d;
+}
+
+:root[data-theme="light"] {
+  --paper: #f7f7f4;
+  --panel: #f1f1ec;
+  --ink: #191b1e;
+  --ink-soft: #5e646b;
+  --rule: #d6d8d1;
+  --rule-soft: #e6e7e1;
+  --accent: #1b4fa0;
+  --accent-soft: #e8eef8;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.85;
+  -webkit-text-size-adjust: 100%;
+}
+
+.skip-link { position: absolute; left: -9999px; }
+.skip-link:focus {
+  left: 8px; top: 8px; z-index: 100;
+  background: var(--accent); color: #fff; padding: 8px 14px;
+}
+
+/* 見出し部分。方眼紙の目を薄く敷く */
+.site-header {
+  position: sticky; top: 0; z-index: 20;
+  height: var(--header-h);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--ink);
+  background-image:
+    linear-gradient(to right, var(--rule-soft) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--rule-soft) 1px, transparent 1px);
+  background-size: 16px 16px, 16px 16px;
+}
+
+.site-title {
+  font-family: var(--font-mono);
+  font-size: 0.98rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.nav-toggle {
+  display: none;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  background: transparent;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  padding: 5px 11px;
+  cursor: pointer;
+}
+
+.layout { display: flex; align-items: flex-start; }
+
+.sidebar {
+  flex: 0 0 var(--sidebar-w); width: var(--sidebar-w);
+  position: sticky; top: var(--header-h);
+  max-height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+  padding: 22px 16px 48px;
+  background: var(--panel);
+  border-right: 1px solid var(--rule);
+}
+
+.content {
+  flex: 1 1 auto; min-width: 0;
+  max-width: var(--maxw);
+  padding: 34px 40px 96px;
+}
+
+/* ナビゲーション。等幅の見出しで区分けする */
+.site-nav a {
+  display: block;
+  color: var(--ink);
+  text-decoration: none;
+  padding: 4px 9px;
+  font-size: 0.9rem;
+  border-left: 2px solid transparent;
+}
+.site-nav a:hover { background: var(--rule-soft); }
+.site-nav a[aria-current="page"] {
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.nav-top {
+  font-family: var(--font-mono);
+  font-size: 0.82rem !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 3px 0;
+}
+
+.nav-group { margin: 12px 0; }
+.nav-group > summary {
+  cursor: pointer; list-style: none;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 5px 9px;
+  border-bottom: 1px solid var(--rule);
+}
+.nav-group > summary::-webkit-details-marker { display: none; }
+.nav-group > summary::after { content: " +"; }
+.nav-group[open] > summary::after { content: " −"; }
+.nav-group > summary:hover { color: var(--accent); }
+.nav-group ul { list-style: none; margin: 6px 0 10px; padding-left: 0; }
+
+/* 本文 */
+.content h1 {
+  font-size: 1.62rem; line-height: 1.45;
+  margin: 0 0 8px;
+  text-wrap: balance;
+}
+.content h1::before {
+  content: "";
+  display: block;
+  width: 46px; height: 3px;
+  background: var(--accent);
+  margin-bottom: 14px;
+}
+
+.content h2 {
+  font-size: 1.24rem;
+  margin: 46px 0 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ink);
+  text-wrap: balance;
+}
+.content h3 {
+  font-size: 1.06rem; margin: 30px 0 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px dotted var(--rule);
+}
+.content h4 { font-size: 0.98rem; margin: 22px 0 8px; color: var(--ink-soft); }
+
+.content p { margin: 0 0 15px; }
+
+.content a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+.content ul, .content ol { margin: 0 0 17px; padding-left: 1.5em; }
+.content li { margin: 5px 0; }
+.content li > p { margin: 0 0 5px; }
+
+.content img { max-width: min(100%, 560px); height: auto; display: block; margin: 14px 0; }
+.content img[width="28"] { display: inline-block; margin: 4px 7px 4px 0; }
+
+.content iframe { max-width: 100%; border: 1px solid var(--rule); margin: 14px 0; }
+
+.embed-wrap {
+  position: relative; width: 100%; max-width: 700px;
+  aspect-ratio: 16 / 9; margin: 18px 0;
+}
+.embed-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; }
+
+/* 冒頭の写真 */
+.header-images {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 18px;
+  margin: 0 0 26px; padding-bottom: 22px;
+  border-bottom: 1px solid var(--rule);
+}
+.header-images img { height: var(--header-img-h); width: auto; max-width: 100%; margin: 0; }
+
+/* プロジェクト一覧。ノートの記録のように点線で区切る */
+.thumb-row {
+  display: grid;
+  grid-template-columns: var(--thumb-w) 1fr;
+  gap: 22px; align-items: start;
+  padding: 14px 0;
+  border-bottom: 1px dotted var(--rule);
+}
+.thumb { display: flex; align-items: center; justify-content: center; min-height: var(--thumb-h); }
+.thumb img {
+  height: var(--thumb-h); width: auto; max-width: none; margin: 0;
+  object-fit: contain;
+  background: var(--panel);
+}
+.thumb-row.wide { grid-template-columns: auto minmax(180px, 1fr); }
+.thumb-row.wide .thumb { justify-content: flex-start; }
+.thumb-row.wide .thumb img { max-width: 100%; }
+
+.thumb-body > :first-child { margin-top: 0; }
+.thumb-body > :last-child { margin-bottom: 0; }
+.thumb-body h2, .thumb-body h3 { margin-top: 0; border: 0; padding: 0; }
+
+.content blockquote {
+  margin: 18px 0; padding: 4px 18px;
+  border-left: 2px solid var(--accent); color: var(--ink-soft);
+}
+
+.content pre {
+  overflow-x: auto; background: var(--panel);
+  border: 1px solid var(--rule);
+  padding: 14px 16px; font-size: 0.86rem;
+  font-family: var(--font-mono);
+}
+.content code {
+  font-family: var(--font-mono);
+  background: var(--panel); padding: 1px 5px; font-size: 0.9em;
+}
+.content pre code { background: none; padding: 0; }
+
+.table-wrap { overflow-x: auto; margin: 18px 0; }
+.content table { border-collapse: collapse; min-width: 100%; font-size: 0.94rem; }
+.content th, .content td {
+  border: 1px solid var(--rule); padding: 7px 11px;
+  text-align: left; vertical-align: top;
+}
+.content th {
+  background: var(--panel);
+  font-family: var(--font-mono); font-size: 0.82rem;
+  letter-spacing: 0.05em; text-transform: uppercase;
+}
+.content td { font-variant-numeric: tabular-nums; }
+
+.content hr { border: 0; border-top: 1px solid var(--ink); margin: 34px 0; }
+
+.site-footer {
+  border-top: 1px solid var(--ink);
+  padding: 20px 40px 44px;
+  color: var(--ink-soft);
+  font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.04em;
+}
+.site-footer a { color: var(--ink-soft); }
+
+@media (max-width: 900px) {
+  .nav-toggle { display: block; }
+  .layout { display: block; }
+  .sidebar {
+    display: none; position: static; width: auto; max-height: none;
+    border-right: 0; border-bottom: 1px solid var(--ink);
+  }
+  .sidebar.open { display: block; }
+  .content { max-width: none; padding: 26px 20px 64px; }
+  .site-footer { padding: 18px 20px 40px; }
+}
+
+@media (max-width: 700px) {
+  .thumb-row, .thumb-row.wide { grid-template-columns: 1fr; gap: 10px; }
+  .thumb { justify-content: flex-start; min-height: 0; }
+  .thumb img, .thumb-row.wide .thumb img {
+    height: auto; width: auto; max-width: 100%; max-height: var(--thumb-h);
+  }
+}
+
+@media (max-width: 560px) {
+  .header-images { gap: 12px; }
+  .header-images img { height: calc(var(--header-img-h) * 0.8); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
