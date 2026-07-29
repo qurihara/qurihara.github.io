@@ -95,8 +95,10 @@
 <p>See node_beefy_example.js for checking up the actual coding mannar.</p>
 <h2><a href="#h.p_ID_80"></a>How to code</h2><pre><code>// for web browser </code></pre><pre><code>var Pico = require('picognizer'); </code></pre><pre><code>// for Node.js/beefy </code></pre><pre><code>//var Meyda = require("./lib/meyda.min"); </code></pre><pre><code>//var Pico = require('./picognizer'); </code></pre><pre><br></pre><pre><code>var P = new Pico; </code></pre><pre><br></pre><pre><code>//parameter </code></pre><pre><code>option = { </code></pre><pre><code> bufferSize:Math.pow(2, 10), // fft size (defalt: automatic) </code></pre><pre><code> windowFunc:"hamming", // window function (default: hamming) </code></pre><pre><code> feature:["mfcc"], // features (default: ["powerSpectrum"])</code></pre><pre><code> mode:"direct", // method for recognition (default: direct)</code></pre><pre><code> inputType:"audio", // if you input audio without using mic (default: mic)</code></pre><pre><code> bgm:"input_audio_name", // filename of input audio without using mic </code></pre><pre><code> framesec:0.1, // seconds for a feature extraction (default: 0.02) </code></pre><pre><code> duration:1.0, // seconds for cost calculation (default: 1.0) </code></pre><pre><code> slice:[0,1.0] // slice time[s] for recognition feature, slice[0] is start and slice[1] is end</code></pre><pre><code>}; </code></pre><pre><code>P.init(option); //set parameter </code></pre><pre><code>P.oncost('url_for_audiofilename.mp3', function(cost){</code></pre><pre><code> // do something with cost</code></pre><pre><code>}); </code></pre>
 <p>Please see <a href="https://github.com/meyda/meyda/wiki" target="_blank">meyda wiki</a> for parameters (bufferSize, windowFunc, feature) on features since meyda is used for feature extraction.</p>
-<img loading="lazy" src="/assets/img/7806295e16903f55.jpg">
-<p>(c) Kazutaka Kurihara</p>
+<div class="thumb-row">
+<div class="thumb"><img class="pthumb" loading="lazy" src="/assets/img/7806295e16903f55.jpg"></div>
+<div class="thumb-body"><p>(c) Kazutaka Kurihara</p></div>
+</div>
   </main>
 </div>
 <footer class="site-footer">

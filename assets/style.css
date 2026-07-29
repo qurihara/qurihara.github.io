@@ -11,6 +11,14 @@
   --header-h: 56px;
   --sidebar-w: 300px;
   --maxw: 860px;
+
+  /* プロジェクト紹介のサムネイル画像。
+     --thumb-h が表示上の高さで、ここを変えると全プロジェクトの画像が一斉に揃う。
+     元の画像ファイルはいずれも高さ100ピクセルで用意されているため、
+     100px にすると原寸で、それ以外にすると拡大・縮小されて表示される。
+     --thumb-w はサムネイルを置く列の幅で、横長の画像がはみ出さない値にしてある。 */
+  --thumb-h: 100px;
+  --thumb-w: 200px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -224,6 +232,46 @@ body {
   width: 100%;
   height: 100%;
   margin: 0;
+}
+
+/* プロジェクト紹介の段組み。左にサムネイル画像、右に説明文を置く。
+
+   サムネイルは元の画像ファイルの高さが100ピクセルに揃えてある。
+   そこで表示でも高さを揃え、横幅のほうを内容に応じて変えることで、
+   縦の並びとしての統一感を出す。元のGoogle Sitesは列の幅に合わせて
+   画像を拡大するため、この揃えが崩れていた。 */
+.thumb-row {
+  display: grid;
+  grid-template-columns: var(--thumb-w) 1fr;
+  gap: 20px;
+  align-items: start;
+  margin: 18px 0;
+}
+
+.thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--thumb-h);
+}
+
+.thumb img.pthumb {
+  height: var(--thumb-h);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  margin: 0;
+}
+
+.thumb-body > :first-child { margin-top: 0; }
+.thumb-body > :last-child { margin-bottom: 0; }
+.thumb-body h2,
+.thumb-body h3 { margin-top: 0; }
+
+@media (max-width: 700px) {
+  /* 画面が狭いときは、サムネイルを上、説明文を下にする */
+  .thumb-row { grid-template-columns: 1fr; gap: 10px; }
+  .thumb { justify-content: flex-start; min-height: 0; }
 }
 
 .content blockquote {

@@ -76,6 +76,35 @@ def save_image(url, index_by_hash):
     return ref
 
 
+# プロジェクト紹介用のサムネイル画像は、元の画像ファイルの高さを揃えて作ってある。
+# その高さをここに書いておき、これに一致する画像だけをサムネイルとして扱う。
+THUMB_SOURCE_HEIGHT = 100
+
+
+def image_size(ref):
+    """assets/img に保存した画像の、本来の大きさを返す。"""
+    path = os.path.join(ROOT, ref)
+    try:
+        from PIL import Image
+        with Image.open(path) as im:
+            return im.size
+    except Exception:
+        return (0, 0)
+
+
+def mark_thumbnails(body):
+    """高さが揃えてある画像に印を付ける。段組みを組むときの目印にする。"""
+    def add_class(m):
+        tag, src = m.group(0), m.group(1)
+        ref = src.lstrip("/")
+        w, h = image_size(ref)
+        if h == THUMB_SOURCE_HEIGHT:
+            return tag.replace("<img ", '<img class="pthumb" ', 1)
+        return tag
+
+    return re.sub(r'<img[^>]*src="(/assets/img/[^"]+)"[^>]*>', add_class, body)
+
+
 def unwrap_google_redirect(url):
     """http(s)://www.google.com/url?q=<本来のURL>&... を本来のURLに戻す。"""
     if not re.match(r"https?://www\.google\.com/url\?", url):
@@ -149,7 +178,11 @@ def main():
             print(f"  解析に失敗: {path} ({exc})", file=sys.stderr)
             continue
 
-        body = "\n".join(tidy(render(c)) for c in parser.results)
+        # 元サイトは本文をブロック単位で並べ、横に並べて段組みにしている。
+        # あとで段組みを組み直せるよう、ブロックの区切りを保ったまま書き出す。
+        blocks = [tidy(render(c)) for c in parser.results]
+        blocks = [b for b in blocks if b.strip()]
+        body = "\n".join(f'<div class="blk">\n{b}\n</div>' for b in blocks)
         body = clean_links(body)
 
         # このページの画像を、URLが失効する前にすぐ保存する
@@ -160,6 +193,7 @@ def main():
                 body = body.replace(f'src="{iu}"', f'src="/{ref}"')
 
         body = body.replace("<img ", '<img loading="lazy" ')
+        body = mark_thumbnails(body)
 
         title = page_title(raw)
         text_len = len(re.sub(r"<[^>]+>", "", body))

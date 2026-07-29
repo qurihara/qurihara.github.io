@@ -71,6 +71,54 @@ def nav_html(nav, current_path):
     return "\n".join(parts)
 
 
+BLOCK_RE = re.compile(r'<div class="blk">\n(.*?)\n</div>', re.S)
+
+
+def block_kind(inner):
+    """ブロックの中身を見分ける。
+
+    サムネイル画像だけが入ったブロックを "thumb" とする。段組みの左側に置く。
+    """
+    text = re.sub(r"<[^>]+>", "", inner)
+    text = html.unescape(text).strip()
+    has_img = "<img" in inner
+    is_thumb = 'class="pthumb"' in inner
+    if has_img and len(text) < 3:
+        return "thumb" if is_thumb else "image"
+    if has_img:
+        return "mixed"
+    return "text"
+
+
+def compose_layout(body):
+    """画像だけのブロックと、そのすぐ後ろの文章ブロックを横並びにする。
+
+    元サイトはプロジェクト紹介を「左に小さなサムネイル画像、右に説明文」という
+    段組みで見せている。その並びを組み直す。段組みにできない箇所はそのまま縦に並べる。
+    """
+    blocks = [(m.group(1), block_kind(m.group(1))) for m in BLOCK_RE.finditer(body)]
+    if not blocks:
+        return body
+
+    out = []
+    i = 0
+    while i < len(blocks):
+        inner, kind = blocks[i]
+        nxt = blocks[i + 1] if i + 1 < len(blocks) else None
+        if kind == "thumb" and nxt and nxt[1] == "text":
+            out.append(
+                '<div class="thumb-row">\n'
+                f'<div class="thumb">{inner}</div>\n'
+                f'<div class="thumb-body">{nxt[0]}</div>\n'
+                "</div>"
+            )
+            i += 2
+            continue
+        out.append(inner)
+        i += 1
+    return "\n".join(out)
+
+
 def apply_base(body):
     """本文中のサイト内リンクと画像参照に、公開先の起点を付ける。"""
     if not BASE:
@@ -160,6 +208,7 @@ def main():
         if not os.path.exists(frag_path):
             continue
         body = open(frag_path, encoding="utf-8").read()
+        body = compose_layout(body)
 
         title_page = clean_title(entry["title"])
         full_title = SITE_NAME if entry["path"] in ("/", "/home") else f"{title_page} | {SITE_NAME}"
