@@ -1,0 +1,218 @@
+#!/usr/bin/env python3
+"""site/*.fragment.html と nav.json から、公開用の静的サイトを docs/ に組み立てる。
+
+元サイトのURL（例 https://www.unryu.org/home/kotodama）をそのまま保つため、
+各ページは docs/home/kotodama/index.html という形で書き出す。こうすると
+GitHub Pages でも同じURLでアクセスでき、外部からのリンクが切れない。
+"""
+import argparse
+import html
+import json
+import os
+import re
+import shutil
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SITE = os.path.join(ROOT, "site")
+DOCS = os.path.join(ROOT, "docs")
+ASSETS = os.path.join(ROOT, "assets")
+
+SITE_NAME = "Kazutaka Kurihara"
+
+# 公開先によってURLの起点が変わる。
+#   独自ドメイン（https://www.unryu.org/）で公開する場合は空文字。
+#   GitHub Pages の qurihara.github.io/unryu-site/ で試す場合は "/unryu-site"。
+BASE = ""
+
+
+def load_json(name):
+    with open(os.path.join(ROOT, name), encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def clean_title(raw_title):
+    """「Kazutaka Kurihara - 01. ことだま」からページ名だけを取り出す。"""
+    if not raw_title:
+        return SITE_NAME
+    if " - " in raw_title:
+        return raw_title.split(" - ", 1)[1].strip()
+    return raw_title.strip()
+
+
+def nav_html(nav, current_path):
+    """サイト共通のナビゲーションを組み立てる。"""
+    parts = ['<nav class="site-nav" aria-label="サイト内ナビゲーション">']
+    for group in nav:
+        children = group["children"]
+        if children:
+            open_attr = " open" if current_path.startswith(group["href"]) else ""
+            parts.append(f"<details class=\"nav-group\"{open_attr}>")
+            parts.append(f"<summary>{html.escape(group['title'])}</summary>")
+            parts.append("<ul>")
+            here = ' aria-current="page"' if current_path == group["href"] else ""
+            parts.append(
+                f'<li><a href="{BASE}{group["href"]}"{here}>'
+                f'{html.escape(group["title"])}のトップ</a></li>'
+            )
+            for child in children:
+                here = ' aria-current="page"' if current_path == child["href"] else ""
+                parts.append(
+                    f'<li><a href="{BASE}{child["href"]}"{here}>'
+                    f"{html.escape(child['label'])}</a></li>"
+                )
+            parts.append("</ul></details>")
+        else:
+            here = ' aria-current="page"' if current_path == group["href"] else ""
+            parts.append(
+                f'<a class="nav-top" href="{BASE}{group["href"]}"{here}>'
+                f"{html.escape(group['title'])}</a>"
+            )
+    parts.append("</nav>")
+    return "\n".join(parts)
+
+
+def apply_base(body):
+    """本文中のサイト内リンクと画像参照に、公開先の起点を付ける。"""
+    if not BASE:
+        return body
+    body = re.sub(r'href="/(?!/)', f'href="{BASE}/', body)
+    body = re.sub(r'src="/(?!/)', f'src="{BASE}/', body)
+    return body
+
+
+PAGE = """<!DOCTYPE html>
+<html lang="{lang}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title}</title>
+<meta name="description" content="{desc}">
+<meta property="og:title" content="{title}">
+<meta property="og:description" content="{desc}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.unryu.org{path}">
+<link rel="stylesheet" href="{base}/assets/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+<header class="site-header">
+  <a class="site-title" href="{base}/">{site_name}</a>
+  <button class="nav-toggle" aria-expanded="false" aria-controls="sitenav">メニュー</button>
+</header>
+<div class="layout">
+  <div class="sidebar" id="sitenav">
+{nav}
+  </div>
+  <main id="main" class="content">
+{body}
+  </main>
+</div>
+<footer class="site-footer">
+  <p>{site_name} — <a href="https://www.unryu.org/">www.unryu.org</a></p>
+</footer>
+<script src="{base}/assets/site.js"></script>
+</body>
+</html>
+"""
+
+
+def make_description(body_html):
+    text = re.sub(r"<[^>]+>", " ", body_html)
+    text = html.unescape(text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return html.escape(text[:150], quote=True)
+
+
+def fragment_to_docs_path(path):
+    """/home/kotodama -> docs/home/kotodama/index.html"""
+    if path == "/":
+        return os.path.join(DOCS, "index.html")
+    return os.path.join(DOCS, path.strip("/"), "index.html")
+
+
+def main():
+    global BASE
+    ap = argparse.ArgumentParser(description="静的サイトを docs/ に組み立てる。")
+    ap.add_argument(
+        "--base", default="",
+        help="公開先のURLの起点。独自ドメインなら指定しない。"
+             "GitHub Pages で試すときは /リポジトリ名 を渡す。")
+    ap.add_argument(
+        "--cname", default="",
+        help="独自ドメインで公開するときに CNAME ファイルへ書く名前。"
+             "例 www.unryu.org。指定しなければ CNAME を作らない。")
+    args = ap.parse_args()
+    BASE = args.base.rstrip("/")
+
+    manifest = load_json("manifest.json")
+    nav = load_json("nav.json")
+
+    if os.path.isdir(DOCS):
+        shutil.rmtree(DOCS)
+    os.makedirs(DOCS, exist_ok=True)
+
+    # 画像などの資産をそのまま複製する
+    shutil.copytree(ASSETS, os.path.join(DOCS, "assets"))
+
+    written = 0
+    for entry in manifest:
+        frag_path = os.path.join(SITE, entry["fragment"])
+        if not os.path.exists(frag_path):
+            continue
+        body = open(frag_path, encoding="utf-8").read()
+
+        title_page = clean_title(entry["title"])
+        full_title = SITE_NAME if entry["path"] in ("/", "/home") else f"{title_page} | {SITE_NAME}"
+        lang = "en" if entry["path"].startswith("/top-english") else "ja"
+
+        # 見出しが本文の先頭にないページには、ページ名を見出しとして補う
+        if entry["path"] not in ("/", "/home") and not re.match(r"\s*<h1", body):
+            body = f"<h1>{html.escape(title_page)}</h1>\n" + body
+
+        body = apply_base(body)
+
+        out_html = PAGE.format(
+            lang=lang,
+            base=BASE,
+            title=html.escape(full_title, quote=True),
+            desc=make_description(body),
+            path=entry["path"],
+            site_name=html.escape(SITE_NAME),
+            nav=nav_html(nav, entry["path"]),
+            body=body,
+        )
+
+        dest = fragment_to_docs_path(entry["path"])
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        with open(dest, "w", encoding="utf-8") as fh:
+            fh.write(out_html)
+        written += 1
+
+    # 独自ドメインで公開すると決めたときだけ CNAME を置く。
+    # DNS を切り替える前にこれを置くと、GitHub Pages が独自ドメインへ誘導しようとして
+    # 試験公開用のURLで見られなくなるため、既定では作らない。
+    if args.cname:
+        with open(os.path.join(DOCS, "CNAME"), "w", encoding="utf-8") as fh:
+            fh.write(args.cname.strip() + "\n")
+    # Jekyll の処理を通さない
+    with open(os.path.join(DOCS, ".nojekyll"), "w", encoding="utf-8") as fh:
+        fh.write("")
+
+    # sitemap.xml。検索エンジンには本来のドメインのURLを伝える。
+    urls = "\n".join(
+        f"  <url><loc>https://www.unryu.org{e['path']}</loc></url>"
+        for e in manifest if e["path"] != "/home"
+    )
+    with open(os.path.join(DOCS, "sitemap.xml"), "w", encoding="utf-8") as fh:
+        fh.write('<?xml version="1.0" encoding="UTF-8"?>\n'
+                 '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+                 f"{urls}\n</urlset>\n")
+
+    with open(os.path.join(DOCS, "robots.txt"), "w", encoding="utf-8") as fh:
+        fh.write("User-agent: *\nAllow: /\n\nSitemap: https://www.unryu.org/sitemap.xml\n")
+
+    print(f"{written} ページを {DOCS} に書き出した。")
+
+
+if __name__ == "__main__":
+    main()

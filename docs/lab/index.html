@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>栗原研究室 | Kazutaka Kurihara</title>
+<meta name="description" content="栗原研究室 津田塾大学 学芸学部 情報科学科 栗原研究室の学生の研究成果（卒業論文、修士論文）について紹介します。エンタテインメントコンピューティング分野とヒューマンコンピュータインタラクション分野の研究を主に行っています。学会発表したり、ITものづくり系コンテストに応募し受賞したりと、幅広く活動・">
+<meta property="og:title" content="栗原研究室 | Kazutaka Kurihara">
+<meta property="og:description" content="栗原研究室 津田塾大学 学芸学部 情報科学科 栗原研究室の学生の研究成果（卒業論文、修士論文）について紹介します。エンタテインメントコンピューティング分野とヒューマンコンピュータインタラクション分野の研究を主に行っています。学会発表したり、ITものづくり系コンテストに応募し受賞したりと、幅広く活動・">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.unryu.org/lab">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+<header class="site-header">
+  <a class="site-title" href="/">Kazutaka Kurihara</a>
+  <button class="nav-toggle" aria-expanded="false" aria-controls="sitenav">メニュー</button>
+</header>
+<div class="layout">
+  <div class="sidebar" id="sitenav">
+<nav class="site-nav" aria-label="サイト内ナビゲーション">
+<details class="nav-group">
+<summary>日本語</summary>
+<ul>
+<li><a href="/home">日本語のトップ</a></li>
+<li><a href="/home/old-projects">00. Old Projects</a></li>
+<li><a href="/home/kotodama">01. ことだま</a></li>
+<li><a href="/home/kotodama-lecture">01α. ことだまレクチャー（教育関係者向け）</a></li>
+<li><a href="/home/speechpen">02. 音声ペン</a></li>
+<li><a href="/home/timeline">03. 柔軟なタイムライン</a></li>
+<li><a href="/home/presentationsensei">04. プレゼン先生</a></li>
+<li><a href="/home/kotodamulti">05. ことだまるち</a></li>
+<li><a href="/home/irgel">06. 居るゴール</a></li>
+<li><a href="/home/dining-presenter">07. Dining Presenter</a></li>
+<li><a href="/home/microslip-hci">08. マイクロスリップとHCI</a></li>
+<li><a href="/home/borderless-canvas">09. Borderless Canvas</a></li>
+<li><a href="/home/tailstat">10. tailstat</a></li>
+<li><a href="/home/spiemenu">11. sPieMenu</a></li>
+<li><a href="/home/speechjammer">12. SpeechJammer</a></li>
+<li><a href="/home/cinemagazer">13. CinemaGazer</a></li>
+<li><a href="/home/speechprotector">14. SpeechProtector</a></li>
+<li><a href="/home/whisperpoint">15. WhisperPoint</a></li>
+<li><a href="/home/peepdetectorfake">16. PeepDetectorFake</a></li>
+<li><a href="/home/looselocker">17. LooseLocker</a></li>
+<li><a href="/home/t3dm">18. Tetris 3D Modeler</a></li>
+<li><a href="/home/oah">19. Openness-adjustable Headset</a></li>
+<li><a href="/home/ubf">20. The Universal Background Filter</a></li>
+<li><a href="/home/2ff">21. 2FF Youtube Viewer</a></li>
+<li><a href="/home/srtjs">22. srt.js</a></li>
+<li><a href="/home/picognizer">23.Picognizer</a></li>
+<li><a href="/home/gc">24.GameControllerizer</a></li>
+<li><a href="/home/ig-research19">25. Ig Nobel Research 2019</a></li>
+<li><a href="/home/vs_covid19">vs_covid19</a></li>
+</ul></details>
+<details class="nav-group">
+<summary>English</summary>
+<ul>
+<li><a href="/top-english">Englishのトップ</a></li>
+<li><a href="/top-english/borderless-canvas">Borderless Canvas</a></li>
+<li><a href="/top-english/cinemagazer">CinemaGazer</a></li>
+<li><a href="/top-english/publications">CV</a></li>
+<li><a href="/top-english/dining-presenter">Dining Presenter</a></li>
+<li><a href="/top-english/irgel">Irgel</a></li>
+<li><a href="/top-english/kotodama">Kotodama</a></li>
+<li><a href="/top-english/kotodamulti">KotodaMulti</a></li>
+<li><a href="/top-english/picognizer">Picognizer</a></li>
+<li><a href="/top-english/presentation-sensei">Presentation Sensei</a></li>
+<li><a href="/top-english/speechjammer">SpeechJammer</a></li>
+<li><a href="/top-english/speechpen">SpeechPen</a></li>
+<li><a href="/top-english/speechprotector">SpeechProtector</a></li>
+<li><a href="/top-english/spiemenu">sPieMenu</a></li>
+<li><a href="/top-english/srtjs">srtjs</a></li>
+<li><a href="/top-english/t3dm">Tetris 3D Modeler</a></li>
+<li><a href="/top-english/timeline">Timeline</a></li>
+</ul></details>
+<a class="nav-top" href="/profile">Profile</a>
+<a class="nav-top" href="/publications">Publications</a>
+<a class="nav-top" href="/lab" aria-current="page">栗原研究室</a>
+</nav>
+  </div>
+  <main id="main" class="content">
+<h1><a href="#h.9a5o8k9w3b5k"></a>栗原研究室</h1>
+<p>津田塾大学 学芸学部 情報科学科 栗原研究室の学生の研究成果（卒業論文、修士論文）について紹介します。エンタテインメントコンピューティング分野とヒューマンコンピュータインタラクション分野の研究を主に行っています。学会発表したり、ITものづくり系コンテストに応募し受賞したりと、幅広く活動・活躍しています。<a href="/home">栗原個人の研究成果についてはこちらから。</a></p>
+<h2><a href="#h.9sa2bj6jz4p0"></a>栗原研究室10周年企画展紹介動画</h2>
+<p>研究室の研究と雰囲気を御覧ください。</p>
+<iframe src="https://www.youtube.com/embed/soA6tYY5OAw"></iframe>
+<h2><a href="#h.b2c91acq60iz"></a>2026年度</h2>
+<ul>
+<li>
+<h3><a href="#h.j4g17ap80nbb"></a>後期博士 1名</h3></li>
+<li>
+<h3><a href="#h.tpf968nve0zs"></a>修士 3名</h3></li>
+<li>
+<h3><a href="#h.7jhglhfzrfl"></a>学部 7名</h3></li></ul>
+<h2><a href="#h.chvxbdn7cjh0"></a>これまでの学位論文</h2>
+<h2><a href="#h.iqmu4jwve8xm"></a>2025年度</h2>
+<ul>
+<li>
+<h3><a href="#h.wq5o3mdl2tmb"></a>【修士論文】競技かるた詠み音声における合成音声の代替可能性の探索的検討</h3>
+<ul>
+<li>
+<p>競技かるたにおいて詠み音声として合成音声が活用できれば，効果的な訓練や情報保障の上で有用である．本研究では競技かるたにおいて，合成音声の詠みが人間の詠みの代替手段として有効である可能性を探索的に検討する．詠まれている和歌を特定できるタイミングを示す指標と，和歌の特定の確信度の変化傾向を示す指標を数理モデル化し，聞き分け能力の訓練用途での合成音声の代替可能性と，公平性を確保する用途での合成音声の代替可能性を検討する手法を提案する．実験の結果，人間音声の代替として合成音声を用いた聞き分け能力訓練システムは有用であることが示唆された．また，公平性確保用途の合成音声の活用の可能性が拓かれた．最後に，提案手法の他分野への応用や今後のより大規模なデータ分析に向けての課題と展望について考察した．</p></li></ul></li></ul>
+<iframe src="https://www.youtube.com/embed/us6C2G6qqD4"></iframe>
+<a href="https://protopedia.net/prototype/7801" target="_blank">
+<p>Protopediaで詳しく見る</p></a>
+<p>発表歴</p>
+<ul>
+<li>
+<ul>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=238708&amp;item_no=1&amp;page_id=13&amp;block_id=8" target="_blank">情報処理学会EC'24 登壇発表</a></p></li>
+<li>
+<p>Heroes League2025 決勝進出</p></li>
+<li>
+<p><a href="https://www.ipsj.or.jp/kenkyukai/event/ec79.html" target="_blank">情報処理学会第79回EC研究会 登壇発表</a></p></li></ul></li></ul>
+<ul>
+<li>
+<h3><a href="#h.8sqabasfrdkz"></a>【卒業論文】ジグルーチン：健康のための貧乏ゆすりの積極的活用とエンタテインメント化の基礎検討</h3>
+<ul>
+<li>
+<ul>
+<li>
+<p>貧乏ゆすりは⼀般的に否定的に捉えられやすい⾏動であるが，近年では⾎管機能の維持やエネルギー消費量の増加といった健康的価値が報告されている．また，リモートワークの普及により座位時間が増加する中で，貧乏ゆすりは座位のまま実⾏できる有⽤な微⼩⾝体であると考えられる．しかし，貧乏ゆすりのような無意識的な⾝体⾏動を意識的に継続し，⽇常的に定着させることは容易ではない．本研究では，作業中の貧乏ゆすりの実施と習慣化を⽀援するシステム「ジグルーチン」を提案する．ジグルーチンは加速度センサによる動作検知，作業中の視覚的演出提⽰，実施状況の振り返り機能から構成され，視覚的演出には，肯定的なフィードバックを提⽰する Reward モードと，⾏動しない状態に不都合が⽣じる状況を提⽰する Penalty モードの 2 種類のモードを実装した．18 名を対象とした評価実験により，本システムの有効性と外発的動機づけ⼿法の違いによる⾏動開始への影響を検証した．その結果，システムを使⽤した条件では，⾮使⽤条件と⽐較して貧乏ゆすりの実施が促進された．特に，Penalty モードは Reward モードと⽐較して貧乏ゆすりをより強く促進する効果を⽰した．以上より，ジグルーチンは貧乏ゆすりの習慣化を⽀援するシステムとして有効であることが⽰唆された．</p></li></ul></li></ul></li></ul>
+<iframe src="https://www.youtube.com/embed/9Sr6A-B7c-g"></iframe>
+<a href="https://protopedia.net/prototype/7823" target="_blank">
+<p>Protopediaで詳しく見る</p></a>
+<p>発表歴</p>
+<ul>
+<li>
+<p><a href="https://www.ipsj.or.jp/kenkyukai/event/ec79.html" target="_blank">情報処理学会第79回EC研究会 登壇発表</a></p></li></ul>
+<ul>
+<li>
+<h3><a href="#h.4scw8u2kvnd5"></a>【卒業論文】ごっくんナビ： 服薬時の嚥下のタイミングのエンタテインメント化の検討</h3>
+<ul>
+<li>
+<ul>
+<li>
+<p>健康のための服薬は誰にとっても身近な行為だが，薬を飲み込むタイミングがわからず，服薬に苦手意識を持つ人は少なくない．本研究では，この心理的な障壁を取り除くため，服薬時の嚥下を補助するシステム「ごっくんナビ」を提案する．ごっくんナビは，薬を飲み込む適切なタイミングを視覚的に示し，服薬をエンタテインメントとして体験させることで，服薬に対する心理的な抵抗感を和らげることを目的としている．本研究では，ゲームを使用することによって，服薬の心理的ハードルを下げることができるのかを検証した． 20 名を対象とした実験の結果，ゲームなしの条件と比較して，ゲームありの条件では，服薬時の「不快度」が有意に低下することがわかった．また，詳細な分析により，エンタテインメント化には，服薬行為への注意を逸らす効果があることが確認された．このことより，本システムは，服薬に苦手意識を持つ層に対して心理的ハードルを軽減するのに有効であることが示唆された．</p></li></ul></li></ul></li></ul>
+<iframe src="https://www.youtube.com/embed/YkknQ-L8BhQ"></iframe>
+<a href="https://protopedia.net/prototype/7688" target="_blank">
+<p>Protopediaで詳しく見る</p></a>
+<p>発表歴</p>
+<ul>
+<li>
+<p><a href="https://www.ipsj.or.jp/kenkyukai/event/ec79.html" target="_blank">情報処理学会第79回EC研究会 登壇発表</a></p></li></ul>
+<ul>
+<li>
+<h3><a href="#h.corp378603ng"></a>【卒業論文】DEAD OR 皿洗い部：ゲーミフィケーションを活用した皿洗い支援システムの検討</h3>
+<ul>
+<li>
+<ul>
+<li>
+<p>皿洗いは日常生活において不可欠な家事である一方で，その行為に楽しさを見出しにくく，立ちながらの単調作業になり，負担感を伴いやすい家事であるとも言える．そこで本研究では，ゲーミフィケーションの概念を利用し，皿洗いをユーザが楽しく続けられること，短い時間で皿の洗浄作業を行えることを目的とした，HMD を用いた AR ゲームシステム「Dead or 皿洗い部」を提案する．提案システムは，食事の際に使用する丸皿の底面に取り付けられた画像型の AR マーカーにより，丸皿の汚れが除去が確認されるとリアルタイムで音や AR エフェクトを楽しむことのできる制限時間付きの AR ゲームである．評価実験により，提案システムを使用すると，ユーザはゲームをクリアする感覚で素早く，かつ楽しく皿洗いを続けることが可能となることが示唆された．</p></li></ul></li></ul></li></ul>
+<iframe src="https://www.youtube.com/embed/BsWdIRC1YcU"></iframe>
+<a href="https://protopedia.net/prototype/7824" target="_blank">
+<p>Protopediaで詳しく見る</p></a>
+<p>発表歴</p>
+<ul>
+<li>
+<p><a href="https://www.ipsj.or.jp/kenkyukai/event/ec79.html" target="_blank">情報処理学会第79回EC研究会 登壇発表</a></p></li></ul>
+<ul>
+<li>
+<h3><a href="#h.xwb98bndz63m"></a>【卒業論文】FPSプレイヤに向けた動画を用いた周辺視野トレーニングゲームの検討</h3>
+<ul>
+<li>
+<ul>
+<li>
+<p>First Person Shooter（以下 FPS）とは，複数のプレイヤがチームもしくは個⼈で主に銃⽕器を⽤いて対戦するシューティングゲームの⼀種である．ゲーム画⾯が⼀⼈称視点であるのが特徴であり，照準を定める能⼒が重要視されている． また，視覚能⼒も必要であると考えられ，従来研究では主に視覚情報を利⽤した研究が⾏われているが，周辺視野に関係する⽀援システムというのはあまり検討されていない．しかし，周辺の変化や異変をいち早く察知するための周辺視野というものは FPS をプレイする以上重要であると考えた．本研究では，動画を視聴しながら周辺視野のトレーニングを⾏うことのできる web ブラウザで機能するミニゲームを提案する．本システムは周辺視野の向上を期待するミニゲーム 3 種類によって構成されている． 8 名による評価実験とアンケート調査を⾏い，仮説の検証を⾏った．実験の結果，⼀部のミニゲームでトレーニング効果が期待できることが⽰唆された．また本システムを⽤いたことで周辺視野が鍛えられること，本システムに⽤いた UI が効果的であることが⽰唆された．さらに，本システムがストレスの少ないシステムであることも確認された．</p></li></ul></li></ul></li></ul>
+<iframe src="https://www.youtube.com/embed/VhSvt7auoX4"></iframe>
+<a href="https://protopedia.net/prototype/7746" target="_blank">
+<p>Protopediaで詳しく見る</p></a>
+<p>発表歴</p>
+<ul>
+<li>
+<p><a href="https://www.ipsj.or.jp/kenkyukai/event/ec79.html" target="_blank">情報処理学会第79回EC研究会 登壇発表</a></p></li></ul>
+<ul>
+<li>
+<h3><a href="#h.v7xhy4l1so5d"></a>【卒業論文】PL/Rumちゃんゲーム：ゲームコントローラを利用した左右差是正システムの検討</h3>
+<ul>
+<li>
+<ul>
+<li>
+<p>⽇常⽣活において，利き⼿と⾮利き⼿の間に⽣じる機能差は⾝近な問題である．しかし，その差を意識的に，かつ楽しみながら改善できる機会やシステムは多くない．そこで本研究では,左右差に対する⼼理的・⾝体的なハードルを下げることを⽬的とした，Web ブラウザ上で動作する横スクロールアクションゲーム「PL/Rum(プラム)ちゃんゲーム」を開発・提案する．提案システムは，特別な機器を必要とせず PC とコントローラのみで実施可能であり,幅広いユーザが直感的にプレイできるよう設計されている．ゲーム内ではコントローラの左右操作をランダムなタイミングで⼊れ替える仕組みを導⼊しており，左右差の是正と操作切り替えへの適応⼒の双⽅の向上を図る．本システムで訓練を⾏う群と⾏わない群の 2 つに無作為に割り当て，訓練前後における定量的なゲームパフォーマンスおよび主観評価の変化を⽐較検証する評価実験を実験協⼒者 24 名に⾏った．その結果，定量的ゲームパフォーマンスについては短期間での有意な変化は⾒られなかったものの，主観評価においては，本システムで訓練した群が⽐較群よりも統計的に有意な向上を⽰したことが確認された．本稿では，実験結果の詳細を報告するとともに，本システムがもたらす学習効果や，評価実験から得られた知⾒をもとに，提案システムの有⽤性と今後の課題について考察する．</p></li></ul></li></ul></li></ul>
+<iframe src="https://www.youtube.com/embed/HdOM3EXmlY8"></iframe>
+<a href="https://protopedia.net/prototype/7786" target="_blank">
+<p>Protopediaで詳しく見る</p></a>
+<p>発表歴</p>
+<ul>
+<li>
+<p><a href="https://www.ipsj.or.jp/kenkyukai/event/ec79.html" target="_blank">情報処理学会第79回EC研究会 登壇発表</a></p></li></ul>
+<ul>
+<li>
+<h3><a href="#h.uusmy4yfkmsa"></a>【卒業論文】ING BREATHING:日常と融和する呼吸入力ゲームの検討</h3>
+<ul>
+<li>
+<ul>
+<li>
+<p>作業中に意識して呼吸をすることは無意識の酸欠防止などにおいて重要である．また，呼吸という簡単な入力方法をゲームに用いることで，タスクをしながらも，それを邪魔せずゲームを遊ぶことができる．本研究では，呼吸を入力とすることで，日常生活における多様な場面で，多様なタスクと同時並行で遊ぶことのできるゲームを開発した．ゲームはルールの異なる 3 種類を用意し，それぞれ違った楽しみ方を提供する．このゲームが作業中にメインタスクを邪魔せずプレイでき，呼吸量を増やすことを期待する．収録されているゲームルールの一つである「モンスターゲーム」について評価実験を行った結果，精神的作業負荷は，ゲームなしでタスクをこなす場合と変わらないことが示された．また，メインタスクの成績に影響を受けずにプレイできるゲームの難易度の上限があることがわかった．</p></li></ul></li></ul></li></ul>
+<iframe src="https://www.youtube.com/embed/OZ3_oxwLjhQ"></iframe>
+<a href="https://protopedia.net/prototype/7733" target="_blank">
+<p>Protopediaで詳しく見る</p></a>
+<p>発表歴</p>
+<ul>
+<li>
+<p><a href="https://www.ipsj.or.jp/kenkyukai/event/ec79.html" target="_blank">情報処理学会第79回EC研究会 登壇発表</a></p></li></ul>
+<h2><a href="#h.mxgc017hjkwe"></a>2024年度</h2>
+<ul>
+<li>
+<h3><a href="#h.dwieav5q28hj"></a>【修士論文】VRを用いた声優の演技の自習環境の研究</h3>
+<ul>
+<li>
+<p>本研究では，声優が一人で効果的に演技の練習ができるVRシステムを提案する．このVRシステムでは，台本に書かれている世界の中で演技の練習をすることができ，演技をする上での重要なポイントを学べるようになっている．また，声優の演技はまずは舞台演技を学んでからという考えのもと，舞台演技を体験できる空間と，声だけで演技ができる空間の両方を実装した．さらに，舞台演技から声のみの演技へ段階的に移行できるようにすることで，想像力に頼る割合を徐々に大きくできるようにした．最終的に，ユーザが声優として体を動かさずに声のみで演技をする際に，体感しながら演じている時と遜色ない演技ができるように演技の学びの過程を補助している．</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/6269" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=238746&amp;item_no=1&amp;page_id=13&amp;block_id=8" target="_blank">情報処理学会EC'24 登壇発表</a>（<a href="https://ec2024.entcomp.org/award.html" target="_blank">一般セッション優秀賞受賞</a>）</p></li>
+<li>
+<p>情報処理学会EC'24 <a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=238746&amp;item_no=1&amp;page_id=13&amp;block_id=8" target="_blank">デモ発表</a></p></li>
+<li>
+<p>査読付き国際学会IEEE GCCE'24 登壇発表</p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.ov4prlhvop0y"></a>【修士論文】KotoriVR：VRを用いた小鳥の擬似飼育体験システム</h3>
+<ul>
+<li>
+<p>ペットブームと言われて久しい昨今，犬猫をはじめ鳥類，爬虫類など多種多様な動物が飼育されている．一方で，適切な飼育方法や動物への責任ある接し方についての理解が十分でないことから，飼育放棄などの課題も浮き彫りになってきている．これらの問題はペットを飼育する際の知識や責任感の不足が原因の一つとして考えられる．本研究では，小鳥の生態や適切な飼育方法を体験的に学ぶ機会を提供し，より責任ある飼育行動を促進することを目的として，バーチャルリアリティ（VR）技術を用いた小鳥の擬似飼育体験システムを開発した．</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/6357" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p>国内学会インタラクション'25 インタラクティブ発表</p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.hdranboprzua"></a>【修士論文】VRによる知覚困難なゲーム調整を用いたインクルーシブな百人一首かるた</h3>
+<ul>
+<li>
+<p>本研究の目的はVR技術によって，多様な人々が一緒に百人一首かるたを楽しむことができるようにすることである．開発したVRアプリケーションでは，散らし取りと競技かるたにまつわる一連の体験を，VR空間で本格的に体験することができる．また，VR空間でプレイヤごとに設定できる様々な支援を用いることで，競技かるたの知識やスキル・年齢・身体特性・文化的背景・居住地などが多様な人々が一緒に楽しめる体験を実現している．これらの支援を可能な限り「相互知覚困難」かつ「自己知覚困難」にすることで，お互いが自分にとって最適な環境を選びやすくなることが期待される．</p>
+<ul>
+<li>
+<p><a href="https://sites.google.com/view/ayakamaruyama/" target="_blank">個人ウェブサイト</a></p></li>
+<li>
+<p><a href="https://www.ipa.go.jp/jinzai/mitou/it/2023/koubokekka.html" target="_blank">2023年度IPA未踏事業採択</a>（<a href="https://www.ipa.go.jp/jinzai/mitou/it/2023/supercreator.html" target="_blank">スーパークリエータ認定</a>）</p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/index.php?active_action=repository_view_main_item_detail&amp;page_id=13&amp;block_id=8&amp;item_id=227471&amp;item_no=1" target="_blank">情報処理学会EC'23 登壇発表</a> （<a href="https://ec2023.entcomp.org/award.html#h-%E5%84%AA%E7%A7%80%E7%A0%94%E7%A9%B6%E8%B3%9E" target="_blank">優秀研究賞受賞</a>）</p></li>
+<li>
+<p>Heroes League2023 決勝進出</p></li>
+<li>
+<p>査読付き国際学会ICEC2023 登壇発表</p></li>
+<li>
+<p>査読付き国内学会WISS2023 登壇発表</p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=233644&amp;item_no=1&amp;page_id=13&amp;block_id=8" target="_blank">情報処理学会第71回EC研究会 デモ発表</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=238709&amp;item_no=1&amp;page_id=13&amp;block_id=8" target="_blank">情報処理学会EC'24 登壇発表</a> （<a href="https://ec2024.entcomp.org/award.html" target="_blank">一般セッション優秀賞受賞</a>）</p></li>
+<li>
+<p>日本ソフトウェア科学会コンピュータソフトウェア誌 Vol.42, No.1</p></li>
+<li>
+<p>査読付き国際学会IEEE GCCE'24 (OS-EET) 登壇発表（<a href="https://www.ieee-gcce.org/2024/presentationawards.html#:~:text=Ayaka%20Maruyama%20and%20Kazutaka%20Kurihara%20%28Tsuda%20University%2C%20Japan%29%20%3B%0A%22Development%20of%20VR%20Kyogi%20Karuta%20Game%20System%22" target="_blank">Presentation Award 受賞</a>）</p></li>
+<li>
+<p>査読付き国際学会IEEE GCCE'24 (OS-GAM) 登壇発表（<a href="https://www.ieee-gcce.org/2024/presentationawards.html#:~:text=Ayaka%20Maruyama%20and%20Kazutaka%20Kurihara%20%28Tsuda%20University%2C%20Japan%29%20%3B%0A%22Discussion%20on%20the%20Connection%20of%20Different%20Games%20Sharing%20Goal%20Awareness%20and%20Physical%20Actions%22" target="_blank">Presentation Award受賞</a>）</p></li>
+<li>
+<p>国内学会WISS2024 デモ発表</p></li>
+<li>
+<p>Heroes League2024オレトク部門優勝</p></li>
+<li>
+<p><a href="https://inno-vation.jp/nominate/2024/#:~:text=XR%E6%8A%80%E8%A1%93%E3%81%A7%E5%AE%9F%E7%8F%BE%E3%81%99%E3%82%8B%E3%82%A4%E3%83%B3%E3%82%AF%E3%83%AB%E3%83%BC%E3%82%B7%E3%83%96%E3%81%AA%E5%AF%BE%E4%BA%BA%E3%82%B2%E3%83%BC%E3%83%A0" target="_blank">2024年度異能vationジェネレーションアワード ノミネート</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/records/2001388" target="_blank">情報処理学会第75回EC研究会 登壇発表</a>（研究奨励賞銀賞受賞）</p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.tckgrcoop2fb"></a>【修士論文】ゲームを用いた自動点眼システムの検討</h3>
+<ul>
+<li>
+<p>目の乾燥や疲れなどがあった場合，目薬をさすことで緩和されることがある．しかし，点眼が苦手な人は一定数存在している．そこで本研究では，ゲームをしながら自動で点眼ができるシステムを提案する．点眼のタイミングの異なる3つのゲームルールを用いたユーザスタディを行うことで，ゲーム中の点眼液の噴射がユーザに与える心理的影響を明らかにし，点眼の心理的負担を軽減するための方法や点眼のエンタテインメント化に関する検討を行う．</p>
+<ul>
+<li>
+<p><a href="https://cir.nii.ac.jp/crid/1050015797103058176" target="_blank">情報処理学会EC'23 デモ発表</a></p></li>
+<li>
+<p><a href="https://www.itmedia.co.jp/news/articles/2309/07/news051.html" target="_blank">ITmediaで紹介</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=238729&amp;item_no=1&amp;page_id=13&amp;block_id=8" target="_blank">情報処理学会EC'24 登壇発表</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=238729&amp;item_no=1&amp;page_id=13&amp;block_id=8" target="_blank">情報処理学会EC'24 デモ発表</a></p></li>
+<li>
+<p>査読付き国際学会IEEE GCCE'24 登壇発表（<a href="https://www.ieee-gcce.org/2024/presentationawards.html#:~:text=Miu%20Moritani%20and%20Kazutaka%20Kurihara%20%28Tsuda%20University%2C%20Japan%29%20%3B" target="_blank">Presentation Award 受賞</a>）</p></li>
+<li>
+<p>査読付き国内学会WISS2024 登壇発表</p></li>
+<li>
+<p>査読付き国際学会ICEC2025 登壇発表</p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.ictq8nhzc8xi"></a>Visuax ：サクソフォーン初心者を対象としたロングトーン練習支援システム</h3>
+<ul>
+<li>
+<p>「リスの寝息のように優しく吹いてみて。」そんな抽象的なアドバイスであなたの演奏は改善できるでしょうか？visuaxなら息の強さや風速などの息情報をもとに演奏を評価するので、課題が一目で分かります！</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/6272" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p>Heroes League2024 XMAKERS賞受賞</p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/records/2001371" target="_blank">情報処理学会第75回EC研究会 登壇発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.gu47kzi4h0mq"></a>新しい運搬および獲得方法を実現する仮想空間内のクレーンゲーム</h3>
+<ul>
+<li>
+<p>粘弾性物体の物理シミュレーションを取り入れた、新感覚の仮想空間クレーンゲームです。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/6361" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/records/2001375" target="_blank">情報処理学会第75回EC研究会 登壇発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.2t0ixufvfdko"></a>せきとりぬい〜ぬいぐるみを用いた席取り専用デバイス〜</h3>
+<ul>
+<li>
+<ul>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/records/2000669" target="_blank">情報処理学会第212回HCI研究会 登壇発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.uic6on25v4pc"></a>Finalize Fantasy:ゲームを継続させながら機能の制限を段階的に適用することによって終了を促すシステム</h3>
+<ul>
+<li>
+<ul>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/records/2001380" target="_blank">情報処理学会第75回EC研究会 登壇発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.vvze3pbbl2cb"></a>Augmented Decisions:対人ゲームにおける判断能力の拡張システム</h3>
+<ul>
+<li>
+<ul>
+<li>
+<p>情報処理学会EC'25 登壇発表</p></li></ul></li></ul></li></ul>
+<h2><a href="#h.73f5u79w9pb2"></a>2023年度</h2>
+<ul>
+<li>
+<h3><a href="#h.xc65wi2cgbfu"></a>【修士論文】普及のさせやすさを考慮した動物外科手術支援ARシステムについての検討</h3>
+<ul>
+<li>
+<p>獣医師は、治療方針や手術を行うのかを判断する材料として、エコー検査を行うことがよくある。しかし獣医師によると、検査に関して教科書から学ぶ、という従来の学習方法では検査スキルの修得が難しいという。本研究では、PCと外部カメラとARマーカを用いることで、検査を行う際に体内の位置関係を3次元的に確認することのできるARシステムを開発した。</p></li></ul></li>
+<li>
+<h3><a href="#h.qkyt5fbhncmf"></a>メシゴトマスター: 食事と食事以外の行為の円滑な共存を可能にするシステムの提案</h3>
+<ul>
+<li>
+<p>〜飯と事の両立を〜 本来の食事のあり方を損なわない「ながら食べの方法」を考えました！箸置きダイエットの考え方を基盤に、２つの異なるコンセプトのアプリを開発しました。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/4899" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=233663&amp;item_no=1&amp;page_id=13&amp;block_id=8%20%E6%83%85%E5%A0%B1%E5%AD%A6%E5%BA%83%E5%A0%B4%EF%BC%9A%E6%83%85%E5%A0%B1%E5%87%A6%E7%90%86%E5%AD%A6%E4%BC%9A%E9%9B%BB%E5%AD%90%E5%9B%B3%E6%9B%B8%E9%A4%A8" target="_blank">情報処理学会第71回EC研究会 登壇発表</a>（<a href="https://entcomp.org/sig/?page_id=690" target="_blank">研究奨励賞（銀賞）受賞</a>）</p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.ifo3z9lf0mqg"></a>QRゲストナビ:住人にとって快適な来客対応を実現する仕組みの提案</h3>
+<ul>
+<li>
+<p>QRコードを家先に貼るだけ！意外と大変な来客対応、、、あなたの代わりにアプリがスムーズに行います！</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/4898" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=233007&amp;item_no=1&amp;page_id=13&amp;block_id=8" target="_blank">情報処理学会第207回HCI研究会 登壇発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.ydgm1x8sqnm2"></a>ChatGPTを用いた文章変換処理を行うタンジブルインタフェースの比較</h3>
+<ul>
+<li>
+<p>専門用語ばかりの論文や、堅苦しい文章を読むのが億劫になりがち。喋りかけるだけで、簡単な言葉に言い換えたり、関西弁に変更したりと、思い通りに文章を変換できるメガホン型インターフェースです。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/4885" target="_blank">protopediaで詳しく見る</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.gowiyksilsya"></a>競技かるたの聞き分け能力向上支援アプリの開発</h3>
+<ul>
+<li>
+<p>競技かるたでは、読手がランダムに札を詠み、詠まれた札を取る速さを競う。競技かるたで勝利するには、詠まれた札を瞬時に聞き分ける能力が必要である。本研究では、この聞き分け能力を鍛えるためのアプリケーションを作成した。</p></li></ul></li></ul>
+<h2><a href="#h.yogs4sm5292b"></a>2022年度</h2>
+<ul>
+<li>
+<h3><a href="#h.hvoc0uqd81d4"></a>【修士論文】マルチモーダルな拡張現実による音感拡張</h3>
+<ul>
+<li>
+<p>「もし絶対音感があったら、どんな世界がみえるのだろう。 」 を叶えるアプリ。絶対音感の体験をあなたに。 発見した音は画像にしてSNSにシェアできます。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/2615" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://protopedia.net/event/21" target="_blank">Heroes League 2021 WUG賞、XMAKERS賞受賞</a></p></li>
+<li>
+<p><a href="http://www.interaction-ipsj.org/proceedings/2022/data/bib/4D04.html" target="_blank">国内学会インタラクション2022 インタラクティブ発表（プレミアム枠採択）</a></p></li>
+<li>
+<p>査読付き国際学会ADADA2021 登壇発表 Excellent Presentation選出</p></li>
+<li>
+<p><a href="https://www.ieee-gcce.org/2022/awards.html" target="_blank">査読付き国際学会IEEE GCCE2022 登壇発表 Excellent Student Paper Awards Silver prize受賞</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.wpvl3byb5lzl"></a>みんなの百人一首かるた：VR空間におけるマルチモーダルなスキル調整を用いた対人ゲームのインクルーシブ化</h3>
+<ul>
+<li>
+<p>VR対戦型の百人一首かるた！マルチモーダルな支援による「能力強化」で誰とでも本気の対戦ができます。百人一首を1枚も知らないあなたも、かるた部だったあなたも、インクルーシブなVRかるたの世界へようこそ！</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/3497" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://protopedia.net/event/36" target="_blank">Heroes League 2022 特別賞受賞</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/index.php?active_action=repository_view_main_item_detail&amp;page_id=13&amp;block_id=8&amp;item_id=225324&amp;item_no=1" target="_blank">情報処理学会第67回EC研究会発表</a>（<a href="https://entcomp.org/sig/?page_id=680" target="_blank">学生優秀賞受賞</a>）</p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.mq53mqkyf3o3"></a>私を描くカメラ:参照映像の存在が写真撮影に与える影響についての研究</h3>
+<ul>
+<li>
+<p>切り抜かれた絵画に自分を当てはめて写真撮影を行うアプリ。でも、観光地によくある「顔出し看板」とは違い、撮りたいのはいつもと違う素の自分。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/3580" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=225323&amp;item_no=1&amp;page_id=13&amp;block_id=8" target="_blank">情報処理学会第67回EC研究会発表</a>（<a href="https://entcomp.org/sig/?page_id=690" target="_blank">研究奨励賞（銀賞）受賞</a>）</p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.8wn8ps6nt8qq"></a>フムナキケン：仮想現実感を用いたウェブサイトの危険性の表現手法の研究</h3>
+<ul>
+<li>
+<p>「そのURL、本当に大丈夫？」Webの危険性の可視化を強化した、VR空間内で用いるWebブラウザです。危険なURLにカーソルがのると、周囲にゾンビが現れ臨場感の強い恐怖体験ができます。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/3522" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://www.youtube.com/live/3py-5ab-Eis?feature=share&amp;t=3359" target="_blank">Heroes League 2022 MAID部門決勝進出</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.e2cur5m8gqzg"></a>きゅんきゅんキャッチャー：動物園巡り映像群の要約作成システム</h3>
+<ul>
+<li>
+<p>動物の可愛いシーンはついつい見逃しがち。ウェアラブルカメラで常時撮影しながら、そんなシーンに遭遇したらすかさずアプリで「いいね」するだけで、後で自分のお気に入りシーンのまとめ動画を作成してくれます。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/3546" target="_blank">protopediaで詳しく見る</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.x0dzlaw2728i"></a>ぱちぱちドロップ： 目薬が苦手な子どものための自動点眼システム</h3>
+<ul>
+<li>
+<p>子どもが苦手とする点眼を自動で両目同時に行ってくれるガジェットを開発しました。ユーザーは寝ている状態で、頭上にあるスマホに気をひくような動画を見ながら点眼を行います。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/3567" target="_blank">protopediaで詳しく見る</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.f7yx2ys3dzj7"></a>VRオタクルーム:VRを用いた収集品のディスプレイ方法とインタラクションの提案</h3>
+<ul>
+<li>
+<p>VRを使って好きなものに囲まれる世界を実現するシステムです！</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/3590" target="_blank">protopediaで詳しく見る</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.1jo230teql90"></a>あにまるドローン:形態模写ジェスチャ入力によるドローン操作手法の提案</h3>
+<ul>
+<li>
+<p>TeachableMachineによるジェスチャー認識とドローンを使った、動物疑似体験システムです。鳥になって空を飛びたい...そんな夢を叶えます！</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/3547" target="_blank">protopediaで詳しく見る</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.la1v1dt5chuf"></a>オトノベル：感情を含む音声入力を用いたノベルゲーム</h3>
+<ul>
+<li>
+<p>自分の声で読み上げるノベルゲームを作成しました。表示された選択肢のセリフとエモティコンによって音声入力を行っています。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/3599" target="_blank">protopediaで詳しく見る</a></p></li></ul></li></ul></li></ul>
+<h2><a href="#h.mfb1qzvtadok"></a>2021年度</h2>
+<ul>
+<li>
+<h3><a href="#h.lv0a7fbe38x4"></a>HoloLens 2を用いた動物外科手術支援ARシステム</h3>
+<ul>
+<li>
+<p>CT画像をもとに骨格・内蔵の3Dオブジェクトを生成し、HoloLens2上で表示。骨格や内蔵が透けて見えているかのような状態を映し出すことで、患部を細部まで確認することが可能。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/2705" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="http://www.ieee-lifetech.org/2022/awards.html" target="_blank">査読付き国際学会IEEE Lifetech2022の登壇発表student award1st. prize受賞</a></p></li>
+<li>
+<p><a href="http://www.interaction-ipsj.org/proceedings/2022/data/pdf/1D02.pdf" target="_blank">国内学会インタラクション2022 インタラクティブ発表（プレミアム発表）</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.yt59bbrkan66"></a>うちパレ:新しいVRパレードエンタテインメント体験の提案</h3>
+<ul>
+<li>
+<p>特別な機材は必要なし！インタラクティブVRパレードという新感覚な体験ができる作品です！！”流れている映像をただ観る360度パレード動画の時代に終止符を打ちたい”そんな想いで創り上げました。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/event/21" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://protopedia.net/event/21" target="_blank">Heroes League 2021 ルーキーヒーロー賞受賞</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/index.php?active_action=repository_view_main_item_detail&amp;page_id=13&amp;block_id=8&amp;item_id=217531&amp;item_no=1" target="_blank">情報処理学会EC研究会発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.ldlnw9qps1m"></a>ガニマタバイバイ:ガニ股などの歩容改善方法の提案</h3>
+<ul>
+<li>
+<p>Oculus Questのコントローラーを足につけてプレイする、新感覚の歩容改善VRゲームです。ガニ股に悩まされているそこのあなた！このゲームをプレイすれば、誰もが羨む美しい歩容の持ち主に！！！</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/2659" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://protopedia.net/event/21" target="_blank">Heroes League 2021 Unity賞、ファイト！新時代のAndroid賞受賞</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/index.php?active_action=repository_view_main_item_detail&amp;page_id=13&amp;block_id=8&amp;item_id=217529&amp;item_no=1" target="_blank">情報処理学会EC研究会発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.lzvkpyr62pgf"></a>高齢者の見守りを実現するシルバーカーのICT化</h3>
+<ul>
+<li>
+<p>おばあちゃんが外出していると不安で仕方なかったので、シルバーカーをICT化しました！家族はLINEbotを使用して、シルバーカーを利用している高齢者を見守ることができます。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/2710" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/index.php?active_action=repository_view_main_item_detail&amp;page_id=13&amp;block_id=8&amp;item_id=216860&amp;item_no=1" target="_blank">情報処理学会AAC研究会発表</a></p></li>
+<li>
+<p><a href="https://www.youtube.com/live/3kkhLuV6YoI?feature=share&amp;t=1418" target="_blank">Heroes League 2021 CIVICTECH賞決勝進出</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.mfc8cwl1myk4"></a>発言量の調整によってオンラインでのコミュニケーションを支援するシステム</h3>
+<ul>
+<li>
+<p>オンライン会議において参加者の発言量を取得、それを元にさまざまな方法で注意喚起を行います。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/2667" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://protopedia.net/event/21" target="_blank">Heroes League 2021 エンジニアフレンドリーシティ福岡賞受賞</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.cnt73ynpsw3g"></a>機械学習による姿勢の判定を用いたユーザ監視システムの提案</h3>
+<ul>
+<li>
+<p>機械学習を用いて姿勢を判定するユーザ監視システムを提案する。本システムは，YouTubeの再生中にカメラ画像を判定し、ユーザが動画内の見本とかけ離れた姿勢を取った時に、不適切であることをユーザに気づかせるような機能を実装した。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/2617" target="_blank">protopediaで詳しく見る</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.nooovwp40llo"></a>MeetChan :LINEアプリを用いた新しい集合手法の提案</h3>
+<ul>
+<li>
+<p>本研究では，集合をできるだけコストの少ないものにするために，徒歩圏内にいる複数人が屋外で快適に集合することを総合的に支援するLINEアプリ「MeetChan」を開発し，「深く考えることなく誘導されるうちに集合ができている」という体験をユーザにもたらすかを調査する．</p>
+<ul>
+<li>
+<p><a href="https://drive.google.com/file/d/1jSDFpiEhUWRjX2UVrevgt1jLGL-lJ3lk/view?usp=sharing" target="_blank">デモ映像</a></p></li></ul></li></ul></li></ul>
+<h2><a href="#h.grj9vslf5y3a"></a>2020年度</h2>
+<ul>
+<li>
+<h3><a href="#h.esg0jw1ueqza"></a>身体的制約を利用した困難なマルチタッチレイアウトの提案</h3>
+<ul>
+<li>
+<p>本研究ではスマートフォンやタブレットなどの端末において，マルチタッチを利用することで身体的制約によりあえて操作困難になるインタラクションを提案する．具体的には，「長時間タッチの継続・維持が困難なボタンの位置・動き」と「1人だと同時タッチの完遂が困難なボタンの配置」の2つである．前者は3個のボタンの配置・動きについて4種類用意し，それぞれの難易度や疲労度などを比較検証する．そしてこれらについて長時間スマートフォンを使い続けてしまう習慣の改善やタッチ継続を課すゲームコンテンツへ応用するシナリオを示す．</p>
+<ul>
+<li>
+<p><a href="https://www.interaction-ipsj.org/proceedings/2021/data/pdf/1A03.pdf" target="_blank">国内学会インタラクション2020インタラクティブ発表（プレミアム枠採択）</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=210239&amp;item_no=1&amp;page_id=13&amp;block_id=8" target="_blank">情報処理学会EC研究会発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.n50n8eo3ysj"></a>SoundDrop:見えて触れる音- VRでの音の可視化とインタラクションの考察</h3>
+<ul>
+<li>
+<p>音はその性質上、肉眼で捉えたり触れたりすることが出来ないため、定量的に観測したり，直感的に操作を加えたりすることが難しい。そこで、聴覚と他の感覚を同期させることにより、音の扱いやすさを向上させることを検討する。本研究では VR 内で見て触れながら音を調整することのできる、滝の形状をしたビジュアライザ「SoundDrop」を提案し、インタラクションについての妥当性と効果を調査する。</p>
+<ul>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=repository_uri&amp;item_id=212574&amp;file_id=1&amp;file_no=1" target="_blank">国内学会EC2021発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.meyg7zwumbl9"></a>silent tap dance: silentタップシューズと靴に連携したタップダンス型音楽ゲーム</h3>
+<ul>
+<li>
+<p>騒音を気にせずにいつでもどこでも誰でもtap danceを楽しめるshoesと靴と連携した音楽ゲーム♪ silentタップダンスシューズで好きな音楽でビートを感じながらタップを踏みポイントをGET！。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/2006" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://protopedia.net/event/1" target="_blank">Heroes League 2020 オレトク賞、obniz賞を受賞</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.7a2dxjtg8hmj"></a>Impress_up: オンラインビデオチャットでより良い印象を与えるための表現力サポートシステム</h3>
+<ul>
+<li>
+<p>対話中において，相手に伝わる印象は視覚情報が半分以上を占めるとされているが，オンラインビデオチャットでは視覚情報が限定され，良くない印象を与えてしまうことがある．そこで本研究では，オンラインビデオチャット時により良い印象を与えるための表現力サポートシステム，Impress_upを提案する．</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/2043" target="_blank">protopediaで詳しく見る</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.mp2zruj3c4vu"></a>マスクを装着した状態での笑顔度判定機Mask Smile</h3>
+<ul>
+<li>
+<p>マスクを装着している状態では笑顔が伝わりづらい．そこで本研究ではマスクを装着した状態での良い笑顔とは何かを分析した．その結果から「笑顔度」を判定するシステムである「Mask Smile」を提案する．</p></li></ul></li>
+<li>
+<h3><a href="#h.oll7928m27ex"></a>ジェンダーバイアスを学ぶ3Dゲーム</h3>
+<ul>
+<li>
+<p>学習活動への意欲を高めやすいシリアスゲームの理論を応用した，ジェンダーバイアス学習のための3Dゲームを開発・提案した．</p></li></ul></li>
+<li>
+<h3><a href="#h.8ucdzx3u2bq"></a>動画コンテンツ内の登場人物選択による新しい英語学習体験ウェブアプリケーションの提案</h3>
+<ul>
+<li>
+<p>ユーザ自身の好きな映画やドラマをコンテンツに利用し，さらにその中の好きな登場人物になりきって英語学習ができるウェブアプリケーションを提案する．</p></li></ul></li>
+<li>
+<h3><a href="#h.4oap6djj9c2g"></a>Horror Cutter: 怖さを軽減できる映像鑑賞システム</h3>
+<ul>
+<li>
+<p>世の中には，ストーリーが面白かったり，感動できたりする名作ホラー映画は多く存在する．しかし，ホラーシーンが苦手な人にとって，それらの映画を心から楽しむことは難しい．そこで本研究では，人によっては見ることが苦痛であるシーンの怖さを軽減できるシステムを提案する．</p></li></ul></li></ul>
+<h2><a href="#h.d2dr6uvqxux0"></a>2019年度はアメリカで<a href="https://seattleite-dialy.blogspot.com/" target="_blank">サバティカル生活</a>をしていましたので学生指導はしてません。</h2>
+<h2><a href="#h.rqrnlph1x2wp"></a>2018年度</h2>
+<ul>
+<li>
+<h3><a href="#h.35o1lgmh5hgi"></a>【修士】VRプレゼンテーション環境がユーザに与える心理的影響の検証とその応用</h3>
+<ul>
+<li>
+<p>VR環境を用いた支援ツールが多く開発されているが，VR環境でのプレゼンテーション練習には緊張を緩和させる効果があるだろうか．本稿では，VR環境上に作成したプレゼンテーション空間での練習によって，プレゼンターに与える心理的負担を軽減できるか検証した．</p>
+<ul>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/index.php?active_action=repository_view_main_item_detail&amp;page_id=13&amp;block_id=8&amp;item_id=195318&amp;item_no=1" target="_blank">情報処理学会HCI研究会発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.mvhb9f8v8ils"></a>【修士】高齢者とその家族でつくる高齢者のためのQ&amp;Aチャットボットシステム</h3>
+<ul>
+<li>
+<p>高齢者と，離れて暮らすその家族が互いの時間を気にせずに関わり合えるシステムを提案する．スマートスピーカーを用いたQ&amp;Aチャットボットを開発した．</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/1051" target="_blank">protopediaで詳しく見る</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.y71a3gnyijy2"></a>【修士（サブプロジェクト）】Toolification of Gamesを活用したプレゼンテーション中の立ち位置移動トレーニングの提案</h3>
+<ul>
+<li>
+<p>プレゼンテーショントレーニングの一環として，ビデオゲームを活用して発表中の発表者の立ち位置移動のトレーニングを支援するシステムについて提案，検討する．ゲーミフィケーションの派生概念であるToolification of Gamesを適用し，ユーザのモチベーション維持等を図る．具体的には，PowerPointアドインとMicrosoft Kinectを用いてプレゼンテーションの練習中に，視界に映し出されたスペースインベーダーをプレイすることで，発表者が事前に決めた立ち位置へと移動する練習ができるシステムをプロトタイピングした．また，スペースインベーダー以外のゲームへの適用についても分析および検討した．</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/749" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/index.php?action=pages_view_main&amp;active_action=repository_action_common_download&amp;item_id=191181&amp;item_no=1&amp;attribute_id=1&amp;file_no=1&amp;page_id=13&amp;block_id=8" target="_blank">国内学会EC2018で発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.csfqdsfllore"></a>【修士】コミュニケーションが苦手なゲーマーの為のゲームプレイまとめ動画自動編集システムの開発と評価</h3>
+<ul>
+<li>
+<p>コミュニケーションを苦手とするユーザが SNS 上の友人とのオンラインマルチゲームプレイを録画し，共有したい箇所を抜粋し一本のまとめ動画に自動編集するシステムを提案する．</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/661" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="http://www.interaction-ipsj.org/proceedings/2018/data/pdf/1P06.pdf" target="_blank">情報処理学会EC研究会で発表</a></p></li>
+<li>
+<p><a href="http://www.interaction-ipsj.org/proceedings/2018/data/pdf/1P06.pdf" target="_blank">国内学会インタラクション2017で発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.p5c6pr6gea58"></a>【修士】眼鏡型ウェアラブルデバイスを用いたプレゼンテーショントレーニングシステム</h3>
+<ul>
+<li>
+<p>視線の計測や頭の傾きを取得できる眼鏡型ウェアラブルデバイスであるJINS MEME ESを用いて，プレゼンテーション時における挙動や癖を客観的に見直し，支援していくためのシステムの提案を行う．</p>
+<ul>
+<li>
+<p><a href="https://twitter.com/HeroesLeague_MA/status/941907596281180160" target="_blank">Mashup Awards 2017でFJCT賞受賞</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.l6u39yyc4xv6"></a>Calling:視覚障害の有無によって進め方に差異の出ないインクルーシブゲーム</h3>
+<ul>
+<li>
+<p>視覚障害者と晴眼者の間で進め方に差異の出ないインクルーシブゲーム「Calling」を提案する．Callingとは，Amazon Echoを使用した，音声を聞き，声で操作する画面のないゲームである．</p></li></ul></li>
+<li>
+<h3><a href="#h.f8wr4u3z7hz4"></a>AlarMotion: 運動により目覚めを促す目覚まし時計</h3>
+<ul>
+<li>
+<p>既存の目覚まし時計の二度寝をしてしまうという問題点を解決し，かつ気持ちの良い目覚めを支援する目覚まし時計「AlarMotion」を提案する．本研究では，指示音声に従って体を動かし，ベッドから完全にいなくなるまでアラーム音が止まらない目覚まし時計を実装した．</p></li></ul></li>
+<li>
+<h3><a href="#h.zb0kcyqaxkek"></a>LINEのチャットボットを用いた訪問者対応時における心理的負担の軽減</h3>
+<ul>
+<li>
+<p>面識のない人と対面して話すことに心理的負担を感じる人は少なくない. その負担を軽減するには, 面識のない相手との間に機械を通すことが有効であるという研究結果がある. 本論文では機械の中でもLINEのチャットボットに着目し, その負担を軽減できるかを考えた. 望まない訪問者との間にLINEのチャットボットを挟むことで入室を断る状況を用いて, その際に生じる心理的負担の軽減の可能性について検証し, その有用性を示した. </p></li></ul></li></ul>
+<h2><a href="#h.74ijg1pla9z8"></a>2017年度</h2>
+<ul>
+<li>
+<h3><a href="#h.33hswox2wflg"></a>【修士（サブプロジェクト）】Eyebrojector</h3>
+<ul>
+<li>
+<p>レーザーカッターで切り出された素敵な眉毛デザインを，スマホ等のライトでユーザの顔に映し出します．ユーザは光をなぞるだけで，憧れのあの人の眉毛を手に入れることができます．</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/747" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://atmarkit.itmedia.co.jp/ait/articles/1802/22/news012_3.html" target="_blank">Mashup Awards 2017 おバカアプリ賞受賞</a>（<a href="https://twitter.com/HeroesLeague_MA/status/941996180334034945" target="_blank">twitter</a>記事）</p></li>
+<li>
+<p><a href="https://fabmitaka.co//mcontest/archive-docs/2018072100014/" target="_blank">三鷹fabコンテスト奨励賞受賞</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.jj7juniq1qp5"></a>【修士（サブプロジェクト）】Chef*mo: 動画が調理器具を制御して調理を支援するシステムの提案</h3>
+<ul>
+<li>
+<p>１人で料理するときって手が足りない。YouTubeのレシピ動画を視ながら切る、混ぜる、調味料を投入するをWebmoのモーター制御でもってサポートをしてくれたりする。</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/625" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://dl.yumulab.org/papers/16/paper.pdf" target="_blank">情報処理学会EC研究会で発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.e15orrum8szx"></a>【修士】コンパニオンロボットを活用したプレゼンテーション支援システム</h3>
+<ul>
+<li>
+<p>様々なプレゼンテーションの機会がある中，一人でプレゼンテーションを行うのは心的負担が大きく，不安や緊張をしてしまう．そこで，プレゼンテーションにロボットと共に登壇し，発表者の心的負担を軽減する方法を提案，実装した．評価実験の結果，プレゼンテーションの質を下げることなく，また人間の存在感をある程度維持しながらプレゼンテーションを行うためのロボットの介入度合いについての知見が得られた．</p>
+<ul>
+<li>
+<p><a href="https://jinzaiipedia.ipa.go.jp/mitou_ipedia/development_result/post/%E3%82%B3%E3%83%B3%E3%83%91%E3%83%8B%E3%82%AA%E3%83%B3%E3%83%AD%E3%83%9C%E3%83%83%E3%83%88%E3%82%92%E6%B4%BB%E7%94%A8%E3%81%97%E3%81%9F%E3%83%97%E3%83%AC%E3%82%BC%E3%83%B3%E3%83%86%E3%83%BC%E3%82%B7" target="_blank">IPA未踏事業採択</a></p></li>
+<li>
+<p><a href="https://robotstart.info/2016/12/26/mashupawards2016-selectedworks.html" target="_blank">Mashup Awards 2016 HOYAサービス賞受賞</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/index.php?action=pages_view_main&amp;active_action=repository_action_common_download&amp;item_id=175082&amp;item_no=1&amp;attribute_id=1&amp;file_no=1&amp;page_id=13&amp;block_id=8" target="_blank">国内学会EC2016で発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.1128tkyjk7a9"></a>【修士】音声合成技術を用いた日常生活におけるディスレクシア障害の支援研究</h3>
+<ul>
+<li>
+<p>本論文では，学習障害の1つであるディスレクシアと呼ばれる障害を持つ人々に対し，音声合成技術を用いて日常生活を支援していくためのシステムの提案を行う．このシステムでは，ディスレクシア障害の特性である「字を視覚的に読むことに対する困難」をサポートするために，2つの媒体を実装し評価を行ったものである．またシステム実装にあたり，声の高さや速さに対するパラメータ調節が重要なのではないかという知見を得た．</p>
+<ul>
+<li>
+<p><a href="https://www.civicwave.jp/archives/52146206.html" target="_blank">Mashup Awards 2016 CIVICTECH部門優勝</a></p></li>
+<li>
+<p><a href="http://www.interaction-ipsj.org/proceedings/2017/data/pdf/17INT004.pdf" target="_blank">査読付き国内学会インタラクション2017登壇発表</a>（<a href="http://www.interaction-ipsj.org/2017/award/" target="_blank">ベストペーパー候補</a>）</p></li>
+<li>
+<p><a href="http://www.interaction-ipsj.org/proceedings/2018/data/pdf/2P08.pdf" target="_blank">国内学会インタラクション2018発表</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=repository_uri&amp;item_id=176072&amp;file_id=1&amp;file_no=1" target="_blank">情報処理学会AAC研究会発表</a></p></li>
+<li>
+<p><a href="https://www.npo-edge.jp/apdf2017/" target="_blank">アジア太平洋ディスレクシアフェスティバル2017で発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.djwvn41ugldh"></a>【修士】睡眠時間の副次利用によるエンタテインメント価値創出</h3>
+<ul>
+<li>
+<p>本論文では，日常の動作をビデオゲームの操作として副次利用する「ながらゲーム」の一つとして，睡眠時に無意識にゲームプレイを行う「寝ゲーム」を実装・検討する．睡眠時間は生活に不可欠なものだが，その時間の再利用・副次利用の手段は限定されていた．我々は睡眠時の寝返り動作によりブロック崩し，シューティングゲーム，ドットイートゲーム等のビデオゲームの操作を無意識的に行い，ゲームクリアの達成感を喚起させるエンタテインメントシステムを実現する．また，睡眠時はそもそもユーザがゲームの状態を知覚できない性質を利用し，望ましい頻度でのゲームクリアが実現できるよう，複数のゲームインスタンスを並列起動させ，クリア確率を制御する手法を提案する．</p>
+<ul>
+<li>
+<p><a href="http://www.interaction-ipsj.org/proceedings/2017/data/pdf/1-405-63.pdf" target="_blank">国内学会インタラクション 2017で発表</a></p></li>
+<li>
+<p><a href="http://www.wiss.org/WISS2017Proceedings/demo/1-A08.pdf" target="_blank">国内学会WISS 2017で発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.kn4cke7lsww0"></a>Handromeda：電車内における痴漢冤罪防止システム</h3>
+<ul>
+<li>
+<p>つり革に両手を拘束されている方々の痴漢冤罪証明を手助けするシステムHandromedaを提案する．Handromedaは音楽ゲームを両手でプレイすることで自然とユーザの両手を拘束しプレイ中の現在地の情報とBitcoinの最新ハッシュ値を暗号化して生成した署名をつけて自動ツイートすることで第三者に向けてユーザの両手が塞がっていることを証明する．より拘束感を出すためにタッチセンサを取り付けたカバンタイプも製作した．</p>
+<ul>
+<li>
+<p><a href="https://www.youtube.com/watch?v=paerbIMgFcI" target="_blank">デモ映像</a></p></li>
+<li>
+<p><a href="http://www.interaction-ipsj.org/proceedings/2018/data/pdf/3B53.pdf" target="_blank">国内学会インタラクション 2018で発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.winfsiunugat"></a>RoomBack :OpenCVを用いた顔認識による動画観視環境改善のための動的フィードバックの提案</h3>
+<ul>
+<li>
+<p>動画の視聴時にディスプレイとの距離が近い問題に着目し，掃除ロボットルンバを用いて視聴距離に応じて自動的に後退するディスプレイシステムRoomBack を提案する．</p>
+<ul>
+<li>
+<p><a href="https://gugen.jp/subscriptions/work/506" target="_blank">ものづくりコンテストGUGEN 2017で予選通過し展示会にて展示</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.s5t8bcfuuha0"></a>ShyPhone:電話に苦手意識を持つ人のための通話支援アプリケーション</h3>
+<ul>
+<li>
+<p>近年電話をすることに対して苦手意識を持つ人が多く，「電話恐怖症」という言葉まで存在している．そこで苦手意識を持つ人のためにそれぞれの原因に合わせ「保護」と「改善」を行う支援アプリケーション「ShyPhone」を提案する．</p></li></ul></li>
+<li>
+<h3><a href="#h.4i2pob54ow7u"></a>お片付けアプリ：ゲーミフィケーションを用いた掃除支援アプリ</h3>
+<ul>
+<li>
+<p>掃除にゲーミフィケーションを用いることで楽しく掃除をできるようなアプリを提案する．このアプリは，掃除をしたい場所の写真を撮り，その画像をいくつかのマス目に分割する．そうすることによって，次にユーザが掃除するべき箇所を指定することができ，これをゲームと融合するというものである．</p></li></ul></li></ul>
+<h2><a href="#h.ceh6dcpzzclu"></a>2016年度</h2>
+<ul>
+<li>
+<h3><a href="#h.xbwg7pjyxzh2"></a>【修士】心理的負担軽減を目的とした発表映像振り返りシステムの検討</h3>
+<ul>
+<li>
+<p>映像・音声を加工した発表動画を振り返るプレゼンテーションフィードバックシステムを提案し検証する.近年,プレゼンテーション能力は重要視されている.発表の質を向上させるために,聴衆の視点を知ることができる発表映像の見返しは有効な手段の1つである.しかし,発表映像を見返すことは普段聞き慣れない自分の声や無意識の仕草を見ることになるため,心理的負担の大きい行いであることが予想される.そこで,発表映像・音声に加工を加えることが心理的負担軽減につながると仮定し調査を行った.</p>
+<ul>
+<li>
+<p><a href="http://www.interaction-ipsj.org/proceedings/2017/data/pdf/1-410-67.pdf" target="_blank">国内学会インタラクション2017で発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.tk6vhgdjprs"></a>ChanJar: 自由に2つの液体の混合比を変更できる水筒の開発</h3>
+<ul>
+<li>
+<p>お酒の割り方やコーヒーの甘さなどの味の好みは，人それぞれこだわりがあります．しかし，自分の好みぴったりで割合を調節したり，気分や体調によって味を変えたりして飲むことは難しいです！そこで二つの液体の混合比を任意に調整して飲める水筒である ChanJar を提案します．</p>
+<ul>
+<li>
+<p><a href="https://protopedia.net/prototype/748" target="_blank">protopediaで詳しく見る</a></p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=repository_uri&amp;item_id=178285&amp;file_id=1&amp;file_no=1" target="_blank">情報処理学会EC研究会で発表</a></p></li>
+<li>
+<p>テレビ東京ワールドビジネスサテライトの「トレンドたまご」コーナーの取材を受け、出演しました。</p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.d5z0xc6p5enm"></a>発表時における視線誘導システムの検討</h3>
+<ul>
+<li>
+<p>プレゼンテーション技術の中でも特に聴衆への目配りに着目し、その技術向上のため、Kinectセンサーによる顔の向きの取得と、室内に設置したディスプレイを用いて、２種類のシステムを提案、実装を行う。１つ目は、発表中に発表者の視線を先導するシステムである。２つ目は、発表者の目配りの苦手な箇所を提示し、そこに視線を誘導するシステムである。</p>
+<ul>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=repository_uri&amp;item_id=178291&amp;file_id=1&amp;file_no=1" target="_blank">情報処理学会EC研究会で発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.awxblptiucv3"></a>男女の出会いに関する季節の影響についての研究～オンラインデーティングサービスを用いた分析による考察～</h3>
+<ul>
+<li>
+<p>日本最大級のオンラインデーティングサービス「YYC」のデータレポートを利用し、「男性は夏から秋にかけて，女性は冬にかけてパートナーを求めている」という仮説を検証した。2012年から2015年の月別男女別平均UUログイン数，UUログイン率，メッセージ数を分析を分析したところ、仮説は支持された。</p>
+<ul>
+<li>
+<p>Diverse技術研究所との共同研究</p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.bjfu6wj3ed6n"></a>機械学習を用いたイケメン・非イケメン判定</h3>
+<ul>
+<li>
+<p>恋愛マッチングサービス「PoiBoy」に登録されている男性の顔写真から得られた顔の特徴点の座標群とそれに対する女性の評価データを用いて機械学習を行い, イケメン, 非イケメンの分類を行うことで実際の女性がどのような男性をイケメンと評価しているのかを判別すること検討した。</p>
+<ul>
+<li>
+<p>Diverse技術研究所との共同研究</p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.7o3kosagk3db"></a>Picognizer：電子音の認識のためのJavaScriptライブラリの開発と評価</h3>
+<ul>
+<li>
+<p>我々は今や様々な電子音に囲まれて生活しており，それらを検出・認識し情報処理を行うことはMaker文化の発展，ディジタルゲーム拡張およびゲーミフィケーションの構成の上で有意義であるが，エンドユーザプログラマが個々の検出・認識対象について教師つき学習により認識器を構築するのは現状ではまだ容易ではない．そこで再生毎の音響的変動が小さいという電子音の特徴を活かし，Dynamic Time Warping等の伝統的なテンプレートベースのパターンマッチングアルゴリズムにより電子音の検出・認識を行うJavaScriptライブラリを実装する．</p>
+<ul>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=194362&amp;item_no=1&amp;page_id=13&amp;block_id=8" target="_blank">情報処理学会論文誌で発表</a>（栗原が引き継ぎ）</p></li>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=pages_view_main&amp;active_action=repository_view_main_item_detail&amp;item_id=183456&amp;item_no=1&amp;page_id=13&amp;block_id=8" target="_blank">国内学会EC2017で登壇発表</a>（栗原が引き継ぎ）</p></li>
+<li>
+<p><a href="https://www.wiss.org/WISS2017Proceedings/oral/17.pdf" target="_blank">査読付き国内学会WISS2017で登壇発表</a>（栗原が引き継ぎ）</p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.jil13mebtf2b"></a>VR用HMD装着時における頭部の動きを利用したテキスト入力の検証</h3>
+<ul>
+<li>
+<p>VR用HMD（ヘッドマウントディスプレイ）装着時における, 人の頭部の回転・動きを利用して入力をおこなう新しい入力手法について提案する. HMD以外のデバイスを使わずに, HMD装着時の人の頭部の動きだけを利用してメッセージを入力し, 送信ができる新しい入力手法について提案し, 運用実験とともに, その効果と将来性を検証する.</p></li></ul></li></ul>
+<h2><a href="#h.rnzizgmmrh5c"></a>2015年度</h2>
+<ul>
+<li>
+<h3><a href="#h.ji3ehvn6q49h"></a>【修士】シースルー型 HMD を用いた社会福祉学的アプローチ に基づく“視線恐怖症的コミュ障”支援システムの研究</h3>
+<ul>
+<li>
+<p>本論文では，俗に “コミュ障” と呼ばれている人間の性質に注目し，その中で他人と視線を合わせられない症状をもつ人々を社会福祉学的な観点から支援するためのシースルー型 HMD を使用したシステムの提案を行う.この “コミュ障” 支援システムは，彼ら/彼女らが他人と視線を合わせられないというコミュニケーション上の問題を緩和・改善するために，顔検出技術と視覚情報提示により相手の顔を隠したり，視線をそらす癖を改善するように指示したり，視線の挙動の客観的なデータを提示したり，コミュニケーション上の危険状態が発生した場合その場から脱出する手段を与えてくれる.このシステムのプロトタイプを実装し，評価した結果，いくつかの機能は有効に働き，今後の改善点が得られた.</p>
+<ul>
+<li>
+<p><a href="https://www.jstage.jst.go.jp/article/jssst/33/1/33_1_52/_article/-char/ja/" target="_blank">国内論文誌日本ソフトウェア科学会コンピュータソフトウェア（推薦論文）</a></p></li>
+<li>
+<p><a href="https://www.wiss.org/WISS2014Proceedings/oral/019.pdf" target="_blank">査読付き国内学会WISS2014登壇発表(発表賞受賞)</a></p></li>
+<li>
+<p>Mashup Awards11 準決勝 6位</p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.f4fdb59cki5n"></a>お電話かけてさん ~虚偽電話着信を用いた暇乞いの口実提供システムにおける演技負担の軽減手法の検討~</h3>
+<ul>
+<li>
+<p>近年 SNS の発達によって SNS 上の友人が増加しはじめ，中には実際に会ってみる，という人も増加している.しかし SNS 上と現実では人物像に隔たりがある場合も多い.そのような時にその後の SNS 上のコミュニケーションに禍根を残すことなく，相手とできる限り早く別れることができれば便利である.そこで近年台頭しはじめたウェアラブ ルデバイスの1種であるスマートウォッチと Twitter を使用し，その場から穏便に離脱するために，事前登録したコミュニティメンバーに電話を掛けてくれるように秘密裏に頼む方法を提案，実装した.</p>
+<ul>
+<li>
+<p><a href="http://www.interaction-ipsj.org/proceedings/2016/data/pdf/2A07.pdf" target="_blank">国内学会インタラクション2016で発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.n91rnobw66uy"></a>VR空間で創作活動を支援する知的生産作業システムの研究</h3>
+<ul>
+<li>
+<p>近年オフィスの環境における知的生産性の研究が継続的に行われ，注目されている．それにより，作業効率向上の支援をする研究が盛んに行われている一方，作業効率を上げるため必要となる個人への集中力の向上を目的とした研究は少ない．本研究では，Oculus Rift等の没入型視覚提示ディスプレイの技術を用い，緑豊かなVR空間とともに環境音を提供するVR作業空間を作成した．</p></li></ul></li>
+<li>
+<h3><a href="#h.wlqmrgwcn0ua"></a>君の吐息を感じて〜ヘッドマウントディスプレイとエアーポンプを用いた　シチュエーションCDの臨場感向上支援システムの研究〜</h3>
+<ul>
+<li>
+<p>バイノーラル録音された音源に，視覚・触覚を刺激する情報を付加する臨場感向上システムを開発した．視覚で得られるリアリティを高めるために，オキュラスリフトに音源と連動して動く3D映像を表示するシステムを作成した．また，実際のシチュエーションCDでは耳元で話しかけられた際に吐息のかかるシチュエーションが多々存在し，その場面でのリアリティを向上させるために，吐息を再現することが重要だと考えた．その吐息を再現する方法として，エアーポンプを利用し音源と連動してタイミングよく空気を出力するシステムを作成した．</p></li></ul></li>
+<li>
+<h3><a href="#h.c8ad11yvezh2"></a>Illustratorを使った組み木パズル 作成の支援</h3>
+<ul>
+<li>
+<p>レーザカッターを使った組み木パズルのような自由な形状のパズルの作成を支援するAdobe Illustrator用のプログラムを提案する．レーザカッターで切断するデータを作ることを実現し，実際にパズルを出力した．</p></li></ul></li></ul>
+<h2><a href="#h.ncg80ue0beq5"></a>2014年度</h2>
+<ul>
+<li>
+<h3><a href="#h.7h3d0xn89njx"></a>HMCメガネ:色によって印象を変化させる眼鏡型HMD</h3>
+<ul>
+<li>
+<p>色の変化と眼鏡の効果を組み合わせた，色によって印象を変化させる眼鏡型HMD(Head Mounted Display)であるHMC(Head Mounted Cosmetic)メガネを提案する．</p>
+<ul>
+<li>
+<p><a href="https://ipsj.ixsq.nii.ac.jp/ej/?action=repository_action_common_download&amp;item_id=141768&amp;item_no=1&amp;attribute_id=1&amp;file_no=1" target="_blank">情報処理学会HCI研究会で発表</a></p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.p4lp3d7f4oph"></a>オープン-クローズ可変型ヘッドホン</h3>
+<ul>
+<li>
+<p>外気への開放度合いを物理的に調整する新しいヘッドセットを開発することが本研究の目的である．このヘッドセットにより新しい音楽鑑賞・音楽表現方法の提案と環境認知・対人コミュニケーションに関する新しい研究領域の開拓を行う．現在ヘッドセットには，耳を塞ぐ形で使用する密閉型，あえて外気をとりいれる開放型，また開放型の一種として直接振動により音を伝える骨伝導型などが存在する．これらには，外界を遮断できるため生成された音環境に没入できる，外界の音環境を取り入れることで独特な音環境を実現できる，外界の音情報を同時に知覚できるため対人コミュニケーション・交通安全に役立つ，などの特徴がある．しかしこれらの特徴はヘッドセットの物理的構造によって実現されており可変ではない．そこでモータ制御により密閉型と開放型に変形可能な機構を備えたヘッドセットを開発する．これによって上記のような特徴をユーザが能動的に選択できるようになるとともに，使用するコンテキストに合わせて動的に開放度を変更させることにより，たとえば音楽鑑賞時に楽曲の盛り上がりに合わせて開放度が変化したり，声をかけられた・車両運転中である，などの状況をシステムが認識した際に外界の音情報を知覚できるよう，開放度を自動変更するような応用が可能となる．</p>
+<ul>
+<li>
+<p><a href="https://www.wiss.org/WISS2015Proceedings/demo/3-R09.pdf" target="_blank">国内学会WISS2015で発表</a>（栗原が引き継ぎ）</p></li></ul></li></ul></li>
+<li>
+<h3><a href="#h.b1ehr9kxk895"></a>マルチカメラForFamily:家族で楽しむための多視点デジタルカメラシステムの開発</h3>
+<ul>
+<li>
+<p>「家族で楽しむこと」を目的とした写真／動画の新しい撮影方法について検討する． 一般に，子どもの自然な表情を正面から撮ることは難しい．子どもが撮影者として写真／動画撮影を行う場合は尚更である．そこで，異なる視点のカメラを組み合わせることで，子どもの自然な表情・子どもの撮影した映像・さらには周囲の人々や風景も巻き込んだ映像の三点を撮影できる多視点デジタルカメラシステム，マルチカメラForFamilyを提案する．</p></li></ul></li>
+<li>
+<h3><a href="#h.4ikwpwj6lswi"></a>テキストマイニングを用いたインターネット掲示板における人物の印象分析</h3>
+<ul>
+<li>
+<p>自身が下す評価と他人が下す客観的な評価に食い違いが生じる, という経験をしたことがある人は少なくないはずである. そこで我々は, 自分自身は他人からどのように評価されているのか, そして大勢の人が下す一般的な評価を知る方法があれば, 先に述べたような認識のズレを埋めることができるのではないかと考えた. 本研究では, 分析の対象に関する情報を含む多量のテキストの中から対象に関する評価を抽出することが可能であることを示し, そのシステムを用いて実際に実験を行った. 具体的に『PSYCHO-PASS』に登場する『常守朱』というキャラクターに対して, 「手法1:評価語彙探索法」および「手法2:ナイーブベイズ分類法」でテキストマイニングを行い, 結果を考察した. </p></li></ul></li>
+<li>
+<h3><a href="#h.nia9n0djq9c8"></a>HMD上での楽譜表示による演奏支援</h3>
+<ul>
+<li>
+<p>シースルー型HMDに楽譜の情報を動画にして流すことによって、譜めくりをすることなく譜面を見ることができるシステムを開発した． </p></li></ul></li></ul><br>
+<img loading="lazy" src="/assets/img/7806295e16903f55.jpg">
+<p>(c) Kazutaka Kurihara</p>
+  </main>
+</div>
+<footer class="site-footer">
+  <p>Kazutaka Kurihara — <a href="https://www.unryu.org/">www.unryu.org</a></p>
+</footer>
+<script src="/assets/site.js"></script>
+</body>
+</html>

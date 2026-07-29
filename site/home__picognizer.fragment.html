@@ -1,0 +1,19 @@
+<h1>23.Picognizer</h1>
+<h2><a href="#h.p_ID_32"></a>Picognizer: 電子音の検出および認識のためのJavaScriptライブラリ</h2>
+<iframe src="https://www.youtube.com/embed/-2MtArZAtfg"></iframe>
+<p>Picognizerは、JavaScriptのみで記述された、電子音検出・認識のためのオープンソースライブラリです。</p>
+<p>ゲーム音、録音し再生された人間の声や音楽、電子機器の通知音などの検出を行えます。</p>
+<p>機械学習は用いておりません。Webブラウザ単体で高速に動作します。</p>
+<p>PC/Mac/AndroidのFirefoxが推奨環境です。</p>
+<p>デモ（PC/Mac/AndroidのFireFoxで動作確認）</p>
+<p><a href="https://qurihara.github.io/picognizer/script.html?cri=48&amp;surl=https://rawgit.com/qurihara/picognizer/gh-pages/scripts/bg_red.js&amp;src=https://rawgit.com/Fulox/FullScreenMario-JSON/master/Sounds/Sounds/mp3/Coin.mp3&amp;frame=0.04&amp;dur=0.01" target="_blank">https://qurihara.github.io/picognizer/script.html?cri=48&amp;surl=https://rawgit.com/qurihara/picognizer/gh-pages/scripts/bg_red.js&amp;src=https://rawgit.com/Fulox/FullScreenMario-JSON/master/Sounds/Sounds/mp3/Coin.mp3&amp;frame=0.04&amp;dur=0.01</a></p>
+<p>スーパーマリオブラザーズのコイン取得音を検出する例です。動作するコンピュータにスーパーマリオブラザーズの音声がマイク入力される状況にした後、Picognizeボタンを押すと検出が開始されます。playボタンを押すと、コイン取得音（検出対象音）が再生されるので、検出度合いをチェックできます。検出されるとブラウザの背景が赤く変わります。fireボタンを押すと、検出時の挙動をチェックできます。スライダを動かすと、検出を判定する閾値を設定できます。</p>
+<p>srcパラメータで検出対象の音源を指定します。mp3やwavなどが扱えます。検出時に実行するJavaScriptのURLをsurlパラメータで指定します。</p>
+<p><a href="https://github.com/qurihara/picognizer/blob/gh-pages/scripts/bg_red.js" target="_blank">https://github.com/qurihara/picognizer/blob/gh-pages/scripts/bg_red.js</a></p>
+<p>を参考に記述してください。setup()がページロード時に一度だけ実行され、onfire()が毎回の検出時に実行されます。</p>
+<p>その他の認識パラメータの記述方法等は<a href="https://github.com/qurihara/picognizer" target="_blank">GitHub</a>の方をご参照ください。</p>
+<p>ソースコード</p>
+<p><a href="https://github.com/qurihara/picognizer" target="_blank">ソースコードはGitHubにあります。そちらに使い方もかいてあります。</a></p>
+<p>アルファ公開中で、活用事例・ノウハウの収集をしています。開発でわからないことがありましたら <a href="https://twitter.com/qurihara" target="_blank">@qurihara</a> までお気軽にご相談ください。可能な限りご支援申し上げます。</p>
+<img loading="lazy" src="/assets/img/7806295e16903f55.jpg">
+<p>(c) Kazutaka Kurihara</p>

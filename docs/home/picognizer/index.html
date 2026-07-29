@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>23.Picognizer | Kazutaka Kurihara</title>
+<meta name="description" content="23.Picognizer Picognizer: 電子音の検出および認識のためのJavaScriptライブラリ Picognizerは、JavaScriptのみで記述された、電子音検出・認識のためのオープンソースライブラリです。 ゲーム音、録音し再生された人間の声や音楽、電子機器の通知音などの検出">
+<meta property="og:title" content="23.Picognizer | Kazutaka Kurihara">
+<meta property="og:description" content="23.Picognizer Picognizer: 電子音の検出および認識のためのJavaScriptライブラリ Picognizerは、JavaScriptのみで記述された、電子音検出・認識のためのオープンソースライブラリです。 ゲーム音、録音し再生された人間の声や音楽、電子機器の通知音などの検出">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.unryu.org/home/picognizer">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+<header class="site-header">
+  <a class="site-title" href="/">Kazutaka Kurihara</a>
+  <button class="nav-toggle" aria-expanded="false" aria-controls="sitenav">メニュー</button>
+</header>
+<div class="layout">
+  <div class="sidebar" id="sitenav">
+<nav class="site-nav" aria-label="サイト内ナビゲーション">
+<details class="nav-group" open>
+<summary>日本語</summary>
+<ul>
+<li><a href="/home">日本語のトップ</a></li>
+<li><a href="/home/old-projects">00. Old Projects</a></li>
+<li><a href="/home/kotodama">01. ことだま</a></li>
+<li><a href="/home/kotodama-lecture">01α. ことだまレクチャー（教育関係者向け）</a></li>
+<li><a href="/home/speechpen">02. 音声ペン</a></li>
+<li><a href="/home/timeline">03. 柔軟なタイムライン</a></li>
+<li><a href="/home/presentationsensei">04. プレゼン先生</a></li>
+<li><a href="/home/kotodamulti">05. ことだまるち</a></li>
+<li><a href="/home/irgel">06. 居るゴール</a></li>
+<li><a href="/home/dining-presenter">07. Dining Presenter</a></li>
+<li><a href="/home/microslip-hci">08. マイクロスリップとHCI</a></li>
+<li><a href="/home/borderless-canvas">09. Borderless Canvas</a></li>
+<li><a href="/home/tailstat">10. tailstat</a></li>
+<li><a href="/home/spiemenu">11. sPieMenu</a></li>
+<li><a href="/home/speechjammer">12. SpeechJammer</a></li>
+<li><a href="/home/cinemagazer">13. CinemaGazer</a></li>
+<li><a href="/home/speechprotector">14. SpeechProtector</a></li>
+<li><a href="/home/whisperpoint">15. WhisperPoint</a></li>
+<li><a href="/home/peepdetectorfake">16. PeepDetectorFake</a></li>
+<li><a href="/home/looselocker">17. LooseLocker</a></li>
+<li><a href="/home/t3dm">18. Tetris 3D Modeler</a></li>
+<li><a href="/home/oah">19. Openness-adjustable Headset</a></li>
+<li><a href="/home/ubf">20. The Universal Background Filter</a></li>
+<li><a href="/home/2ff">21. 2FF Youtube Viewer</a></li>
+<li><a href="/home/srtjs">22. srt.js</a></li>
+<li><a href="/home/picognizer" aria-current="page">23.Picognizer</a></li>
+<li><a href="/home/gc">24.GameControllerizer</a></li>
+<li><a href="/home/ig-research19">25. Ig Nobel Research 2019</a></li>
+<li><a href="/home/vs_covid19">vs_covid19</a></li>
+</ul></details>
+<details class="nav-group">
+<summary>English</summary>
+<ul>
+<li><a href="/top-english">Englishのトップ</a></li>
+<li><a href="/top-english/borderless-canvas">Borderless Canvas</a></li>
+<li><a href="/top-english/cinemagazer">CinemaGazer</a></li>
+<li><a href="/top-english/publications">CV</a></li>
+<li><a href="/top-english/dining-presenter">Dining Presenter</a></li>
+<li><a href="/top-english/irgel">Irgel</a></li>
+<li><a href="/top-english/kotodama">Kotodama</a></li>
+<li><a href="/top-english/kotodamulti">KotodaMulti</a></li>
+<li><a href="/top-english/picognizer">Picognizer</a></li>
+<li><a href="/top-english/presentation-sensei">Presentation Sensei</a></li>
+<li><a href="/top-english/speechjammer">SpeechJammer</a></li>
+<li><a href="/top-english/speechpen">SpeechPen</a></li>
+<li><a href="/top-english/speechprotector">SpeechProtector</a></li>
+<li><a href="/top-english/spiemenu">sPieMenu</a></li>
+<li><a href="/top-english/srtjs">srtjs</a></li>
+<li><a href="/top-english/t3dm">Tetris 3D Modeler</a></li>
+<li><a href="/top-english/timeline">Timeline</a></li>
+</ul></details>
+<a class="nav-top" href="/profile">Profile</a>
+<a class="nav-top" href="/publications">Publications</a>
+<a class="nav-top" href="/lab">栗原研究室</a>
+</nav>
+  </div>
+  <main id="main" class="content">
+<h1>23.Picognizer</h1>
+<h2><a href="#h.p_ID_32"></a>Picognizer: 電子音の検出および認識のためのJavaScriptライブラリ</h2>
+<iframe src="https://www.youtube.com/embed/-2MtArZAtfg"></iframe>
+<p>Picognizerは、JavaScriptのみで記述された、電子音検出・認識のためのオープンソースライブラリです。</p>
+<p>ゲーム音、録音し再生された人間の声や音楽、電子機器の通知音などの検出を行えます。</p>
+<p>機械学習は用いておりません。Webブラウザ単体で高速に動作します。</p>
+<p>PC/Mac/AndroidのFirefoxが推奨環境です。</p>
+<p>デモ（PC/Mac/AndroidのFireFoxで動作確認）</p>
+<p><a href="https://qurihara.github.io/picognizer/script.html?cri=48&amp;surl=https://rawgit.com/qurihara/picognizer/gh-pages/scripts/bg_red.js&amp;src=https://rawgit.com/Fulox/FullScreenMario-JSON/master/Sounds/Sounds/mp3/Coin.mp3&amp;frame=0.04&amp;dur=0.01" target="_blank">https://qurihara.github.io/picognizer/script.html?cri=48&amp;surl=https://rawgit.com/qurihara/picognizer/gh-pages/scripts/bg_red.js&amp;src=https://rawgit.com/Fulox/FullScreenMario-JSON/master/Sounds/Sounds/mp3/Coin.mp3&amp;frame=0.04&amp;dur=0.01</a></p>
+<p>スーパーマリオブラザーズのコイン取得音を検出する例です。動作するコンピュータにスーパーマリオブラザーズの音声がマイク入力される状況にした後、Picognizeボタンを押すと検出が開始されます。playボタンを押すと、コイン取得音（検出対象音）が再生されるので、検出度合いをチェックできます。検出されるとブラウザの背景が赤く変わります。fireボタンを押すと、検出時の挙動をチェックできます。スライダを動かすと、検出を判定する閾値を設定できます。</p>
+<p>srcパラメータで検出対象の音源を指定します。mp3やwavなどが扱えます。検出時に実行するJavaScriptのURLをsurlパラメータで指定します。</p>
+<p><a href="https://github.com/qurihara/picognizer/blob/gh-pages/scripts/bg_red.js" target="_blank">https://github.com/qurihara/picognizer/blob/gh-pages/scripts/bg_red.js</a></p>
+<p>を参考に記述してください。setup()がページロード時に一度だけ実行され、onfire()が毎回の検出時に実行されます。</p>
+<p>その他の認識パラメータの記述方法等は<a href="https://github.com/qurihara/picognizer" target="_blank">GitHub</a>の方をご参照ください。</p>
+<p>ソースコード</p>
+<p><a href="https://github.com/qurihara/picognizer" target="_blank">ソースコードはGitHubにあります。そちらに使い方もかいてあります。</a></p>
+<p>アルファ公開中で、活用事例・ノウハウの収集をしています。開発でわからないことがありましたら <a href="https://twitter.com/qurihara" target="_blank">@qurihara</a> までお気軽にご相談ください。可能な限りご支援申し上げます。</p>
+<img loading="lazy" src="/assets/img/7806295e16903f55.jpg">
+<p>(c) Kazutaka Kurihara</p>
+  </main>
+</div>
+<footer class="site-footer">
+  <p>Kazutaka Kurihara — <a href="https://www.unryu.org/">www.unryu.org</a></p>
+</footer>
+<script src="/assets/site.js"></script>
+</body>
+</html>

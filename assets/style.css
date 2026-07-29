@@ -1,0 +1,288 @@
+/* unryu.org — 素のHTMLで組んだ静的サイトの見た目を整える。
+   元のGoogle Sitesに近い、読みやすさ優先の構成にしてある。 */
+
+:root {
+  --bg: #ffffff;
+  --fg: #1f2328;
+  --muted: #5b6570;
+  --accent: #1a73e8;
+  --line: #e3e6ea;
+  --sidebar-bg: #f7f9fb;
+  --header-h: 56px;
+  --sidebar-w: 300px;
+  --maxw: 860px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14171a;
+    --fg: #e8eaed;
+    --muted: #9aa4af;
+    --accent: #7cb0f5;
+    --line: #2b3036;
+    --sidebar-bg: #1a1e22;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN",
+               "Hiragino Sans", Meiryo, sans-serif;
+  line-height: 1.75;
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+.skip-link:focus {
+  left: 8px;
+  top: 8px;
+  z-index: 100;
+  background: var(--accent);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 6px;
+}
+
+/* ヘッダー */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 18px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+
+.site-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--fg);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+}
+
+.nav-toggle {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--fg);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* レイアウト */
+.layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.sidebar {
+  flex: 0 0 var(--sidebar-w);
+  width: var(--sidebar-w);
+  position: sticky;
+  top: var(--header-h);
+  max-height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+  padding: 20px 14px 40px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--line);
+}
+
+.content {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--maxw);
+  padding: 28px 32px 80px;
+}
+
+/* ナビゲーション */
+.site-nav a {
+  color: var(--fg);
+  text-decoration: none;
+  display: block;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.92rem;
+}
+.site-nav a:hover { background: rgba(127, 127, 127, 0.14); }
+.site-nav a[aria-current="page"] {
+  background: rgba(26, 115, 232, 0.14);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.nav-top { font-weight: 600; margin: 2px 0; }
+
+.nav-group { margin: 6px 0; }
+.nav-group > summary {
+  cursor: pointer;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 6px;
+  list-style: none;
+  font-size: 0.95rem;
+}
+.nav-group > summary::-webkit-details-marker { display: none; }
+.nav-group > summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 1em;
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+.nav-group[open] > summary::before { transform: rotate(90deg); }
+.nav-group > summary:hover { background: rgba(127, 127, 127, 0.14); }
+.nav-group ul {
+  list-style: none;
+  margin: 2px 0 8px;
+  padding-left: 12px;
+  border-left: 2px solid var(--line);
+}
+
+/* 本文 */
+.content h1 {
+  font-size: 1.7rem;
+  line-height: 1.35;
+  margin: 0 0 24px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--line);
+}
+.content h2 {
+  font-size: 1.32rem;
+  margin: 40px 0 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.content h3 { font-size: 1.12rem; margin: 28px 0 10px; }
+.content h4 { font-size: 1rem; margin: 22px 0 8px; }
+
+.content p { margin: 0 0 14px; }
+
+.content a { color: var(--accent); }
+.content a:hover { text-decoration: none; }
+
+.content ul, .content ol { margin: 0 0 16px; padding-left: 1.6em; }
+.content li { margin: 4px 0; }
+.content li > p { margin: 0 0 4px; }
+
+/* 元サイトは段組みの中に画像を置いていたため、そのまま原寸で出すと大きすぎる。
+   読みやすい幅で頭打ちにしつつ、幅を明示してある小さな画像はその指定を活かす。 */
+.content img {
+  max-width: min(100%, 560px);
+  height: auto;
+  border-radius: 6px;
+  display: block;
+  margin: 12px 0;
+}
+.content img[width] {
+  max-width: min(100%, 560px);
+  width: auto;
+}
+/* 並んだ小さなアイコンは横に並べる */
+.content img[width="28"] {
+  display: inline-block;
+  margin: 4px 6px 4px 0;
+  border-radius: 0;
+}
+
+.content iframe {
+  max-width: 100%;
+  border: 0;
+  border-radius: 8px;
+  margin: 12px 0;
+}
+
+/* YouTube などの埋め込みを16:9で保つ */
+.embed-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  aspect-ratio: 16 / 9;
+  margin: 16px 0;
+}
+.embed-wrap iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.content blockquote {
+  margin: 16px 0;
+  padding: 8px 18px;
+  border-left: 4px solid var(--line);
+  color: var(--muted);
+}
+
+.content pre {
+  overflow-x: auto;
+  background: rgba(127, 127, 127, 0.12);
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+.content code {
+  background: rgba(127, 127, 127, 0.14);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.92em;
+}
+.content pre code { background: none; padding: 0; }
+
+/* 表は横スクロールできるようにして、レイアウトを壊さない */
+.table-wrap { overflow-x: auto; margin: 16px 0; }
+.content table { border-collapse: collapse; min-width: 100%; }
+.content th, .content td {
+  border: 1px solid var(--line);
+  padding: 7px 11px;
+  text-align: left;
+  vertical-align: top;
+}
+.content th { background: rgba(127, 127, 127, 0.1); font-weight: 600; }
+
+.content hr { border: 0; border-top: 1px solid var(--line); margin: 30px 0; }
+
+/* フッター */
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 22px 32px 40px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+.site-footer a { color: var(--muted); }
+
+/* 画面が狭いとき */
+@media (max-width: 900px) {
+  .nav-toggle { display: block; }
+  .layout { display: block; }
+  .sidebar {
+    display: none;
+    position: static;
+    width: auto;
+    max-height: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .sidebar.open { display: block; }
+  .content { max-width: none; padding: 22px 18px 60px; }
+  .site-footer { padding: 20px 18px 36px; }
+}

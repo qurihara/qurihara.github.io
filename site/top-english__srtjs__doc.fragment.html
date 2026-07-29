@@ -1,0 +1,175 @@
+<h1>doc</h1>
+
+<p><strong>Document for Development</strong></p>
+<p>Developers’ community on Facebook is here: <a href="https://www.facebook.com/groups/srtjsdev/" target="_blank">https://www.facebook.com/groups/srtjsdev/</a></p>
+<p>The source code of “srt.js” is available here: <a href="https://github.com/qurihara/srt.js" target="_blank">https://github.com/qurihara/srt.js</a></p>
+<p>Usage Examples of “srt.js” are here. New ones will be added occasionally: <a href="https://github.com/qurihara/examples.srt.js" target="_blank">https://github.com/qurihara/examples.srt.js</a></p>
+<p><br></p>
+<p><strong>What is srt.js?</strong></p>
+<p>“srt.js” is a new way of describing time-stamped JavaScript following the format of srt, which is widely used as a file for describing subtitle information in videos. You can arbitrarily execute JavaScript which is synchronized with replaying of videos, so that you can experience video watching involving such as external web services and IoT devices. You don’t need to install any special software. If you have a browser, you can use “srt.js” in any devices. If you want to know what “srt.js” can do, <a href="/top-english/srtjs">please reference here</a>.</p>
+<p><br></p>
+<p>“srt.js” is mainly for YouTube. YouTube officially supports the uploads of subtitle files in the srt format, so you can upload “srt.js” to the videos that you have uploaded to YouTube by yourself.</p>
+<p>You can also execute “srt.js” which is linked together with other user’s videos opened to the public on YouTube.</p>
+<p><br></p>
+<p>The following explanations are supposed for developers who have already known about JavaScript. If you have any opinions or questions, please visit <a href="https://twitter.com/qurihara" target="_blank">@qurihara.</a> As the main developer, I will help you as much as I can to contribute to spreading “srt.js.”</p>
+<p><br></p>
+<p>How to Execute “srt.js”</p>
+<p>“srt.js” cannot be executed on the official web site of YouTube yet. (It can be possible if you use some techniques such as chrome extension, but there is no document yet.) So I recommend you to execute “srt.js” on the web site I prepared. On the web site, a video on YouTube and “srt.js” are loaded, and JavaScript is executed in synchronization with the video playback. The procedure of execution is as follow:</p>
+<p><br></p>
+<p>(1) If you upload “srt.js” on the videos you have uploaded to YouTube, or if you write JavaScript by using the YouTube subtitle editor, please insert eleven-character ID of the YouTube video in XXXXXXXXXXX part.</p>
+<p> <a href="http://srtjs.azurewebsites.net/?v=XXXXXXXXXXX" target="_blank">http://srtjs.azurewebsites.net/?v=XXXXXXXXXXX</a></p>
+<p>In this case, please change the settings of YouTube so that JavaScript does not appear as subtitles in videos. (Details are written in “Other Information,” at the bottom of this web page.)</p>
+<p><br></p>
+<p>(2) If you want to insert your “srt.js” to the videos which someone have uploaded to YouTube, first please upload your “srt.js” on the internet using such as DropBox, GoogleDrive, github, or your own server, and get a URL. Then please write ID of the video and the URL of “srt.js.” (DropBox is used in the following example.)</p>
+<p> https://srtjs.azurewebsites.net/?v=XXXXXXXXXXX&amp;surl=https://dl.dropboxusercontent.com/u/9999999/example.srt.js</p>
+<p>In this case, you may see an alert saying “This script is made by a disinterested person in the video. It may be dangerous.” Please enjoy it on your own responsibility.</p>
+<p>The web site for execution of “srt.js,” which I mentioned above, may be also inserted into your own web site by using iframe (Please tell me how to do it if you are an expert).</p>
+<p><br></p>
+<p>Postscript on May 17, 2017:</p>
+<p>If you do not specify srt.js file URL as surl parameter during the execution procedure explained in (2), a space will appear at the bottom of the video player. Into this space, you can drag and drop your “srt.js,” which is in your local computer. Please try to use this space for your own development of “srt.js.”</p>
+<p><br></p>
+<p><strong>Format of “srt.js”</strong></p>
+<p>Subtitles in the srt format are composed of (1) serial number, (2) start time of displaying subtitles, (3) finish time of displaying subtitles, (4) subtitle texts that are going on display (multiline texts are possible), (5) blank lines that are used for delimiting each subtitle. Here we call a set of these five components “a subtitle section.” Files in the srt format are constructed by the list of more than one subtitle section.</p>
+<p>An Example of the srt Format:</p>
+<p>1</p>
+<p>00:00:05,000 --&gt; 00:00:06,000</p>
+<p>Once upon a time,</p>
+<p><br></p>
+<p>2</p>
+<p>00:02:51,000 --&gt; 00:03:00,000</p>
+<p>An old couple lived in a village.</p>
+<p>The old husband went to the mountain to gather firewood,</p>
+<p>And the old wife went to the river to wash clothes.</p>
+<p><br></p>
+<p>In “srt.js,” according to the following srt format, please input the script you want to execute as (4) subtitle texts of subtitle sections.</p>
+<p>An Example of “srt.js” Format:</p>
+<p>1</p>
+<p>00:00:05,000 --&gt; 00:00:06,000</p>
+<p>// say hello</p>
+<p>alert("hello!");</p>
+<p><br></p>
+<p>2</p>
+<p>00:02:51,000 --&gt; 00:03:00,000</p>
+<p>// close browser tab at 2:51</p>
+<p>window.open('about:blank','_self').close();</p>
+<p><br></p>
+<p>The script can be multiline, but you cannot use blank lines to avoid false recognition as (5) blank lines, that are used for delimiting each subtitle. If you strongly want to use blank lines, please use “//” instead. (Most of the errors during my use of “srt.js” occur because of those “unintended” blank lines.)</p>
+<p><br></p>
+<p>In many scripts, only (2) start time is important as time information, while (3) finish time does not have any meaning. Please set the time which is long enough to finish the script. When you use indexedFunction, which will be mentioned later; however, you can change the codes that are executed depending on the subtitle sections when each designated function is called. Then finish time also comes to have an important meaning.</p>
+<p><br></p>
+<p>Postscript on May 17, 2017:</p>
+<p>If it is not necessary to set finish time, you can use the abridged notation. Instead of 00:00:05,000 --&gt; 00:00:06,000, you can use 00:00:05,000, in which you can abbreviate finish time. In that case, the section is implicitly understood to continue for 0.1 second. Note that, the file using the abridged notation does not accord with the canonical srt format, so you cannot upload the “srt.js” file on YouTube.</p>
+<p><br></p>
+<p>They say that (1) serial number “actually doesn’t have any meaning, and any number can be accepted.” When you try to insert a different code while editing, it may be bothering to rewrite every number in serial order. “srt.js” interpreter can accept any texts as serial number, but YouTube may have some rules. Please try and hack in various patterns.</p>
+<p><br></p>
+<p><strong>How to Write JavaScript by Using Official Editor of YouTube</strong></p>
+<p>On the video, which you have uploaded on YouTube, you can add subtitle texts by using its official graphical editor as follows. You can use this editor to write JavaScript you want to execute instead of subtitle texts and to save the texts. Please use this together.</p>
+<p><br></p>
+<img loading="lazy" src="/assets/img/646b0ea83cda2fa0.jpg">
+<p><strong>“srt.js” Special Notations, Objects, Built-in Functions</strong></p>
+<p>As premises for “srt.js,” it has an independent scope for each subtitle element. For example, you cannot use a variable “a,” which is defined within No.0 subtitle section, in No.1 subtitle section in the same meaning.</p>
+<p>0</p>
+<p>00:00:00,000 --&gt; 00:00:01,000</p>
+<p>var a=0;</p>
+<p><br></p>
+<p>1</p>
+<p>00:00:26,000 --&gt; 00:00:26,500</p>
+<p>console.log(a);</p>
+<p>Please define “a” as follows.</p>
+<p>0</p>
+<p>00:00:00,000 --&gt; 00:00:01,000</p>
+<p>a=0;</p>
+<p><br></p>
+<p>1</p>
+<p>00:00:26,000 --&gt; 00:00:26,500</p>
+<p>console.log(a);</p>
+<p>Then, “a” becomes a global variable, and it can be shared in any subtitle elements.</p>
+<p>Similarly, you can access a function "f" from anywhere by defining "f" with the following way.</p>
+<p>0</p>
+<p>00:00:00,000 --&gt; 00:00:01,000</p>
+<p>f = function(a){</p>
+<p> alert(a);</p>
+<p>}</p>
+<p>1</p>
+<p>00:00:26,000 --&gt; 00:00:26,500</p>
+<p>f("hello");</p>
+<p><strong>player</strong></p>
+<p>This is an object to reference the video player using iframe-embedded API on YouTube. You can control replaying of videos and get information about videos. Please check the following URL for detailed information.</p>
+<p><a href="https://developers.google.com/youtube/iframe_api_reference?hl=ja" target="_blank">https://developers.google.com/youtube/iframe_api_reference?hl=ja</a></p>
+<p>Usage Examples:</p>
+<p>player.pauseVideo();// to pause the video</p>
+<p>player.playVideo(); // to play the video</p>
+<p>player.seekTo(22,true); // to indicate when to play the video</p>
+<p><br></p>
+<p><strong>index</strong></p>
+<p>This is an object to show in which subtitle section the player currently is replaying. The number is counted from the beginning of your “srt.js.” “-1” means you are not in any section. This object is not related to the serial number written in the srt format at the beginning of each subtitle section. This object uses integral numbers that begin from zero from the beginning of your “srt.js” file and count up one by one.</p>
+<p><br></p>
+<p><strong>doOnce[index] = true;</strong></p>
+<p>If the subtitle element has this function, the element is executed only once. Users sometimes rewind the video player by the seek bar, so it is better to use this function to the elements that should not be repeated for several times, such as initializing the program.</p>
+<p>Usage Exmaple:</p>
+<p>0</p>
+<p>00:00:00,000 --&gt; 00:00:01,000</p>
+<p>//initialize</p>
+<p>doOnce[index] = true;</p>
+<p>console.log("initialized!");</p>
+<p>In this example, “initialized!” is displayed only once even if the user rewinds the video for several times. If you do not insert “doOnce[index] = true;,” “initialized” is displayed every time the video is rewound. If you write “doOnce[4] = true;,” this function comes to be related with the fifth subtitle element.</p>
+<p><br></p>
+<p><strong>loadScript</strong></p>
+<p>This is a built-in function to load external JavaScript files. You should indicate the URL of the external JavaScript file as the first parameter, and the callback function, which is executed when loading is finished, as the second parameter. The following example shows how to read jQuery.</p>
+<p>Usage Example:</p>
+<p>loadScript('//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js',function(e){</p>
+<p> console.log("jquery loaded.");</p>
+<p>});</p>
+<p><br></p>
+<p><strong>indexedFunction</strong></p>
+<p>This is a built-in function to change the scripts that are executed depending on the subtitle sections. For example, you can change the event handler to input the shaking gesture in your smartphone depending on the sections of video playbacks.</p>
+<p>Usage Example:</p>
+<p>1</p>
+<p>00:00:00,000 --&gt; 00:00:01,000</p>
+<p>//bibliobattle</p>
+<p>doOnce[index] = true;</p>
+<p>vars.myfunc = {};</p>
+<p>loadScript('//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js',function(e){</p>
+<p>loadScript('//rawgit.com/GerManson/gShake/master/lib/gShake.js',function(e2){</p>
+<p> $(document).ready(function() {</p>
+<p> $(this).gShake(function() {</p>
+<p> var fn = indexedFunction(vars.myfunc);</p>
+<p> if (fn != null) {</p>
+<p> fn.call(null);</p>
+<p> }</p>
+<p> });</p>
+<p> });</p>
+<p>});</p>
+<p>});</p>
+<p><br></p>
+<p>2</p>
+<p>00:00:10,001 --&gt; 00:08:06,000</p>
+<p>//1st book</p>
+<p>vars.myfunc[index] = function(){</p>
+<p> window.location.href ='https://www.amazon.co.jp/dp/4591132374';</p>
+<p>}</p>
+<p><br></p>
+<p>3</p>
+<p>00:08:06,001 --&gt; 00:47:56,000</p>
+<p>//2nd book</p>
+<p>vars.myfunc[index] = function(){</p>
+<p> window.location.href ='https://www.amazon.co.jp/dp/4847093399/';</p>
+<p>}</p>
+<p><br></p>
+<p><strong>Script Examples</strong></p>
+<p>At the bottom of this web page, you can check some open content examples I wrote by using “srt.js.” In these examples, you can check what kind of contents you can use and how these contents move. Please check them out.</p>
+<p>https://sites.google.com/site/qurihara/home/srtjs</p>
+<p><br></p>
+<p>Examples, using webmo, or making IoT systems by using milkcocoa, will be occasionally added to this web page.</p>
+<p><a href="https://github.com/qurihara/examples.srt.js" target="_blank">https://github.com/qurihara/examples.srt.js</a></p>
+<p><br></p>
+<p><strong>Other Information</strong></p>
+<p>This is a bookmarklet to navigate you to the “srt.js” web site for a video by a simple click when you are watching the video with YouTube official web site.</p>
+<p>Please use this if you like.</p>
+<p><a href="https://github.com/qurihara/examples.srt.js/blob/master/youtube2srtjs_bookmarklet.js" target="_blank">https://github.com/qurihara/examples.srt.js/blob/master/youtube2srtjs_bookmarklet.js</a></p>
+<p><br></p>
+<p>If your embedded JavaScript texts are set to be displayed as subtitle texts during playback of the video, you can change the settings from here:</p>
+<p><a href="https://support.google.com/youtube/answer/100078?co=GENIE.Platform%3DDesktop&amp;hl=ja&amp;oco=0" target="_blank">https://support.google.com/youtube/answer/100078?co=GENIE.Platform%3DDesktop&amp;hl=ja&amp;oco=0</a></p>
+<p><br></p>
+<img loading="lazy" src="/assets/img/7806295e16903f55.jpg">
+<p>(c) Kazutaka Kurihara</p>

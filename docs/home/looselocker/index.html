@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>17. LooseLocker | Kazutaka Kurihara</title>
+<meta name="description" content="17. LooseLocker LooseLockerは、（iPhoneのように）スリープ後一定時間経って復帰したときだけパスワード認証画面になるWindowsアプリです。 Windowsはスリープから復帰するとき、毎回パスワードを要求するか、まったく要求しないかの２択しかありません。iPhoneの">
+<meta property="og:title" content="17. LooseLocker | Kazutaka Kurihara">
+<meta property="og:description" content="17. LooseLocker LooseLockerは、（iPhoneのように）スリープ後一定時間経って復帰したときだけパスワード認証画面になるWindowsアプリです。 Windowsはスリープから復帰するとき、毎回パスワードを要求するか、まったく要求しないかの２択しかありません。iPhoneの">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.unryu.org/home/looselocker">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+<header class="site-header">
+  <a class="site-title" href="/">Kazutaka Kurihara</a>
+  <button class="nav-toggle" aria-expanded="false" aria-controls="sitenav">メニュー</button>
+</header>
+<div class="layout">
+  <div class="sidebar" id="sitenav">
+<nav class="site-nav" aria-label="サイト内ナビゲーション">
+<details class="nav-group" open>
+<summary>日本語</summary>
+<ul>
+<li><a href="/home">日本語のトップ</a></li>
+<li><a href="/home/old-projects">00. Old Projects</a></li>
+<li><a href="/home/kotodama">01. ことだま</a></li>
+<li><a href="/home/kotodama-lecture">01α. ことだまレクチャー（教育関係者向け）</a></li>
+<li><a href="/home/speechpen">02. 音声ペン</a></li>
+<li><a href="/home/timeline">03. 柔軟なタイムライン</a></li>
+<li><a href="/home/presentationsensei">04. プレゼン先生</a></li>
+<li><a href="/home/kotodamulti">05. ことだまるち</a></li>
+<li><a href="/home/irgel">06. 居るゴール</a></li>
+<li><a href="/home/dining-presenter">07. Dining Presenter</a></li>
+<li><a href="/home/microslip-hci">08. マイクロスリップとHCI</a></li>
+<li><a href="/home/borderless-canvas">09. Borderless Canvas</a></li>
+<li><a href="/home/tailstat">10. tailstat</a></li>
+<li><a href="/home/spiemenu">11. sPieMenu</a></li>
+<li><a href="/home/speechjammer">12. SpeechJammer</a></li>
+<li><a href="/home/cinemagazer">13. CinemaGazer</a></li>
+<li><a href="/home/speechprotector">14. SpeechProtector</a></li>
+<li><a href="/home/whisperpoint">15. WhisperPoint</a></li>
+<li><a href="/home/peepdetectorfake">16. PeepDetectorFake</a></li>
+<li><a href="/home/looselocker" aria-current="page">17. LooseLocker</a></li>
+<li><a href="/home/t3dm">18. Tetris 3D Modeler</a></li>
+<li><a href="/home/oah">19. Openness-adjustable Headset</a></li>
+<li><a href="/home/ubf">20. The Universal Background Filter</a></li>
+<li><a href="/home/2ff">21. 2FF Youtube Viewer</a></li>
+<li><a href="/home/srtjs">22. srt.js</a></li>
+<li><a href="/home/picognizer">23.Picognizer</a></li>
+<li><a href="/home/gc">24.GameControllerizer</a></li>
+<li><a href="/home/ig-research19">25. Ig Nobel Research 2019</a></li>
+<li><a href="/home/vs_covid19">vs_covid19</a></li>
+</ul></details>
+<details class="nav-group">
+<summary>English</summary>
+<ul>
+<li><a href="/top-english">Englishのトップ</a></li>
+<li><a href="/top-english/borderless-canvas">Borderless Canvas</a></li>
+<li><a href="/top-english/cinemagazer">CinemaGazer</a></li>
+<li><a href="/top-english/publications">CV</a></li>
+<li><a href="/top-english/dining-presenter">Dining Presenter</a></li>
+<li><a href="/top-english/irgel">Irgel</a></li>
+<li><a href="/top-english/kotodama">Kotodama</a></li>
+<li><a href="/top-english/kotodamulti">KotodaMulti</a></li>
+<li><a href="/top-english/picognizer">Picognizer</a></li>
+<li><a href="/top-english/presentation-sensei">Presentation Sensei</a></li>
+<li><a href="/top-english/speechjammer">SpeechJammer</a></li>
+<li><a href="/top-english/speechpen">SpeechPen</a></li>
+<li><a href="/top-english/speechprotector">SpeechProtector</a></li>
+<li><a href="/top-english/spiemenu">sPieMenu</a></li>
+<li><a href="/top-english/srtjs">srtjs</a></li>
+<li><a href="/top-english/t3dm">Tetris 3D Modeler</a></li>
+<li><a href="/top-english/timeline">Timeline</a></li>
+</ul></details>
+<a class="nav-top" href="/profile">Profile</a>
+<a class="nav-top" href="/publications">Publications</a>
+<a class="nav-top" href="/lab">栗原研究室</a>
+</nav>
+  </div>
+  <main id="main" class="content">
+<h1>17. LooseLocker</h1>
+
+<p>LooseLockerは、（iPhoneのように）スリープ後一定時間経って復帰したときだけパスワード認証画面になるWindowsアプリです。</p>
+<img loading="lazy" src="/assets/img/0d4a387a9f93eab1.png">
+<p>Windowsはスリープから復帰するとき、毎回パスワードを要求するか、まったく要求しないかの２択しかありません。iPhoneのように、スリープ後一定時間経ったときだけ画面ロックできると良いなと思ったのですが、そういうアプリが意外と見つからなかったので通勤中の電車内で作ってみました。</p>
+<p>開発動機：</p>
+<p>私は電車の中で仕事して、スリープして乗り換えてまた仕事して、のように短いスリープをよく使うので、短時間で何度もパスワード認証するのが面倒に感じていました。でも完全に認証をなくすのもセキュリティ的に問題があるので、iPhoneのようにならないかなと常々思っていました。</p>
+<p>私は持っていませんが、Windows8 Proのタブレットとか使っている人にも便利なのではないでしょうか。</p>
+<p>インストール方法と使い方：</p>
+<ul>
+<li>コントロールパネル→電源オプション→スリープ解除時のパスワード保護→「現在変更可能ではない設定を変更します」→「パスワードを必要としない」のラジオボタンをチェックし「変更の保存」をクリック</li>
+<li><a href="http://goo.gl/NWa4p" target="_blank">ここからsetup.exeをダウンロード</a>してダブルクリックし、インストールしてください。Windows8だといろいろ不審なアプリ扱いされます。「WindowsによってPCが保護されました」 → 「詳細情報」 → 「実行」で華麗に回避してください。</li>
+<li>アプリが実行されると錠前の形をしたタスクトレイ通知アイコンで出ます。これを右クリックして、「設定」から、パスワードロックまでの時間を指定します。</li>
+<li>同じく、「設定」から、Windows開始時にLooseLockerを起動するかどうか指定できます。</li>
+<li>間違って終了してしまったら、「LooseLocker」というアプリを探してください。</li></ul>
+<p>注意事項：</p>
+<ul>
+<li>Windows8で動作確認しています。</li>
+<li>実装の問題で、スリープから復帰後一瞬デスクトップが見えてしまう時がありますが、仕様です☆</li>
+<li>強制的に画面ロックされるので、少々危険なアプリと言えます。ご自身の責任でお使いください。</li></ul>
+<p>(c) Kazutaka Kurihara 2013</p>
+<img loading="lazy" src="/assets/img/7806295e16903f55.jpg">
+<p>(c) Kazutaka Kurihara</p>
+  </main>
+</div>
+<footer class="site-footer">
+  <p>Kazutaka Kurihara — <a href="https://www.unryu.org/">www.unryu.org</a></p>
+</footer>
+<script src="/assets/site.js"></script>
+</body>
+</html>

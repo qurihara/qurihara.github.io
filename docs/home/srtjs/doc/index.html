@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>doc | Kazutaka Kurihara</title>
+<meta name="description" content="doc srt.js開発用ドキュメント facebookの開発者コミュニティはこちらです： https://www.facebook.com/groups/srtjsdev/ srt.js自体のソースコードはこちらで公開しています： https://github.com/qurihara/srt.j">
+<meta property="og:title" content="doc | Kazutaka Kurihara">
+<meta property="og:description" content="doc srt.js開発用ドキュメント facebookの開発者コミュニティはこちらです： https://www.facebook.com/groups/srtjsdev/ srt.js自体のソースコードはこちらで公開しています： https://github.com/qurihara/srt.j">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.unryu.org/home/srtjs/doc">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+<header class="site-header">
+  <a class="site-title" href="/">Kazutaka Kurihara</a>
+  <button class="nav-toggle" aria-expanded="false" aria-controls="sitenav">メニュー</button>
+</header>
+<div class="layout">
+  <div class="sidebar" id="sitenav">
+<nav class="site-nav" aria-label="サイト内ナビゲーション">
+<details class="nav-group" open>
+<summary>日本語</summary>
+<ul>
+<li><a href="/home">日本語のトップ</a></li>
+<li><a href="/home/old-projects">00. Old Projects</a></li>
+<li><a href="/home/kotodama">01. ことだま</a></li>
+<li><a href="/home/kotodama-lecture">01α. ことだまレクチャー（教育関係者向け）</a></li>
+<li><a href="/home/speechpen">02. 音声ペン</a></li>
+<li><a href="/home/timeline">03. 柔軟なタイムライン</a></li>
+<li><a href="/home/presentationsensei">04. プレゼン先生</a></li>
+<li><a href="/home/kotodamulti">05. ことだまるち</a></li>
+<li><a href="/home/irgel">06. 居るゴール</a></li>
+<li><a href="/home/dining-presenter">07. Dining Presenter</a></li>
+<li><a href="/home/microslip-hci">08. マイクロスリップとHCI</a></li>
+<li><a href="/home/borderless-canvas">09. Borderless Canvas</a></li>
+<li><a href="/home/tailstat">10. tailstat</a></li>
+<li><a href="/home/spiemenu">11. sPieMenu</a></li>
+<li><a href="/home/speechjammer">12. SpeechJammer</a></li>
+<li><a href="/home/cinemagazer">13. CinemaGazer</a></li>
+<li><a href="/home/speechprotector">14. SpeechProtector</a></li>
+<li><a href="/home/whisperpoint">15. WhisperPoint</a></li>
+<li><a href="/home/peepdetectorfake">16. PeepDetectorFake</a></li>
+<li><a href="/home/looselocker">17. LooseLocker</a></li>
+<li><a href="/home/t3dm">18. Tetris 3D Modeler</a></li>
+<li><a href="/home/oah">19. Openness-adjustable Headset</a></li>
+<li><a href="/home/ubf">20. The Universal Background Filter</a></li>
+<li><a href="/home/2ff">21. 2FF Youtube Viewer</a></li>
+<li><a href="/home/srtjs">22. srt.js</a></li>
+<li><a href="/home/picognizer">23.Picognizer</a></li>
+<li><a href="/home/gc">24.GameControllerizer</a></li>
+<li><a href="/home/ig-research19">25. Ig Nobel Research 2019</a></li>
+<li><a href="/home/vs_covid19">vs_covid19</a></li>
+</ul></details>
+<details class="nav-group">
+<summary>English</summary>
+<ul>
+<li><a href="/top-english">Englishのトップ</a></li>
+<li><a href="/top-english/borderless-canvas">Borderless Canvas</a></li>
+<li><a href="/top-english/cinemagazer">CinemaGazer</a></li>
+<li><a href="/top-english/publications">CV</a></li>
+<li><a href="/top-english/dining-presenter">Dining Presenter</a></li>
+<li><a href="/top-english/irgel">Irgel</a></li>
+<li><a href="/top-english/kotodama">Kotodama</a></li>
+<li><a href="/top-english/kotodamulti">KotodaMulti</a></li>
+<li><a href="/top-english/picognizer">Picognizer</a></li>
+<li><a href="/top-english/presentation-sensei">Presentation Sensei</a></li>
+<li><a href="/top-english/speechjammer">SpeechJammer</a></li>
+<li><a href="/top-english/speechpen">SpeechPen</a></li>
+<li><a href="/top-english/speechprotector">SpeechProtector</a></li>
+<li><a href="/top-english/spiemenu">sPieMenu</a></li>
+<li><a href="/top-english/srtjs">srtjs</a></li>
+<li><a href="/top-english/t3dm">Tetris 3D Modeler</a></li>
+<li><a href="/top-english/timeline">Timeline</a></li>
+</ul></details>
+<a class="nav-top" href="/profile">Profile</a>
+<a class="nav-top" href="/publications">Publications</a>
+<a class="nav-top" href="/lab">栗原研究室</a>
+</nav>
+  </div>
+  <main id="main" class="content">
+<h1>doc</h1>
+
+<p><strong>srt.js開発用ドキュメント</strong></p>
+<p>facebookの開発者コミュニティはこちらです： <a href="https://www.facebook.com/groups/srtjsdev/" target="_blank">https://www.facebook.com/groups/srtjsdev/</a></p>
+<p>srt.js自体のソースコードはこちらで公開しています： <a href="https://github.com/qurihara/srt.js" target="_blank">https://github.com/qurihara/srt.js</a></p>
+<p>srt.jsのサンプル集はこちらで随時追加していきます： <a href="https://github.com/qurihara/examples.srt.js" target="_blank">https://github.com/qurihara/examples.srt.js</a></p>
+<p><strong>srt.jsとは？</strong></p>
+<p>srt.jsは、動画の字幕ファイルとして広く流通している<a href="http://www.xucker.jpn.org/extension/srt.html" target="_blank">srt形式テキストファイル</a>の流儀で、実行時刻を指定したJavaScriptを記述したものです。動画再生に連動した任意のJavaScriptの実行を扱えるので、たとえばIoT機器やWebサービスと連携した動画鑑賞体験を実現することができます。特別なソフトウェアのインストールは必要ありません。ブラウザさえあれば、どんなデバイスでもすぐに実行可能です。どんなことができるかをまず知りたいかたは<a href="/home/srtjs">こちらを参照ください</a>。</p>
+<p>主に対象として扱うのはYouTubeです。YouTubeは公式にsrt形式の字幕ファイルのアップロードをサポートしているので、あなたの投稿したYouTube動画に対し、srt.jsをアップロードすることができます。</p>
+<p>また、第三者の公開しているYouTube動画に連動させたsrt.jsを実行させる仕組みも用意されています。</p>
+<p>以下、JavaScriptの知識のある方を前提に、説明を進めていきます。</p>
+<p>なお、もしご意見やご質問ある場合は<a href="https://twitter.com/qurihara" target="_blank">@qurihara</a>までよろしくお願いします。私としてもsrt.jsの普及に取り組んでいきたいので、可能な範囲でサポートしたいと思います。</p>
+<p><strong>srt.jsの実行方法</strong></p>
+<p>srt.jsはYouTube公式サイト上で実行することはできません。（chrome拡張などの技術を使えば可能ですが、ドキュメントはまだありません。） そこで私が準備したwebサイト上で実行することをおすすめします。このwebサイトでは、YouTube動画とsrt.jsを読み込み、動画の再生と同期させてJavaScriptを実行していきます。その実行方法は以下の通りです。</p>
+<p>（１）自分の投稿したYouTube動画にsrt.jsをアップロードした、もしくはYouTubeの字幕エディタでJavaScriptを記述した場合</p>
+<p><a href="http://srtjs.azurewebsites.net/?v=XXXXXXXXXXX" target="_blank">http://srtjs.azurewebsites.net/?v=XXXXXXXXXXX</a></p>
+<p>↑XXXXXXXXXXXのところにYouTubeの11桁の動画IDを入れればすぐ使えます。</p>
+<p>この場合、動画内に字幕としてJavaScriptが表示されないよう、YouTube側で設定を変更してください。（本ページ末尾「その他」を参照）</p>
+<p>（２）誰かの投稿したYouTube動画に自分の作成したsrt.jsを組み合わせて実行したい場合</p>
+<p>まず、DropBoxやGoogleDrive、github、自分のサーバなどを用いて、作成したsrt.jsをインターネットに公開し、URLを得てください。</p>
+<p>そして、</p>
+<p><a href="https://srtjs.azurewebsites.net/?v=XXXXXXXXXXX&amp;surl=https://dl.dropboxusercontent.com/u/9999999/example.srt.js" target="_blank">https://srtjs.azurewebsites.net/?v=XXXXXXXXXXX&amp;surl=https://dl.dropboxusercontent.com/u/9999999/example.srt.js</a></p>
+<p>のように動画IDとsrt.jsのURLを記述すれば実行できます。（上記はDropBoxを用いた例です。）</p>
+<p>この場合、実行時に「このスクリプトは動画とは関係ない第三者の作成したものです。危険かもしれません」と表示されます。自己責任でお楽しみください。</p>
+<p>上記実行サイトはiframeなどでご自身のサイトに組み込んだりできると思います。</p>
+<p>2017/05/17追記：（２）の実行方法で、surlパラメータでsrt.jsを指定しなかった場合、動画プレイヤーの下部に、手元のコンピュータ内にあるsrt.jsをドラッグアンドドロップできる場所が表れます。ちょっとした開発にご活用ください。</p>
+<p><strong>srt.jsの書式</strong></p>
+<p>srt形式の字幕は、下記のように（１）通し番号 （２）字幕表示開始時刻 （３）字幕表示終了時刻 （４）表示する字幕テキスト（複数行にわたっても可） （５）字幕と字幕の区切りに使われる空行 の要素からなっています。この４つの要素のひとセットを「字幕区間」と呼ぶことにします。srt形式のファイルは１個以上の字幕区間を羅列した構造をしています。</p>
+<p>srt形式の例：</p>
+<p>1</p>
+<p>00:00:05,000 --&gt; 00:00:06,000</p>
+<p>これは昔々の物語である。</p>
+<p>2</p>
+<p>00:02:51,000 --&gt; 00:03:00,000</p>
+<p>あるところにおじいさんとおばあさんが住んでいた。</p>
+<p>おじいさんは山に芝刈りに行った。</p>
+<p>おばあさんは川で洗濯をした。</p>
+<p>srt.jsは、下記のようにsrt形式にのっとり、（４）の字幕テキストの代わりにその時刻で実行すべきスクリプトを記述します。</p>
+<p>srt.js形式の例：</p>
+<p>1</p>
+<p>00:00:05,000 --&gt; 00:00:06,000</p>
+<p>// say hello</p>
+<p>alert("hello!");</p>
+<p>2</p>
+<p>00:02:51,000 --&gt; 00:03:00,000</p>
+<p>// close browser tab at 2:51</p>
+<p>window.open('about:blank','_self').close();</p>
+<p>スクリプトは複数行にわたっても問題ありませんが、空行だけは使えません。（５）として扱われてしまうからです。どうしても空行を使いたい場合は、「//」のようにダブルスラッシュのみの行を使うなどして対応してください。（私がsrt.jsで実行時エラーを出すほとんどの理由が、この意図しない空行の存在によるものです。）</p>
+<p>また、通常のスクリプトは時刻情報として（２）の開始時間だけが重要で、（３）の終了時間にはあまり意味はありません。あまり短くない、適当な時刻を指定してください。 ただし、後述するindexedFunctionを使うと、「ある関数呼び出しに対して字幕区間ごとに実行されるコードを切り替える」のような処理を行うことができます。その際は（３）の終了時間にも意味が出てきます。</p>
+<p>2017/5/17追記：もし終了時刻に興味がない場合は、 たとえば「00:00:05,000 --&gt; 00:00:06,000」に対して「00:00:05,000」のように、終了時刻を省略するかたちで記述する略記法をとることができるようにしました。その場合、暗黙に0.1秒の区間であると内部では解釈されます。また、この略記法を行うともはやsrt形式ではなくなるので、YouTubeにアップロードすることができなくなります。</p>
+<p>ちなみに（１）の通し番号は、「実はほとんど意味はなくだいたいの場合どんな数字でも良い」ようです。途中で違うコードを挿入しようとした場合、通し番号を全部付け替えるのは苦痛ですよね。srt.jsの実行系では、通し番号はどんなテキストでも問題ありませんが、YouTube側がどのくらいゆるく許容してくれるかはよくわかりません。いろいろ試してみてください。</p>
+<p><strong>YouTubeの公式字幕エディタを用いたJavaScriptの記述方法</strong></p>
+<p>YouTubeであなたが投稿した動画には、下記のようにブラウザ上でYouTube公式のグラフィカルなエディタで字幕テキストを付与できます。これを用いて、字幕テキストの代わりに実行したいJavaScriptを記述し、保存することができます。こちらも合わせてご活用ください。</p>
+<img loading="lazy" src="/assets/img/646b0ea83cda2fa0.jpg">
+<p><strong>srt.js特有の記法、オブジェクト、ビルトイン関数</strong></p>
+<p>まず、前提としてsrt.jsは一つ一つの字幕要素ごとにスコープが独立しています。</p>
+<p>たとえば</p>
+<p>0</p>
+<p>00:00:00,000 --&gt; 00:00:01,000</p>
+<p>var a=0;</p>
+<p>1</p>
+<p>00:00:26,000 --&gt; 00:00:26,500</p>
+<p>console.log(a);</p>
+<p>などとしても、字幕要素0内で定義したaを字幕要素1内で用いることはできません。</p>
+<p>0</p>
+<p>00:00:00,000 --&gt; 00:00:01,000</p>
+<p>a=0;</p>
+<p>1</p>
+<p>00:00:26,000 --&gt; 00:00:26,500</p>
+<p>console.log(a);</p>
+<p>とすることで、aはグローバル変数になるため、字幕要素間で共有することができます。</p>
+<p>関数定義についても、</p>
+<p>0</p>
+<p>00:00:00,000 --&gt; 00:00:01,000</p>
+<p>f = function(a){</p>
+<p> alert(a);</p>
+<p>}</p>
+<p>1</p>
+<p>00:00:26,000 --&gt; 00:00:26,500</p>
+<p>f("hello");</p>
+<p>とすることで、fはどこからでもアクセスできる関数になるため、字幕要素間で共有することができます。</p>
+<p><strong>player</strong></p>
+<p>これはYouTubeのiframe埋め込みAPIの動画プレイヤーを参照するオブジェクトです。動画の再生制御、動画に関する情報取得等を行えます。</p>
+<p>詳しくは</p>
+<p><a href="https://developers.google.com/youtube/iframe_api_reference?hl=ja" target="_blank">https://developers.google.com/youtube/iframe_api_reference?hl=ja</a></p>
+<p>を参照ください。</p>
+<p>使用例：</p>
+<p>player.pauseVideo(); // 動画の一時停止</p>
+<p>player.playVideo(); // 動画の再生</p>
+<p>player.seekTo(22,true); // 再生位置の指定</p>
+<p><strong>index</strong></p>
+<p>これはsrt.jsの先頭からかぞえてどこの字幕区間にいるかを表すオブジェクトです。-1の場合、どの区間にも入っていません。</p>
+<p>また、これはsrt形式の各字幕区間の冒頭の通し番号とは無関係に、srt.jsファイルの先頭から数えてゼロから始まる整数で、１ずつカウントアップします。</p>
+<p><strong>doOnce[index] = true;</strong></p>
+<p>この記述があった場合、その字幕要素は一度だけ実行されます。動画プレイヤーは時にユーザがシークバーによって巻き戻したりするため、初期設定等の複数回実行しない字幕要素はこの記述をしておきます。</p>
+<p>使用例：</p>
+<p>0</p>
+<p>00:00:00,000 --&gt; 00:00:01,000</p>
+<p>//initialize</p>
+<p>doOnce[index] = true;</p>
+<p>console.log("initialized!");</p>
+<p>この例では、何度動画を巻きもどしても、initialized!と表示されるのは最初の１回だけです。</p>
+<p>doOnce[index] = true; の記述がなければ、何度でも表示されます。</p>
+<p>なお、doOnce[4] = true; などと指定すれば、５番目の字幕区間に関する設定になります。</p>
+<p><strong>loadScript</strong></p>
+<p>これは外部Javascriptを読み込む組み込み関数です。第一引数に外部JavascriptへのURL、第二引数に読み込み完了時に実行するコールバック関数を指定します。下記はjqueryを読み込む例です。</p>
+<p>使用例：</p>
+<p>loadScript('//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js',function(e){</p>
+<p> console.log("jquery loaded.");</p>
+<p>});</p>
+<p><strong>indexedFunction</strong></p>
+<p>ある関数呼び出しに関して、字幕区間に応じて実行されるスクリプトを切り替える組み込み関数です。たとえばスマホのシェイクジェスチャ入力のイベントハンドラを、動画の再生区間に応じて切り替えることができます。</p>
+<p>下記の使用例では、複数の本の紹介をする動画に対し、スマホのシェイクジェスチャがあった場合に再生位置に応じて異なる本のamazon購入サイトにナビゲートするsrt.jsです。</p>
+<p>使用例：</p>
+<p>1</p>
+<p>00:00:00,000 --&gt; 00:00:01,000</p>
+<p>//bibliobattle</p>
+<p>doOnce[index] = true;</p>
+<p>vars.myfunc = {};</p>
+<p>loadScript('//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js',function(e){</p>
+<p>loadScript('//rawgit.com/GerManson/gShake/master/lib/gShake.js',function(e2){</p>
+<p> $(document).ready(function() {</p>
+<p> $(this).gShake(function() {</p>
+<p> var fn = indexedFunction(vars.myfunc);</p>
+<p> if (fn != null) {</p>
+<p> fn.call(null);</p>
+<p> }</p>
+<p> });</p>
+<p> });</p>
+<p>});</p>
+<p>});</p>
+<p>2</p>
+<p>00:00:10,001 --&gt; 00:08:06,000</p>
+<p>//1st book</p>
+<p>vars.myfunc[index] = function(){</p>
+<p> window.location.href ='https://www.amazon.co.jp/dp/4591132374';</p>
+<p>}</p>
+<p>3</p>
+<p>00:08:06,001 --&gt; 00:47:56,000</p>
+<p>//2nd book</p>
+<p>vars.myfunc[index] = function(){</p>
+<p> window.location.href ='https://www.amazon.co.jp/dp/4847093399/';</p>
+<p>}</p>
+<p><strong>スクリプト例</strong></p>
+<p><a href="/home/srtjs">https://sites.google.com/site/qurihara/home/srtjs</a></p>
+<p>の下の方で公開しているコンテンツ例では、私の書いた外部srt.jsを読み込んでいます。それでどのようなコンテンツがどのように動くかがわかると思います。ご参照ください。</p>
+<p>また、webmoをつかう、milkcocoaでIoTする等、srt.jsのサンプル集はこちらで随時追加しています： <a href="https://github.com/qurihara/examples.srt.js" target="_blank">https://github.com/qurihara/examples.srt.js</a></p>
+<p><strong>その他</strong></p>
+<p>YouTube公式webサイトを見ていて、この動画をsrt.jsサイトで開きたい！と思った時にワンクリックでできるブックマークレットがあります。よろしければご活用ください。<a href="https://github.com/qurihara/examples.srt.js/blob/master/youtube2srtjs_bookmarklet.js" target="_blank">https://github.com/qurihara/examples.srt.js/blob/master/youtube2srtjs_bookmarklet.js</a></p>
+<p>埋め込んだJavaScriptが動画再生時に字幕テキストとして表示されてしまう設定になっている方は、以下の設定で切り替えることができます。</p>
+<p><a href="https://support.google.com/youtube/answer/100078?co=GENIE.Platform%3DDesktop&amp;hl=ja&amp;oco=0" target="_blank">https://support.google.com/youtube/answer/100078?co=GENIE.Platform%3DDesktop&amp;hl=ja&amp;oco=0</a></p>
+<img loading="lazy" src="/assets/img/7806295e16903f55.jpg">
+<p>(c) Kazutaka Kurihara</p>
+  </main>
+</div>
+<footer class="site-footer">
+  <p>Kazutaka Kurihara — <a href="https://www.unryu.org/">www.unryu.org</a></p>
+</footer>
+<script src="/assets/site.js"></script>
+</body>
+</html>

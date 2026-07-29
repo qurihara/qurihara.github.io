@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>09. Borderless Canvas | Kazutaka Kurihara</title>
+<meta name="description" content="09. Borderless Canvas 詳細については，以下のリンクから専用ページにジャンプしてください． http://bc.unryu.org/bc/ 発表文献 Kazutaka Kurihara, Toshio Mochizuki, Hiroki Oura, Mio Tsubakimoto">
+<meta property="og:title" content="09. Borderless Canvas | Kazutaka Kurihara">
+<meta property="og:description" content="09. Borderless Canvas 詳細については，以下のリンクから専用ページにジャンプしてください． http://bc.unryu.org/bc/ 発表文献 Kazutaka Kurihara, Toshio Mochizuki, Hiroki Oura, Mio Tsubakimoto">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.unryu.org/home/borderless-canvas">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+<header class="site-header">
+  <a class="site-title" href="/">Kazutaka Kurihara</a>
+  <button class="nav-toggle" aria-expanded="false" aria-controls="sitenav">メニュー</button>
+</header>
+<div class="layout">
+  <div class="sidebar" id="sitenav">
+<nav class="site-nav" aria-label="サイト内ナビゲーション">
+<details class="nav-group" open>
+<summary>日本語</summary>
+<ul>
+<li><a href="/home">日本語のトップ</a></li>
+<li><a href="/home/old-projects">00. Old Projects</a></li>
+<li><a href="/home/kotodama">01. ことだま</a></li>
+<li><a href="/home/kotodama-lecture">01α. ことだまレクチャー（教育関係者向け）</a></li>
+<li><a href="/home/speechpen">02. 音声ペン</a></li>
+<li><a href="/home/timeline">03. 柔軟なタイムライン</a></li>
+<li><a href="/home/presentationsensei">04. プレゼン先生</a></li>
+<li><a href="/home/kotodamulti">05. ことだまるち</a></li>
+<li><a href="/home/irgel">06. 居るゴール</a></li>
+<li><a href="/home/dining-presenter">07. Dining Presenter</a></li>
+<li><a href="/home/microslip-hci">08. マイクロスリップとHCI</a></li>
+<li><a href="/home/borderless-canvas" aria-current="page">09. Borderless Canvas</a></li>
+<li><a href="/home/tailstat">10. tailstat</a></li>
+<li><a href="/home/spiemenu">11. sPieMenu</a></li>
+<li><a href="/home/speechjammer">12. SpeechJammer</a></li>
+<li><a href="/home/cinemagazer">13. CinemaGazer</a></li>
+<li><a href="/home/speechprotector">14. SpeechProtector</a></li>
+<li><a href="/home/whisperpoint">15. WhisperPoint</a></li>
+<li><a href="/home/peepdetectorfake">16. PeepDetectorFake</a></li>
+<li><a href="/home/looselocker">17. LooseLocker</a></li>
+<li><a href="/home/t3dm">18. Tetris 3D Modeler</a></li>
+<li><a href="/home/oah">19. Openness-adjustable Headset</a></li>
+<li><a href="/home/ubf">20. The Universal Background Filter</a></li>
+<li><a href="/home/2ff">21. 2FF Youtube Viewer</a></li>
+<li><a href="/home/srtjs">22. srt.js</a></li>
+<li><a href="/home/picognizer">23.Picognizer</a></li>
+<li><a href="/home/gc">24.GameControllerizer</a></li>
+<li><a href="/home/ig-research19">25. Ig Nobel Research 2019</a></li>
+<li><a href="/home/vs_covid19">vs_covid19</a></li>
+</ul></details>
+<details class="nav-group">
+<summary>English</summary>
+<ul>
+<li><a href="/top-english">Englishのトップ</a></li>
+<li><a href="/top-english/borderless-canvas">Borderless Canvas</a></li>
+<li><a href="/top-english/cinemagazer">CinemaGazer</a></li>
+<li><a href="/top-english/publications">CV</a></li>
+<li><a href="/top-english/dining-presenter">Dining Presenter</a></li>
+<li><a href="/top-english/irgel">Irgel</a></li>
+<li><a href="/top-english/kotodama">Kotodama</a></li>
+<li><a href="/top-english/kotodamulti">KotodaMulti</a></li>
+<li><a href="/top-english/picognizer">Picognizer</a></li>
+<li><a href="/top-english/presentation-sensei">Presentation Sensei</a></li>
+<li><a href="/top-english/speechjammer">SpeechJammer</a></li>
+<li><a href="/top-english/speechpen">SpeechPen</a></li>
+<li><a href="/top-english/speechprotector">SpeechProtector</a></li>
+<li><a href="/top-english/spiemenu">sPieMenu</a></li>
+<li><a href="/top-english/srtjs">srtjs</a></li>
+<li><a href="/top-english/t3dm">Tetris 3D Modeler</a></li>
+<li><a href="/top-english/timeline">Timeline</a></li>
+</ul></details>
+<a class="nav-top" href="/profile">Profile</a>
+<a class="nav-top" href="/publications">Publications</a>
+<a class="nav-top" href="/lab">栗原研究室</a>
+</nav>
+  </div>
+  <main id="main" class="content">
+<h1>09. Borderless Canvas</h1>
+
+<p>詳細については，以下のリンクから専用ページにジャンプしてください．</p>
+<a href="http://bc.unryu.org/bc/" target="_blank">
+<img loading="lazy" src="/assets/img/4db0f08e29a30636.jpg" alt="title"></a>
+<p><a href="http://bc.unryu.org/bc/" target="_blank">http://bc.unryu.org/bc/</a></p>
+<p>発表文献</p>
+<ul>
+<li>Kazutaka Kurihara, Toshio Mochizuki, Hiroki Oura, Mio Tsubakimoto, Toshihisa Nishimori, Jun Nakahara, Yuhei Yamauchi and Katashi Nagao, "Linearity and Synchrony: Quantitative Metrics for Slide-based Presentation Methodology," In Proceedings of 12th International Conference on Multimodal Interfaces and 7th Workshop on Machine Learning for Multimodal Interaction (ICMI-MLMI 2010), pp.33:1-33:4, 2010. <a href="http://portal.acm.org/citation.cfm?id=1891947" target="_blank">PDF</a></li>
+<li>栗原一貴, 望月俊男, 大浦弘樹, 椿本弥生, 西森年寿, 中原淳, 山内祐平, 長尾確, "スライド提示型プレゼンテーション方法論の拡張手法を定量的に評価する研究," 情報処理学会論文誌，Vol.51, No.2(2010)，pp.391-403. <a href="http://unryu.org/home/papers/IPSJ-JNL5102017.pdf" target="_blank">PDF</a></li></ul>
+<p><em>© 栗原一貴</em></p>
+<p>pp.7-13, 2009. PDF © 栗原一貴</p>
+<img loading="lazy" src="/assets/img/7806295e16903f55.jpg">
+<p>(c) Kazutaka Kurihara</p>
+  </main>
+</div>
+<footer class="site-footer">
+  <p>Kazutaka Kurihara — <a href="https://www.unryu.org/">www.unryu.org</a></p>
+</footer>
+<script src="/assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<h1>21. 2FF Youtube Viewer</h1>
+
+<h2><a href="#h.p_ID_32"></a>2FF (2-level fast forwarding) Youtube Viewer</h2>
+<h2><a href="#h.p_ID_34"></a>とても速く見られるYoutubeプレーヤー</h2>
+<iframe src="https://www.gstatic.com/atari/embeds/8306a3600875750e6acc147fd93569bf/intermediate-frame-minified.html"></iframe>
+<p>字幕情報を用いて、誰かが話しているところは少し速く、そして誰も話していないところはかなり速く再生速度を自動的に切り替えることにより、Youtubeの映像をかなり高速に鑑賞するビューアです。</p>
+<p>私たちは死ぬまでにあとどれだけ映像メディアを見なければならないのでしょう。もちろんじっくり見たい名作や重要ニュースもあるでしょう。でも、映像メディアが増えれば増えるほど、「見るか見ないか判断が微妙だ・・」という映像も増えてしまいます。そういう映像を【本来の美を損ねてでも】淡々と「消費」するための、現代人のためのアプリ・サービスです。</p>
+<p>２種類の利用方法があります。</p>
+<p>(1)最大４倍速まで対応した<a href="https://chrome.google.com/webstore/detail/2ff-youtube-viewer/ingfcmfdaliiofoamcjbcpjjoegdmkko?hl=ja" target="_blank">2FF Youtube Viewer Chrome拡張をこちらのリンクから試験公開中</a>です。ドキュメントはこれから作ります・・</p>
+<p>(2)最大２倍速まで対応した、特に何もインストールしなくてもすぐにお使いいただけるwebサービスがあります（上記動画がそれです）。これは、</p>
+<p><a href="https://2ff.azurewebsites.net/youtube.html" target="_blank">https://2ff.azurewebsites.net/youtube.html?v=<em>YoutubeのビデオID</em></a></p>
+<p>にアクセスすると、すぐにお使いいただけます。YoutubeのビデオIDというのはたとえば見たいyoutubeのURLがhttps://www.youtube.com/watch?v=y2CdzAdOMp4だとするとy2CdzAdOMp4のことです。</p>
+<p><a href="http://2ff.azurewebsites.net/youtube2ff.txt" target="_blank">Youtubeで鑑賞中の動画から上記のリンクを生成し開いてくれるブックマークレットもこちらにあります</a>のでお使いください。</p>
+<p>Windows PCおよびMac PCのChrome、Firefoxで動作確認しています。MacのSafariでも動きますが、動作がなめらかではないようです。残念ながらスマートフォンでは使えません。</p>
+<p>また、ブラウザがフォアグラウンドにないと再生速度制御が適切に行われません。（ブラウザを最小化して音だけ聞こうと思ってもうまくいかないです。） </p>
+<p>本システムは、基本的に製作者により字幕が付与されている動画が対象です。Youtubeの音声認識による自動字幕についても試験的に活用していますが、一般に低精度なので現時点では機能公開はしていません。</p>
+<p>以下はiframeで埋め込んだ使用例です。（画面を最大化したい場合は、<a href="https://2ff.azurewebsites.net/youtube.html?v=y2CdzAdOMp4&amp;off=1000&amp;ss=1.5&amp;ms=2.0" target="_blank">専用サイト</a>で行ってください。）</p>
+<p>&lt;iframe src="https://2ff.azurewebsites.net/youtube.html?v=<a href="https://2ff.azurewebsites.net/youtube.html" target="_blank"><em>YoutubeのビデオID</em></a>&amp;off=200&amp;ss=1.5&amp;ms=2.0" frameborder="0" width=656 height=520&gt;&lt;/iframe&gt;</p>
+<p>のようなコードになります。</p>
+<p>以下は自前の音声認識技術を用いて、もともと字幕のない動画に適用した例です。</p>
+<p><strong>2016/12/04 MashupAwards 2016 2ndStage動画</strong></p>
+<iframe src="https://www.gstatic.com/atari/embeds/8306a3600875750e6acc147fd93569bf/intermediate-frame-minified.html"></iframe>
+<p><a href="/home/2ff/2ffhci">HCI研究者向けに、国内学会の中継動画を高速視聴するサイトはこちら</a></p>
+<p><strong>開発の経緯</strong></p>
+<p>本システムには数年前に研究した<a href="/home/cinemagazer">CinemaGamzer</a>の技術が応用されています。</p>
+<p>昔からYoutubeを高速鑑賞するアプリの構想はありました。今あらためて開発を進めたのは、世の中が本技術にとって良い方向に変わってきたからです。</p>
+<ul>
+<li>ブラウザのHTML5の動画プレイヤーの実装が洗練され、高速再生（かつ音声ピッチが変わらない）が可能になったこと</li>
+<li>Youtubeに精度良い字幕付きの動画が増えて、自前で音声認識しなくても充分な数の動画を楽しめるようになったこと</li>
+<li>私たちの人生における情報摂取において、映像の占める割合がますます増えてきたこと</li></ul>
+<p>(c) Kazutaka Kurihara</p>
+<img loading="lazy" src="/assets/img/7806295e16903f55.jpg">
+<p>(c) Kazutaka Kurihara</p>

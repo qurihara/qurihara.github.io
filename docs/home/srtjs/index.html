@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>22. srt.js | Kazutaka Kurihara</title>
+<meta name="description" content="22. srt.js srt.js: YouTubeの字幕情報として埋め込まれる映像拡張Javascriptフレームワーク 開発者向けドキュメントはこちらです。 簡単には、以下の手順ですぐお試しいただけます。 ご自身が管理されている動画で、すでにYouTubeに字幕ファイルとしてsrt.jsをアップ">
+<meta property="og:title" content="22. srt.js | Kazutaka Kurihara">
+<meta property="og:description" content="22. srt.js srt.js: YouTubeの字幕情報として埋め込まれる映像拡張Javascriptフレームワーク 開発者向けドキュメントはこちらです。 簡単には、以下の手順ですぐお試しいただけます。 ご自身が管理されている動画で、すでにYouTubeに字幕ファイルとしてsrt.jsをアップ">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.unryu.org/home/srtjs">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+<header class="site-header">
+  <a class="site-title" href="/">Kazutaka Kurihara</a>
+  <button class="nav-toggle" aria-expanded="false" aria-controls="sitenav">メニュー</button>
+</header>
+<div class="layout">
+  <div class="sidebar" id="sitenav">
+<nav class="site-nav" aria-label="サイト内ナビゲーション">
+<details class="nav-group" open>
+<summary>日本語</summary>
+<ul>
+<li><a href="/home">日本語のトップ</a></li>
+<li><a href="/home/old-projects">00. Old Projects</a></li>
+<li><a href="/home/kotodama">01. ことだま</a></li>
+<li><a href="/home/kotodama-lecture">01α. ことだまレクチャー（教育関係者向け）</a></li>
+<li><a href="/home/speechpen">02. 音声ペン</a></li>
+<li><a href="/home/timeline">03. 柔軟なタイムライン</a></li>
+<li><a href="/home/presentationsensei">04. プレゼン先生</a></li>
+<li><a href="/home/kotodamulti">05. ことだまるち</a></li>
+<li><a href="/home/irgel">06. 居るゴール</a></li>
+<li><a href="/home/dining-presenter">07. Dining Presenter</a></li>
+<li><a href="/home/microslip-hci">08. マイクロスリップとHCI</a></li>
+<li><a href="/home/borderless-canvas">09. Borderless Canvas</a></li>
+<li><a href="/home/tailstat">10. tailstat</a></li>
+<li><a href="/home/spiemenu">11. sPieMenu</a></li>
+<li><a href="/home/speechjammer">12. SpeechJammer</a></li>
+<li><a href="/home/cinemagazer">13. CinemaGazer</a></li>
+<li><a href="/home/speechprotector">14. SpeechProtector</a></li>
+<li><a href="/home/whisperpoint">15. WhisperPoint</a></li>
+<li><a href="/home/peepdetectorfake">16. PeepDetectorFake</a></li>
+<li><a href="/home/looselocker">17. LooseLocker</a></li>
+<li><a href="/home/t3dm">18. Tetris 3D Modeler</a></li>
+<li><a href="/home/oah">19. Openness-adjustable Headset</a></li>
+<li><a href="/home/ubf">20. The Universal Background Filter</a></li>
+<li><a href="/home/2ff">21. 2FF Youtube Viewer</a></li>
+<li><a href="/home/srtjs" aria-current="page">22. srt.js</a></li>
+<li><a href="/home/picognizer">23.Picognizer</a></li>
+<li><a href="/home/gc">24.GameControllerizer</a></li>
+<li><a href="/home/ig-research19">25. Ig Nobel Research 2019</a></li>
+<li><a href="/home/vs_covid19">vs_covid19</a></li>
+</ul></details>
+<details class="nav-group">
+<summary>English</summary>
+<ul>
+<li><a href="/top-english">Englishのトップ</a></li>
+<li><a href="/top-english/borderless-canvas">Borderless Canvas</a></li>
+<li><a href="/top-english/cinemagazer">CinemaGazer</a></li>
+<li><a href="/top-english/publications">CV</a></li>
+<li><a href="/top-english/dining-presenter">Dining Presenter</a></li>
+<li><a href="/top-english/irgel">Irgel</a></li>
+<li><a href="/top-english/kotodama">Kotodama</a></li>
+<li><a href="/top-english/kotodamulti">KotodaMulti</a></li>
+<li><a href="/top-english/picognizer">Picognizer</a></li>
+<li><a href="/top-english/presentation-sensei">Presentation Sensei</a></li>
+<li><a href="/top-english/speechjammer">SpeechJammer</a></li>
+<li><a href="/top-english/speechpen">SpeechPen</a></li>
+<li><a href="/top-english/speechprotector">SpeechProtector</a></li>
+<li><a href="/top-english/spiemenu">sPieMenu</a></li>
+<li><a href="/top-english/srtjs">srtjs</a></li>
+<li><a href="/top-english/t3dm">Tetris 3D Modeler</a></li>
+<li><a href="/top-english/timeline">Timeline</a></li>
+</ul></details>
+<a class="nav-top" href="/profile">Profile</a>
+<a class="nav-top" href="/publications">Publications</a>
+<a class="nav-top" href="/lab">栗原研究室</a>
+</nav>
+  </div>
+  <main id="main" class="content">
+<h1>22. srt.js</h1>
+<h2><a href="#h.p_ID_32"></a>srt.js: YouTubeの字幕情報として埋め込まれる映像拡張Javascriptフレームワーク</h2>
+<iframe src="https://www.youtube.com/embed/F1ZncGMngPg"></iframe>
+<p><a href="/home/srtjs/doc">開発者向けドキュメントはこちらです。</a></p>
+<p>簡単には、以下の手順ですぐお試しいただけます。</p>
+<p>ご自身が管理されている動画で、すでにYouTubeに字幕ファイルとしてsrt.jsをアップロードしてある場合は、</p>
+<p>http://srtjs.azurewebsites.net/?v=XXXXXXXXXXX</p>
+<p>↑XXXXXXXXXXXのところにYouTubeの11桁の動画IDを入れればすぐ使えます。</p>
+<p>人様の動画に自作のsrt.jsを加えてMashupしたい場合は、</p>
+<p>https://srtjs.azurewebsites.net/?v=XXXXXXXXXXX&amp;surl=https://dl.dropboxusercontent.com/u/9999999/example.srt.js</p>
+<p>のように、URL参照できるsrt.jsファイルをDropboxやGoogleDrive, github等で公開すれば、それを使用できます。</p>
+<p><strong>使用例</strong></p>
+<p>上記デモ映像で紹介しているもの、および紹介できなかったものを実際にお試しいただけます。インストール等は不要です。ブラウザだけでお楽しみいただけます。最初に「本当に続けますか？」のようなことを聞かれるものもありますが、OKと答えてください。うまく動かない場合はブラウザを変えてみてください。PCならChrome、スマートフォンならFireFoxが一番動作しやすいと思います。</p>
+<p><strong>映像と連動した表現の拡張</strong></p>
+<ul>
+<li><a href="https://srtjs.azurewebsites.net/?v=V1N4QFQwdsE&amp;surl=https://raw.githubusercontent.com/qurihara/examples.srt.js/master/text_to_speech/tts_happybirthday.srt.js" target="_blank"><strong>あなたの名前でHappy Birthday!</strong></a>
+<ul>
+<li>テキストボックスに自分の名前を入れると、Happy birth day dear XXXのところであなたの名前が音声合成されます。PC chromeで動作確認。</li></ul></li>
+<li><a href="https://srtjs.azurewebsites.net/?v=DfYC_GffTPc&amp;surl=https://raw.githubusercontent.com/qurihara/examples.srt.js/master/camera/wakky_cameracapture.srt.js" target="_blank"><strong>ワッキーさんのお笑い映像で笑顔になった瞬間写真撮影</strong></a>
+<ul>
+<li>子供向け、BeforeとAfterで２枚撮影します。PC chromeで動作確認。</li>
+<li>塚田浩二さんのEyeCathcherですね。</li></ul></li>
+<li><strong>スパイ大作戦！「<a href="https://srtjs.azurewebsites.net/?v=M3FyHUbGu9M&amp;surl=https://raw.githubusercontent.com/qurihara/examples.srt.js/master/simple/window_close.srt.js" target="_blank">なおこのブラウザは自動的に消滅する</a>」</strong>
+<ul>
+<li>注意！2:50のあたりでブラウザ（のタブ）が強制終了します！PC、iPhoneで動作確認。</li></ul></li>
+<li><a href="https://srtjs.azurewebsites.net/?v=oyCoKHoLtTw&amp;surl=https://raw.githubusercontent.com/qurihara/examples.srt.js/master/webmo/webmo_peekaboo.srt.js" target="_blank"><strong>いないいないばあ</strong></a>
+<ul>
+<li>webmo連動例。スマートフォンをwebmoに繋いでお試しください。iPhoneで動作確認。</li></ul></li>
+<li><a href="https://srtjs.azurewebsites.net/?v=DNRJPjTQg8o&amp;surl=https://dl.dropboxusercontent.com/u/110532119/webmoAgent1.js" target="_blank"><strong>Diverse技研で作られたDating Agentサンプル</strong></a>
+<ul>
+<li>webmo連動例。スマートフォンをwebmoに繋いでお試しください。iPhoneで動作確認。</li></ul></li></ul>
+<p><strong>ユーザの入力による映像の再生制御</strong></p>
+<ul>
+<li><a href="https://srtjs.azurewebsites.net/?v=gEiGQ30JK5M&amp;surl=https://raw.githubusercontent.com/qurihara/examples.srt.js/master/indexedFunction/news_shake_navi.srt.js" target="_blank"><strong>シェイクするとヘッドラインからニュース本体にナビゲート</strong></a>
+<ul>
+<li>スマートフォンでお試しください。スマートフォンを振るとヘッドラインと詳細ニュースを行ったり来たりできます。iPhoneで動作確認。</li></ul></li>
+<li><a href="https://srtjs.azurewebsites.net/?v=vPQ__X-SUD8&amp;surl=https://raw.githubusercontent.com/qurihara/examples.srt.js/master/indexedFunction/bibliobattle_shake_amazon.srt.js" target="_blank"><strong>シェイクするとビブリオバトルで紹介している本をアマゾンで買える</strong></a>
+<ul>
+<li>スマートフォンでお試しください。本の紹介中にスマートフォンを振るとアマゾンサイトにジャンプします。最初の１冊のみ対応。iPhoneで動作確認。</li></ul></li>
+<li><strong>マーハッカソンでの参加者作品、<a href="https://srtjs.azurewebsites.net/?v=2yiYEzLuZXs&amp;surl=https://dl.dropboxusercontent.com/s/vmnkdg0rsqxrrr0/ume100.str.js" target="_blank">津田梅子墓所探訪</a></strong>
+<ul>
+<li>独自のGUIを設置して動画再生制御。PC Chromeで動作確認。</li></ul></li>
+<li><a href="https://srtjs.azurewebsites.net/?v=m2xW80OmcVE&amp;surl=https://raw.githubusercontent.com/qurihara/examples.srt.js/master/face_recognition/force_gaze.srt.js" target="_blank"><strong>顔認識を用いた、「見ている時だけ動画再生」</strong></a>
+<ul>
+<li>あまり作りこんでないので不安定ですみません。PC Chromeで動作確認。</li></ul></li>
+<li><a href="https://srtjs.azurewebsites.net/?v=zIX6YjlgdZA&amp;surl=https://raw.githubusercontent.com/qurihara/examples.srt.js/master/location/map_gps.srt.js&amp;close=1000" target="_blank"><strong>GPSと地図APIを用いた映像道案内</strong></a>
+<ul>
+<li>西武線鷹の台駅でスマートフォンからお使いいただく想定です。URLのclose=100のところを小さくすると、「実際にチェックポイントに行ったかどうか」の判定をメートル単位で厳密にできます。iPhoneだと映像が強制的に全画面になってしまうので不適です。</li></ul></li></ul>
+<p><strong>歴史的経緯についての考察</strong></p>
+<p>こういう「時刻にもとづいてプログラムを実行する」というのは昔からAdobe Flash (+ActionScript)で実現されていたことでした。srt.jsは、Adobe Flashの素晴らしい思想を現代的に焼き直しただけにすぎないと言うこともできるかもしれません。でもいまこそそれをやるべきだと思うのです。それについて少し考察します。</p>
+<p>Adobe Flashが普及した当時、時系列コンテンツにインタラクティブ性を加えられる！と、もてはやされましたが、</p>
+<ul>
+<li>コンテンツがインタラクティブになればなるほどタイムライン通りに進行しない</li>
+<li>タイムラインから「実行の順と時刻を保証するもの」という意味合いが失われる</li>
+<li>どのプログラム要素も便宜的にどこかの時刻に割り当てなければならないのは直感に反する</li></ul>
+<p>ことにより、どんどんタイムラインの良さが失われ、結局タイムラインのないAdobe Flex (現Apache Flex)へと推移してしまいました。</p>
+<p>しかし、時代の変遷により、再考の余地ができました。</p>
+<p>【人々の意識が変わった】</p>
+<ul>
+<li>タブレット・スマートフォンなどが普及しました。</li>
+<li>人々がエンタテインメントコンテンツに接する際の態度がより受動的なものになりました。</li>
+<li>コンテンツに要求されるインタラクションの強度が必ずしも高くないものが認知されるようになってきました。</li>
+<li>現代はコンテンツがユーザの時間を奪う時代であり、ユーザは奪われる時間に敏感です。</li>
+<li>インタラクティブ性の少ない時系列コンテンツは，インフォームドコンセント（楽しむのにどのくらい時間がかかるかを事前に示せる）の観点から優れているのです。</li></ul>
+<p>【プログラミングの質が変わった】</p>
+<ul>
+<li>既存のサービスに「少しだけ」独自要素を追加するプログラミングが受け入れられるようになってきました。Mashup文化, IFTTT, myThings…</li>
+<li>時系列コンテンツへの「少しだけ」の独自要素の追加であれば、タイムライン上に疎にプログラムが埋め込まれる程度であるため、タイムラインというメタファーは破綻しません。</li></ul>
+<p>【いろいろおもしろい世界になった】</p>
+<ul>
+<li>IoTデバイスやWebサービスの普及により、繋いだら面白いモノやサービスが増えました。</li></ul>
+<p>さあ、今こそ、下火になった「時系列指向プログラミング」を再興すべき時です！</p>
+<p>srt.jsはその手段の一つです！</p>
+<p><strong>活動履歴</strong></p>
+<p>2016/08/07 SIGPX2＠品川マイクロソフト でちょっと内々にもんでいただきました。</p>
+<p>2016/12/17 MashupAwards 2016で最優秀賞を受賞しました！</p>
+<img loading="lazy" src="/assets/img/7806295e16903f55.jpg">
+<p>(c) Kazutaka Kurihara</p>
+  </main>
+</div>
+<footer class="site-footer">
+  <p>Kazutaka Kurihara — <a href="https://www.unryu.org/">www.unryu.org</a></p>
+</footer>
+<script src="/assets/site.js"></script>
+</body>
+</html>

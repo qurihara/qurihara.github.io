@@ -1,0 +1,54 @@
+<h1>vs_covid19</h1>
+<img loading="lazy" src="/assets/img/008e4b36ffc7ca2e.png">
+<h2><a href="#h.p_ID_32"></a>新型コロナウイルス災害に関する活動</h2>
+<p>情報技術でなにか貢献できないかと思い、立ち上げたミニプロジェクトです。</p>
+<a href="https://qurihara.github.io/tfjs-models/posenet/demos/dist2/camera.html" target="_blank">
+<img loading="lazy" src="/assets/img/5fd60ded00193357.png"></a>
+<ul>
+<li><a href="https://qurihara.github.io/tfjs-models/posenet/demos/dist2/camera.html" target="_blank">Face-touching Detector</a>
+<ul>
+<li>顔を手で触ろうとすると教えてくれるwebサイトアプリです。PCやスマートフォンで動作します。</li>
+<li>「感染防止のため、なるべく手で顔を触らないようにしよう」と言われています。オフィスワーク時に顔を触らないようにすることにどれくらい意味があるか未知数ですが、少なくとも顔を触らないようにする習慣づけや、「意外と私は顔を触っているんだな」という気づきを与える効果くらいはあるかなと思います。</li>
+<li>webブラウザで動きます。Chrome推奨。主にオフィスワーク時の使用を想定しているので主にwebcamつきPC向けですが、スマートフォンでも動きます。</li>
+<li>やっているのは「カメラに顔と手が写ったら警告」なので、厳密に触っていることを検出してはいません。</li>
+<li>タブブラウザでお使いの場合は、独立したwindowとして置いておけば、バックグラウンドでも動作します</li>
+<li>GoogleのPoseNetのデモをクイックハックしました。</li>
+<li>webhookを用意したので、IFTTTやIoT機器等につなげるといろいろ拡張可能です。</li></ul></li></ul>
+<a href="https://qurihara.github.io/publicdice/" target="_blank">
+<img loading="lazy" src="/assets/img/0c85dcc80e01e243.png"></a>
+<ul>
+<li><a href="https://qurihara.github.io/publicdice/" target="_blank">PublicDice</a>
+<ul>
+<li>ブロックチェーンを用いた、あまり信頼できない人とでも共有できて改ざんができないオンラインサイコロです。PCやスマートフォンで動作します。</li>
+<li>PublicDiceが有効活用できるのは以下のような局面です。
+<ul>
+<li>あまり信頼関係が確立していない人とオンラインで賭けをする際、信頼できるサイコロとして用いる。</li>
+<li>納得できるオープンな方法で不特定多数の人から一人を選ぶ。</li></ul></li>
+<li>Slackのサイコロbotでいいじゃないか、という意見もあるかもしれませんが、ちょっと違います。Slackの中にいる人というのは、「同じSlackを使うグループメンバーである」という信頼関係が既に成立しているのです。Slackというシステムを信頼しており、またそのグループの掟に従うという合意が得られています。また、「サイコロbotで決めていいよね？」という事に対し、同意が得られているからbotでOKなのです。</li>
+<li>つまり、オンラインでサイコロを振るということを行う場合、以下が必要になってきます。
+<ul>
+<li>（１）共通のコミュニケーション基盤</li>
+<li>（２）サイコロのランダムネスに対する信頼</li>
+<li>（３）勝敗決定後の賞罰執行の強制力</li></ul></li>
+<li>（１）について、PublicDiceは静的なwebsiteであり、URLのみを通じて他者とやり取りできます。ですからチャットやメールやSNSなど、テキストさえやり取りできればどんな人とでもサイコロを共有できます。また、（２）について乱数発生に用いているブロックチェーンのハッシュ値というのは改ざんが困難かつ全世界で唯一の値であるため、信頼できる値として活用できるのです。（ただし、通常の利用であればほぼ問題ないものの、擬似乱数として完璧ではないので、若干注意が必要です。） 一方で（３）について、PublicDiceはスマートコントラクトではないため、勝ち負け判定後の賞罰の執行には、強制力はありません。執行がスムーズに行える状況で活用する必要があります。たとえば、衆人環視によるプレッシャーを活用するためにtwitter上で賭けへの参加者に対し、参加意思表明と決定への遵守を公言させるとか、応募者に対する抽選のように、主催者側に決定権があることが自明な場合などです。</li></ul></li></ul>
+<a href="https://github.com/qurihara/zoomwebbrowser" target="_blank">
+<img loading="lazy" src="/assets/img/7af16718bb33cdc7.png"></a>
+<ul>
+<li><a href="https://github.com/qurihara/zoomwebbrowser" target="_blank">Zoom Web Browser</a>
+<ul>
+<li>Zoomのバーチャル背景をwebブラウザとして使用し、指定したウェブサイトを表示するツールです。 要するに、バーチャル背景を時間的に変化するものにすることができ、しかもそのデザインには慣れ親しんだwebデザインの技術が使えるということです。</li>
+<li>Zoomは会議のホストなら画面共有によってどんなものでも写すことができますが、それ以外の一般参加者には選択肢は乏しいです。たとえば「🙂」「⛔️」のようなエモティコンを表示したり、「賛成です」のような簡単なテキストを表示したり、自分に関する状態・情報をグラフや写真で示したりと、バーチャル背景をハックできれば、もっと遠隔コミュニケーションは豊かになることでしょう。そのような取り組みをいろいろ試すのはきっと意味のあることだと思い、本ツールを試作しました。</li>
+<li>動的に変化するマルチメディアコンテンツを扱う最も良い仕組みは何かと考え、webコンテンツを扱うwebブラウザの着想を得ました。 しくみとしては、指定したURLのwebサイトをヘッドレスChromeブラウザで開き、そのスナップショット画像を取得し、Zoomの背景画像として差し替え、キーボードオートメーションにより瞬間的に背景をOff→Onして再読み込みし更新、というものです。 クイックハックなので、mac専用で、CUIしかなく、更新頻度も現実的にはせいぜい10秒に１度程度と、それほど高くできません。 皆さんとともに使い方を考えたり、よりよい実装にしていきたいです。</li>
+<li>リモートワークでZoomを使う機会が増えました。皆さん快適なビデオチャットライフを。 VS_COVID19</li></ul></li></ul>
+<p><br></p>
+<img loading="lazy" src="/assets/img/94944828ee566d8e.gif">
+<ul>
+<li><a href="/home/ubf">The Universal Background Filter for SNS Profile Picture</a>
+<ul>
+<li>世界平和を祈念してSNSのプロフィール画像を万国旗のアニメーションにするサービスです。以前、テロに対する世間の対応を社会風刺して作った作品ですが、今こそ本気で全世界の平和を祈るときです！</li></ul></li></ul>
+<p><br></p>
+
+<p>参考：<a href="https://www.anzen.mofa.go.jp/covid19/info0325.html" target="_blank">外務省海外安全ホームページ</a>の情報。全世界の危険度がレベル２に。</p>
+<img loading="lazy" src="/assets/img/4f8bd45d271cf69b.png">
+<img loading="lazy" src="/assets/img/7806295e16903f55.jpg">
+<p>(c) Kazutaka Kurihara</p>
