@@ -13,12 +13,13 @@
   --maxw: 860px;
 
   /* プロジェクト紹介のサムネイル画像。
-     --thumb-h が表示上の高さで、ここを変えると全プロジェクトの画像が一斉に揃う。
-     元の画像ファイルはいずれも高さ100ピクセルで用意されているため、
-     100px にすると原寸で、それ以外にすると拡大・縮小されて表示される。
-     --thumb-w はサムネイルを置く列の幅で、横長の画像がはみ出さない値にしてある。 */
+     --thumb-h が表示上の高さである。元の画像の大きさは問わず、すべてこの高さに揃える。
+     ここを変えると全プロジェクトの画像が一斉に変わる。
+     --thumb-w はサムネイルを置く列の幅。高さを揃えたときにこの幅を超えるほど
+     横長の画像は、説明文の上に置いて幅を確保する。
+     この値を変えたときは tools/render_site.py の THUMB_COLUMN も同じ値にする。 */
   --thumb-h: 100px;
-  --thumb-w: 200px;
+  --thumb-w: 240px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -255,12 +256,31 @@ body {
   min-height: var(--thumb-h);
 }
 
-.thumb img.pthumb {
+/* サムネイルの高さを揃える。元の画像の大きさは問わず、
+   すべて --thumb-h の高さになるよう拡大または縮小する。
+   横幅は縦横の比率に従って決まるため、画像ごとに変わる。 */
+.thumb img {
+  height: var(--thumb-h);
+  width: auto;
+  max-width: none;
+  margin: 0;
+}
+
+/* 高さを揃えると列の幅を超えてしまうほど横長の画像は、
+   説明文の上に置いて、必要な幅を確保する。高さは他と同じままにする。 */
+.thumb-row.wide {
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.thumb-row.wide .thumb {
+  justify-content: flex-start;
+}
+.thumb-row.wide .thumb img {
+  /* 高さは他のサムネイルと揃えたままにする。
+     本文の幅いっぱいまで使えるため、横長でも収まる。 */
   height: var(--thumb-h);
   width: auto;
   max-width: 100%;
-  object-fit: contain;
-  margin: 0;
 }
 
 .thumb-body > :first-child { margin-top: 0; }

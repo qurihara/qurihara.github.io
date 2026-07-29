@@ -73,43 +73,84 @@ def nav_html(nav, current_path):
 
 BLOCK_RE = re.compile(r'<div class="blk">\n(.*?)\n</div>', re.S)
 
+# サムネイルの表示上の高さ。style.css の --thumb-h と同じ値にしておく。
+THUMB_HEIGHT = 100
+# サムネイルを置く列の幅。style.css の --thumb-w と同じ値にしておく。
+# 高さを揃えるとこの幅を超えてしまうほど横長の画像は、説明文の上に置く。
+THUMB_COLUMN = 240
+# 段組みの右側に置く説明文の長さの上限。
+# プロジェクト一覧の説明文は中央値37文字と短く、ページ冒頭の自己紹介文や
+# 各プロジェクトの詳細な解説文は数百文字以上ある。この差で両者を見分ける。
+THUMB_TEXT_LIMIT = 150
+
 
 def block_kind(inner):
-    """ブロックの中身を見分ける。
-
-    サムネイル画像だけが入ったブロックを "thumb" とする。段組みの左側に置く。
-    """
+    """ブロックの中身を見分ける。画像だけのものと、文章を含むものを区別する。"""
     text = re.sub(r"<[^>]+>", "", inner)
     text = html.unescape(text).strip()
     has_img = "<img" in inner
-    is_thumb = 'class="pthumb"' in inner
     if has_img and len(text) < 3:
-        return "thumb" if is_thumb else "image"
+        return "image"
     if has_img:
         return "mixed"
     return "text"
 
 
-def compose_layout(body):
-    """画像だけのブロックと、そのすぐ後ろの文章ブロックを横並びにする。
+def thumb_display_width(inner):
+    """高さを揃えて表示したときの、画像の横幅を求める。
 
-    元サイトはプロジェクト紹介を「左に小さなサムネイル画像、右に説明文」という
-    段組みで見せている。その並びを組み直す。段組みにできない箇所はそのまま縦に並べる。
+    画像が複数入っている場合は、いちばん横に広くなるものに合わせる。
+    """
+    widest = 0
+    for m in re.finditer(r'<img[^>]*\bwidth="(\d+)"[^>]*\bheight="(\d+)"', inner):
+        w, h = int(m.group(1)), int(m.group(2))
+        if h:
+            widest = max(widest, round(w / h * THUMB_HEIGHT))
+    return widest
+
+
+def compose_layout(body):
+    """プロジェクト紹介の並びを、サムネイル画像と説明文の段組みに組み直す。
+
+    元サイトはプロジェクトを「画像とその説明文」の対で並べている。
+    そこで、画像だけのブロックと直後の文章ブロックが対になっている箇所を探す。
+    見分け方は2つの条件を組み合わせる。
+    ひとつは説明文の長さで、プロジェクト一覧の説明文は短い。これにより、
+    ページ冒頭の自己紹介文や、詳細ページの長い解説文を対象から外す。
+    もうひとつは対が2つ以上続いていることで、単独で置かれた画像を巻き込まないようにする。
+
+    サムネイルはすべて同じ高さで表示する。高さを揃えると横幅は画像ごとに変わるため、
+    列の幅を超えるほど横長の画像については、説明文の上に置いて幅を確保する。
     """
     blocks = [(m.group(1), block_kind(m.group(1))) for m in BLOCK_RE.finditer(body)]
     if not blocks:
         return body
 
+    def text_length(inner):
+        return len(html.unescape(re.sub(r"<[^>]+>", "", inner)).strip())
+
+    # 「画像だけのブロック」と「短い文章ブロック」が隣り合う位置を洗い出す
+    pair_at = {
+        i for i in range(len(blocks) - 1)
+        if blocks[i][1] == "image"
+        and blocks[i + 1][1] == "text"
+        and text_length(blocks[i + 1][0]) <= THUMB_TEXT_LIMIT
+    }
+    # そのうち、対が続いているものだけを段組みにする
+    run_pairs = {i for i in pair_at if (i - 2) in pair_at or (i + 2) in pair_at}
+
     out = []
     i = 0
     while i < len(blocks):
-        inner, kind = blocks[i]
-        nxt = blocks[i + 1] if i + 1 < len(blocks) else None
-        if kind == "thumb" and nxt and nxt[1] == "text":
+        inner, _kind = blocks[i]
+        if i in run_pairs:
+            text_inner = blocks[i + 1][0]
+            wide = thumb_display_width(inner) > THUMB_COLUMN
+            css_class = "thumb-row wide" if wide else "thumb-row"
             out.append(
-                '<div class="thumb-row">\n'
+                f'<div class="{css_class}">\n'
                 f'<div class="thumb">{inner}</div>\n'
-                f'<div class="thumb-body">{nxt[0]}</div>\n'
+                f'<div class="thumb-body">{text_inner}</div>\n'
                 "</div>"
             )
             i += 2

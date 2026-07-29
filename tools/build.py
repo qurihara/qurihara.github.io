@@ -76,11 +76,6 @@ def save_image(url, index_by_hash):
     return ref
 
 
-# プロジェクト紹介用のサムネイル画像は、元の画像ファイルの高さを揃えて作ってある。
-# その高さをここに書いておき、これに一致する画像だけをサムネイルとして扱う。
-THUMB_SOURCE_HEIGHT = 100
-
-
 def image_size(ref):
     """assets/img に保存した画像の、本来の大きさを返す。"""
     path = os.path.join(ROOT, ref)
@@ -92,17 +87,22 @@ def image_size(ref):
         return (0, 0)
 
 
-def mark_thumbnails(body):
-    """高さが揃えてある画像に印を付ける。段組みを組むときの目印にする。"""
-    def add_class(m):
-        tag, src = m.group(0), m.group(1)
-        ref = src.lstrip("/")
-        w, h = image_size(ref)
-        if h == THUMB_SOURCE_HEIGHT:
-            return tag.replace("<img ", '<img class="pthumb" ', 1)
-        return tag
+def set_image_dims(body):
+    """画像の本来の大きさを width と height として書き込む。
 
-    return re.sub(r'<img[^>]*src="(/assets/img/[^"]+)"[^>]*>', add_class, body)
+    段組みを組むときに縦横の比率が必要になるほか、読み込み前から場所が確保されるため
+    表示が途中でずれることも防げる。
+    """
+    def fill(m):
+        tag, src = m.group(0), m.group(1)
+        if re.search(r'\bwidth="', tag):
+            return tag
+        w, h = image_size(src.lstrip("/"))
+        if not w or not h:
+            return tag
+        return tag.replace("<img ", f'<img width="{w}" height="{h}" ', 1)
+
+    return re.sub(r'<img[^>]*src="(/assets/img/[^"]+)"[^>]*>', fill, body)
 
 
 def unwrap_google_redirect(url):
@@ -193,7 +193,7 @@ def main():
                 body = body.replace(f'src="{iu}"', f'src="/{ref}"')
 
         body = body.replace("<img ", '<img loading="lazy" ')
-        body = mark_thumbnails(body)
+        body = set_image_dims(body)
 
         title = page_title(raw)
         text_len = len(re.sub(r"<[^>]+>", "", body))
