@@ -11,6 +11,7 @@ import json
 import os
 import re
 import shutil
+import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = os.path.join(ROOT, "site")
@@ -254,9 +255,32 @@ def main():
     manifest = load_json("manifest.json")
     nav = load_json("nav.json")
 
+    # docs/ は作り直すが、この仕組みが生成しないものは失わないように退避しておく。
+    #   CNAME    GitHub Pages の独自ドメイン設定。消すとドメインの設定が外れ、
+    #            進行中の証明書の発行要求もやり直しになる
+    #   preview/ 見た目の候補を見比べるためのページ。別の仕組みで作っている
+    keep = {}
+    for name in ("CNAME", ".nojekyll"):
+        path = os.path.join(DOCS, name)
+        if os.path.isfile(path):
+            keep[name] = open(path, encoding="utf-8").read()
+    preview_src = os.path.join(DOCS, "preview")
+    preview_tmp = None
+    if os.path.isdir(preview_src):
+        preview_tmp = tempfile.mkdtemp(prefix="preview-")
+        shutil.rmtree(preview_tmp)
+        shutil.copytree(preview_src, preview_tmp)
+
     if os.path.isdir(DOCS):
         shutil.rmtree(DOCS)
     os.makedirs(DOCS, exist_ok=True)
+
+    for name, text in keep.items():
+        with open(os.path.join(DOCS, name), "w", encoding="utf-8") as fh:
+            fh.write(text)
+    if preview_tmp:
+        shutil.copytree(preview_tmp, preview_src)
+        shutil.rmtree(preview_tmp)
 
     # 画像などの資産をそのまま複製する
     shutil.copytree(ASSETS, os.path.join(DOCS, "assets"))
