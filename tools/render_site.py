@@ -19,6 +19,11 @@ ASSETS = os.path.join(ROOT, "assets")
 
 SITE_NAME = "Kazutaka Kurihara"
 
+# このサイトの正規のURL。検索エンジンや共有時に使われる住所である。
+# www付きではなく裸のドメインを正規とする。www付きでアクセスした場合は、
+# GitHub Pages 側が自動でこちらへ転送する。
+CANONICAL = "https://unryu.org"
+
 # 公開先によってURLの起点が変わる。
 #   独自ドメイン（https://www.unryu.org/）で公開する場合は空文字。
 #   GitHub Pages の qurihara.github.io/unryu-site/ で試す場合は "/unryu-site"。
@@ -191,7 +196,8 @@ PAGE = """<!DOCTYPE html>
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://www.unryu.org{path}">
+<meta property="og:url" content="{canonical}{path}">
+<link rel="canonical" href="{canonical}{path}">
 <link rel="stylesheet" href="{base}/assets/style.css">
 </head>
 <body>
@@ -209,7 +215,7 @@ PAGE = """<!DOCTYPE html>
   </main>
 </div>
 <footer class="site-footer">
-  <p>{site_name} — <a href="https://www.unryu.org/">www.unryu.org</a></p>
+  <p>{site_name} — <a href="{canonical}/">unryu.org</a></p>
 </footer>
 <script src="{base}/assets/site.js"></script>
 </body>
@@ -276,6 +282,7 @@ def main():
         out_html = PAGE.format(
             lang=lang,
             base=BASE,
+            canonical=CANONICAL,
             title=html.escape(full_title, quote=True),
             desc=make_description(body),
             path=entry["path"],
@@ -302,7 +309,7 @@ def main():
 
     # sitemap.xml。検索エンジンには本来のドメインのURLを伝える。
     urls = "\n".join(
-        f"  <url><loc>https://www.unryu.org{e['path']}</loc></url>"
+        f"  <url><loc>{CANONICAL}{e['path']}</loc></url>"
         for e in manifest if e["path"] != "/home"
     )
     with open(os.path.join(DOCS, "sitemap.xml"), "w", encoding="utf-8") as fh:
@@ -311,7 +318,7 @@ def main():
                  f"{urls}\n</urlset>\n")
 
     with open(os.path.join(DOCS, "robots.txt"), "w", encoding="utf-8") as fh:
-        fh.write("User-agent: *\nAllow: /\n\nSitemap: https://www.unryu.org/sitemap.xml\n")
+        fh.write(f"User-agent: *\nAllow: /\n\nSitemap: {CANONICAL}/sitemap.xml\n")
 
     print(f"{written} ページを {DOCS} に書き出した。")
 
