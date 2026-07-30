@@ -299,7 +299,11 @@ body {
 /* サムネイルの高さを揃える。元の画像の大きさは問わず、
    すべて --thumb-h の高さになるよう拡大または縮小する。
    横幅は縦横の比率に従って決まるため、画像ごとに変わる。 */
-.thumb img {
+/* 指定の強さについての注意。
+   上の .content img[width] は、クラスと属性を併せ持つため .thumb img より強い。
+   そのままだと max-width がサムネイルにも効いて画像が横に潰れる。
+   そこで .content を頭に付けて強さを揃え、後に書くことでこちらを優先させる。 */
+.content .thumb img {
   height: var(--thumb-h);
   width: auto;
   max-width: none;
@@ -311,12 +315,13 @@ body {
 /* 高さを揃えると列の幅を超えてしまうほど横長の画像も、説明文とは左右に並べる。
    この場合だけ、列の幅を画像に合わせて広げる。高さは他と同じままにする。 */
 .thumb-row.wide {
-  grid-template-columns: auto minmax(180px, 1fr);
+  /* auto だと横の列に押されて縮むため、画像の必要な幅をそのまま確保する */
+  grid-template-columns: max-content minmax(180px, 1fr);
 }
 .thumb-row.wide .thumb {
   justify-content: flex-start;
 }
-.thumb-row.wide .thumb img {
+.content .thumb-row.wide .thumb img {
   height: var(--thumb-h);
   width: auto;
   max-width: 100%;
@@ -336,8 +341,8 @@ body {
 
   /* 画面の幅に収まらない画像は、高さを保つと横に潰れてしまう。
      狭い画面では縦横の比率を守ることを優先し、高さは100ピクセルを上限とする。 */
-  .thumb img,
-  .thumb-row.wide .thumb img {
+  .content .thumb img,
+  .content .thumb-row.wide .thumb img {
     height: auto;
     width: auto;
     max-width: 100%;

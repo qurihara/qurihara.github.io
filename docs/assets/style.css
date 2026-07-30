@@ -1,16 +1,27 @@
+/* 候補D「現行版の洗練」
+
+   方向性。いまの見た目の骨組みは変えず、読みやすさに関わるところだけを整える。
+   変えたのは次の4点である。
+     1. 差し色の青を少し落ち着かせ、灰色にもわずかに青みを混ぜて、色が揃って見えるようにした。
+     2. 本文の行長を860ピクセルから780ピクセルに縮めた。1行あたりの文字数が減って目で追いやすくなる。
+     3. 見出しの大きさの段差をはっきりさせ、見出しの前後の余白を広げた。
+     4. 数字が並ぶ表で桁が揃うようにした。
+
+   慣れた見た目を保ちたい場合はこれを選ぶ。変化はいちばん小さい。 */
+
 /* unryu.org — 素のHTMLで組んだ静的サイトの見た目を整える。
    元のGoogle Sitesに近い、読みやすさ優先の構成にしてある。 */
 
 :root {
   --bg: #ffffff;
-  --fg: #1f2328;
-  --muted: #5b6570;
-  --accent: #1a73e8;
-  --line: #e3e6ea;
-  --sidebar-bg: #f7f9fb;
+  --fg: #1b2026;
+  --muted: #5a646f;
+  --accent: #1558b0;
+  --line: #e1e5ea;
+  --sidebar-bg: #f6f8fa;
   --header-h: 56px;
   --sidebar-w: 300px;
-  --maxw: 860px;
+  --maxw: 780px;
 
   /* プロジェクト紹介のサムネイル画像。
      --thumb-h が表示上の高さである。元の画像の大きさは問わず、すべてこの高さに揃える。
@@ -28,12 +39,12 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #14171a;
-    --fg: #e8eaed;
-    --muted: #9aa4af;
-    --accent: #7cb0f5;
-    --line: #2b3036;
-    --sidebar-bg: #1a1e22;
+    --bg: #14181c;
+    --fg: #e6eaee;
+    --muted: #96a1ac;
+    --accent: #82b4f7;
+    --line: #2a3037;
+    --sidebar-bg: #191e23;
   }
 }
 
@@ -172,19 +183,21 @@ body {
 
 /* 本文 */
 .content h1 {
-  font-size: 1.7rem;
-  line-height: 1.35;
-  margin: 0 0 24px;
-  padding-bottom: 10px;
+  font-size: 1.78rem;
+  line-height: 1.4;
+  margin: 0 0 28px;
+  padding-bottom: 12px;
   border-bottom: 2px solid var(--line);
+  text-wrap: balance;
 }
 .content h2 {
-  font-size: 1.32rem;
-  margin: 40px 0 14px;
-  padding-bottom: 6px;
+  font-size: 1.34rem;
+  margin: 48px 0 16px;
+  padding-bottom: 7px;
   border-bottom: 1px solid var(--line);
+  text-wrap: balance;
 }
-.content h3 { font-size: 1.12rem; margin: 28px 0 10px; }
+.content h3 { font-size: 1.11rem; margin: 32px 0 10px; }
 .content h4 { font-size: 1rem; margin: 22px 0 8px; }
 
 .content p { margin: 0 0 14px; }
@@ -286,7 +299,11 @@ body {
 /* サムネイルの高さを揃える。元の画像の大きさは問わず、
    すべて --thumb-h の高さになるよう拡大または縮小する。
    横幅は縦横の比率に従って決まるため、画像ごとに変わる。 */
-.thumb img {
+/* 指定の強さについての注意。
+   上の .content img[width] は、クラスと属性を併せ持つため .thumb img より強い。
+   そのままだと max-width がサムネイルにも効いて画像が横に潰れる。
+   そこで .content を頭に付けて強さを揃え、後に書くことでこちらを優先させる。 */
+.content .thumb img {
   height: var(--thumb-h);
   width: auto;
   max-width: none;
@@ -298,12 +315,13 @@ body {
 /* 高さを揃えると列の幅を超えてしまうほど横長の画像も、説明文とは左右に並べる。
    この場合だけ、列の幅を画像に合わせて広げる。高さは他と同じままにする。 */
 .thumb-row.wide {
-  grid-template-columns: auto minmax(180px, 1fr);
+  /* auto だと横の列に押されて縮むため、画像の必要な幅をそのまま確保する */
+  grid-template-columns: max-content minmax(180px, 1fr);
 }
 .thumb-row.wide .thumb {
   justify-content: flex-start;
 }
-.thumb-row.wide .thumb img {
+.content .thumb-row.wide .thumb img {
   height: var(--thumb-h);
   width: auto;
   max-width: 100%;
@@ -323,8 +341,8 @@ body {
 
   /* 画面の幅に収まらない画像は、高さを保つと横に潰れてしまう。
      狭い画面では縦横の比率を守ることを優先し、高さは100ピクセルを上限とする。 */
-  .thumb img,
-  .thumb-row.wide .thumb img {
+  .content .thumb img,
+  .content .thumb-row.wide .thumb img {
     height: auto;
     width: auto;
     max-width: 100%;
@@ -364,6 +382,7 @@ body {
   vertical-align: top;
 }
 .content th { background: rgba(127, 127, 127, 0.1); font-weight: 600; }
+.content td { font-variant-numeric: tabular-nums; }
 
 .content hr { border: 0; border-top: 1px solid var(--line); margin: 30px 0; }
 
@@ -391,4 +410,8 @@ body {
   .sidebar.open { display: block; }
   .content { max-width: none; padding: 22px 18px 60px; }
   .site-footer { padding: 20px 18px 36px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
 }
