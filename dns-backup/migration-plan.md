@@ -133,3 +133,49 @@ Cloudflare Email Routing を使う。無料である。
 メール転送とURL転送もValue Domain側で設定し直す。
 
 ネームサーバの変更が行き渡るまでに時間がかかる点は、行きも戻りも同じである。
+
+---
+
+## 移行の結果（2026年7月31日 11時20分）
+
+**すべて成功した。** GitHub Pagesで3日近く発行されなかった証明書が、Cloudflareへの移行で即座に解決した。
+
+### 発行された証明書
+
+```
+発行者: Google Trust Services（Cloudflare経由）
+対象  : DNS:unryu.org, DNS:*.unryu.org
+発行  : 2026年7月31日
+```
+
+すべてのサブドメインを覆うため、今後サブドメインを増やしても証明書の心配がない。
+
+### 検証した結果
+
+| 対象 | 結果 |
+| --- | --- |
+| 全57ページ（www経由） | 57件すべて正常 |
+| `https://www.unryu.org` | 200。`https://unryu.org/` へ転送 |
+| `https://unryu.org` | 200 |
+| `http://www.unryu.org` | 200 |
+| 下層ページ | profile、publications、lab、home/kotodama すべて200 |
+| プロジェクトサイト | ai-fue、chordika、ez_karuta、IgNobelPrize2012、iFont、breath-detector すべて200 |
+| メール転送 | MX 3件とSPFを実測で確認。Email Routingは「有効」 |
+
+### 途中で分かった、想定と違った点
+
+- **Cloudflareはゾーンがアクティブになるまでメール用DNSレコードを追加できない。**
+  準備を完全に終えてから切り替えるという段取りは取れず、切り替え後に追加した。
+- **旧MXレコードが残っていると追加できない。**
+  「既存の非Cloudflare MXレコードが競合しています」と出るため、`mailforward.dnsv.jp` を削除してから追加した。
+- **Value Domainには似た画面が2つある。**
+  `moddns.php` はDNSレコードの編集画面で、ここのNS行を書き換えても委任は変わらない。
+  正しくは左メニューの「ネームサーバーの設定」（`modns.php`）である。
+- **自動取り込みで4件が漏れた。**
+  `bc`、`core`、Googleの所有権確認用CNAME 2件。控えを取っておいたことで気づけた。
+
+### lab と sj
+
+Value DomainのURL転送用だったAレコードは引き継いでいない。現在は名前解決されない。
+ほぼ使っていないという判断により、このまま放置とした。
+必要になればCloudflareのリダイレクトルールで設定でき、その場合はhttpsにも対応する。
