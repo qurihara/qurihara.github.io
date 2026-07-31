@@ -25,6 +25,10 @@ SITE_NAME = "Kazutaka Kurihara"
 # GitHub Pages 側が自動でこちらへ転送する。
 CANONICAL = "https://unryu.org"
 
+# Google Analytics 4 の測定ID。空文字にすると解析のコードを埋め込まない。
+# 手元で試すときや、解析をやめるときは空にする。
+GA_MEASUREMENT_ID = "G-VSG5S34B14"
+
 # 公開先によってURLの起点が変わる。
 #   独自ドメイン（https://www.unryu.org/）で公開する場合は空文字。
 #   GitHub Pages の qurihara.github.io/unryu-site/ で試す場合は "/unryu-site"。
@@ -200,7 +204,7 @@ PAGE = """<!DOCTYPE html>
 <meta property="og:url" content="{canonical}{path}">
 <link rel="canonical" href="{canonical}{path}">
 <link rel="stylesheet" href="{base}/assets/style.css">
-</head>
+{analytics}</head>
 <body>
 <a class="skip-link" href="#main">本文へ移動</a>
 <header class="site-header">
@@ -222,6 +226,24 @@ PAGE = """<!DOCTYPE html>
 </body>
 </html>
 """
+
+
+def analytics_snippet():
+    """Google Analytics 4 の計測コードを組み立てる。
+
+    測定IDが空のときは何も返さない。手元で試すときに解析を止められるようにしてある。
+    """
+    if not GA_MEASUREMENT_ID:
+        return ""
+    return (
+        f'<script async src="https://www.googletagmanager.com/gtag/js?id={GA_MEASUREMENT_ID}"></script>\n'
+        "<script>\n"
+        "  window.dataLayer = window.dataLayer || [];\n"
+        "  function gtag(){dataLayer.push(arguments);}\n"
+        "  gtag('js', new Date());\n"
+        f"  gtag('config', '{GA_MEASUREMENT_ID}');\n"
+        "</script>\n"
+    )
 
 
 def make_description(body_html):
@@ -307,6 +329,7 @@ def main():
             lang=lang,
             base=BASE,
             canonical=CANONICAL,
+            analytics=analytics_snippet(),
             title=html.escape(full_title, quote=True),
             desc=make_description(body),
             path=entry["path"],
