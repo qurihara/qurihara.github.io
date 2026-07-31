@@ -17,6 +17,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = os.path.join(ROOT, "site")
 DOCS = os.path.join(ROOT, "docs")
 ASSETS = os.path.join(ROOT, "assets")
+# 旧サイトで配信していた論文PDFなど。中の階層をそのまま docs/ の下に複製する。
+# 例 papers/home/papers/xxx.pdf は /home/papers/xxx.pdf として配信される。
+PAPERS = os.path.join(ROOT, "papers")
 
 SITE_NAME = "Kazutaka Kurihara"
 
@@ -306,6 +309,18 @@ def main():
 
     # 画像などの資産をそのまま複製する
     shutil.copytree(ASSETS, os.path.join(DOCS, "assets"))
+
+    # 論文PDFなどを、papers/ の中の階層のまま docs/ の下へ複製する。
+    # docs/ は毎回作り直されるため、ここで置き直さないと失われる。
+    if os.path.isdir(PAPERS):
+        for dirpath, _dirnames, filenames in os.walk(PAPERS):
+            rel = os.path.relpath(dirpath, PAPERS)
+            dest_dir = DOCS if rel == "." else os.path.join(DOCS, rel)
+            os.makedirs(dest_dir, exist_ok=True)
+            for name in filenames:
+                if name == ".DS_Store":
+                    continue
+                shutil.copy2(os.path.join(dirpath, name), os.path.join(dest_dir, name))
 
     written = 0
     for entry in manifest:

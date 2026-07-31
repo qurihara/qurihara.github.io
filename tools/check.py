@@ -30,7 +30,11 @@ def url_path_of(page_file):
 def exists_as_page(path):
     if path == "/":
         return os.path.exists(os.path.join(DOCS, "index.html"))
-    return os.path.exists(os.path.join(DOCS, path.strip("/"), "index.html"))
+    # ページとして存在するか
+    if os.path.exists(os.path.join(DOCS, path.strip("/"), "index.html")):
+        return True
+    # 論文PDFのように、ページではなくファイルとして置いてあるものも飛び先として正しい
+    return os.path.isfile(os.path.join(DOCS, path.strip("/")))
 
 
 def main():
