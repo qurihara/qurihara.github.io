@@ -32,3 +32,17 @@ sj.unryu.org.		300	IN	A	157.7.174.95
 ## Googleの所有権確認用CNAME
 pjwdrjv7hee5.unryu.org.	300	IN	CNAME	gv-gq435w5kutliwe.dv.googlehosted.com.
 q5rhpoeepiqs.unryu.org.	300	IN	CNAME	gv-7gmr7lfb7lbaea.dv.googlehosted.com.
+
+## Cloudflareのネームサーバ（2026-07-31 に確認）
+devin.ns.cloudflare.com
+sandy.ns.cloudflare.com
+
+## Cloudflareの識別子
+ゾーンID    : 5f7af36a80d6b11562dad8c44e8bfec0
+アカウントID: 3c9b778d357e9f6674fb7046454d1267
+
+## 戻すときのネームサーバ（Value Domain）
+01.dnsv.jp
+02.dnsv.jp
+03.dnsv.jp
+04.dnsv.jp
