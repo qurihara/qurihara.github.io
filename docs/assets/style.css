@@ -12,6 +12,10 @@
 /* unryu.org — 素のHTMLで組んだ静的サイトの見た目を整える。
    元のGoogle Sitesに近い、読みやすさ優先の構成にしてある。 */
 
+/* 配色は白背景で固定する。
+   以前は @media (prefers-color-scheme: dark) を入れていたため、
+   端末を暗い表示設定にしている訪問者には黒背景で表示されていた。
+   栗原さんの意向により白背景に統一した。暗い配色は用意しない。 */
 :root {
   --bg: #ffffff;
   --fg: #1b2026;
@@ -37,16 +41,6 @@
   --header-img-h: 170px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #14181c;
-    --fg: #e6eaee;
-    --muted: #96a1ac;
-    --accent: #82b4f7;
-    --line: #2a3037;
-    --sidebar-bg: #191e23;
-  }
-}
 
 * { box-sizing: border-box; }
 
