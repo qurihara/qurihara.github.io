@@ -63,9 +63,12 @@ def nav_html(nav, current_path):
             parts.append(f"<summary>{html.escape(group['title'])}</summary>")
             parts.append("<ul>")
             here = ' aria-current="page"' if current_path == group["href"] else ""
+            # そのまとまりの入口へのリンク。英語のページでは英語で書きたいので、
+            # nav.json に top_label があればそれを使う
+            top_label = group.get("top_label") or f'{group["title"]}のトップ'
             parts.append(
                 f'<li><a href="{BASE}{group["href"]}"{here}>'
-                f'{html.escape(group["title"])}のトップ</a></li>'
+                f'{html.escape(top_label)}</a></li>'
             )
             for child in children:
                 here = ' aria-current="page"' if current_path == child["href"] else ""

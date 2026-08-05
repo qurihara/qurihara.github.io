@@ -213,8 +213,8 @@
   "path": "/top-english",
   "title": "Kazutaka Kurihara - English",
   "fragment": "top-english.fragment.html",
-  "text_len": 13772,
-  "images": 16
+  "text_len": 13764,
+  "images": 56
  },
  {
   "path": "/top-english/borderless-canvas",
@@ -234,7 +234,7 @@
   "path": "/top-english/publications",
   "title": "Kazutaka Kurihara - Publications",
   "fragment": "top-english__publications.fragment.html",
-  "text_len": 107323,
+  "text_len": 107257,
   "images": 1
  },
  {
@@ -339,7 +339,7 @@
   "path": "/publications",
   "title": "Kazutaka Kurihara - Publications",
   "fragment": "publications.fragment.html",
-  "text_len": 56875,
+  "text_len": 66354,
   "images": 1
  },
  {
