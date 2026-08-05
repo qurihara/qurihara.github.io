@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SpeechJammer.net for Raspberry Pi | Kazutaka Kurihara</title>
+<meta name="description" content="SpeechJammer.net for Raspberry Pi Using a Raspberry Pi, we built an embedded SpeechJammer: an Internet-of-Things device that can be built into the sou">
+<meta property="og:title" content="SpeechJammer.net for Raspberry Pi | Kazutaka Kurihara">
+<meta property="og:description" content="SpeechJammer.net for Raspberry Pi Using a Raspberry Pi, we built an embedded SpeechJammer: an Internet-of-Things device that can be built into the sou">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://unryu.org/top-english/speechjammer/rpi">
+<link rel="canonical" href="https://unryu.org/top-english/speechjammer/rpi">
+<link rel="stylesheet" href="/assets/style.css">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-VSG5S34B14"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-VSG5S34B14');
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">本文へ移動</a>
+<header class="site-header">
+  <a class="site-title" href="/">Kazutaka Kurihara</a>
+  <button class="nav-toggle" aria-expanded="false" aria-controls="sitenav">メニュー</button>
+</header>
+<div class="layout">
+  <div class="sidebar" id="sitenav">
+<nav class="site-nav" aria-label="サイト内ナビゲーション">
+<details class="nav-group">
+<summary>日本語</summary>
+<ul>
+<li><a href="/home">日本語のトップ</a></li>
+<li><a href="/home/old-projects">00. Old Projects</a></li>
+<li><a href="/home/kotodama">01. ことだま</a></li>
+<li><a href="/home/kotodama-lecture">01α. ことだまレクチャー（教育関係者向け）</a></li>
+<li><a href="/home/speechpen">02. 音声ペン</a></li>
+<li><a href="/home/timeline">03. 柔軟なタイムライン</a></li>
+<li><a href="/home/presentationsensei">04. プレゼン先生</a></li>
+<li><a href="/home/kotodamulti">05. ことだまるち</a></li>
+<li><a href="/home/irgel">06. 居るゴール</a></li>
+<li><a href="/home/dining-presenter">07. Dining Presenter</a></li>
+<li><a href="/home/microslip-hci">08. マイクロスリップとHCI</a></li>
+<li><a href="/home/borderless-canvas">09. Borderless Canvas</a></li>
+<li><a href="/home/tailstat">10. tailstat</a></li>
+<li><a href="/home/spiemenu">11. sPieMenu</a></li>
+<li><a href="/home/speechjammer">12. SpeechJammer</a></li>
+<li><a href="/home/cinemagazer">13. CinemaGazer</a></li>
+<li><a href="/home/speechprotector">14. SpeechProtector</a></li>
+<li><a href="/home/whisperpoint">15. WhisperPoint</a></li>
+<li><a href="/home/peepdetectorfake">16. PeepDetectorFake</a></li>
+<li><a href="/home/looselocker">17. LooseLocker</a></li>
+<li><a href="/home/t3dm">18. Tetris 3D Modeler</a></li>
+<li><a href="/home/oah">19. Openness-adjustable Headset</a></li>
+<li><a href="/home/ubf">20. The Universal Background Filter</a></li>
+<li><a href="/home/2ff">21. 2FF Youtube Viewer</a></li>
+<li><a href="/home/srtjs">22. srt.js</a></li>
+<li><a href="/home/picognizer">23.Picognizer</a></li>
+<li><a href="/home/gc">24.GameControllerizer</a></li>
+<li><a href="/home/ig-research19">25. Ig Nobel Research 2019</a></li>
+<li><a href="/home/vs_covid19">vs_covid19</a></li>
+</ul></details>
+<details class="nav-group" open>
+<summary>English</summary>
+<ul>
+<li><a href="/top-english">Main Page</a></li>
+<li><a href="/top-english/publications">Publications</a></li>
+<li><a href="/top-english/cv">Curriculum Vitae</a></li>
+<li><a href="/top-english/2ff/2ffhci">2FF for HCI Conferences</a></li>
+<li><a href="/top-english/2ff">2FF YouTube Viewer</a></li>
+<li><a href="/top-english/vs_covid19">Activities on COVID-19</a></li>
+<li><a href="/top-english/borderless-canvas">Borderless Canvas</a></li>
+<li><a href="/top-english/cinemagazer">CinemaGazer</a></li>
+<li><a href="/top-english/dining-presenter">Dining Presenter</a></li>
+<li><a href="/top-english/gc">GameControllerizer</a></li>
+<li><a href="/top-english/irgel">Irgel</a></li>
+<li><a href="/top-english/kotodama">Kotodama</a></li>
+<li><a href="/top-english/kotodama-lecture">Kotodama Lecture</a></li>
+<li><a href="/top-english/kotodamulti">KotodaMulti</a></li>
+<li><a href="/top-english/looselocker">LooseLocker</a></li>
+<li><a href="/top-english/ig-research19">Making Things That Make People Laugh</a></li>
+<li><a href="/top-english/microslip-hci">Micro-slips and HCI</a></li>
+<li><a href="/top-english/old-projects">Old Projects</a></li>
+<li><a href="/top-english/oah">Openness-adjustable Headset</a></li>
+<li><a href="/top-english/peepdetectorfake">PeepDetectorFake</a></li>
+<li><a href="/top-english/picognizer">Picognizer</a></li>
+<li><a href="/top-english/presentation-sensei">Presentation Sensei</a></li>
+<li><a href="/top-english/speechjammer">SpeechJammer</a></li>
+<li><a href="/top-english/speechjammer/rpi" aria-current="page">SpeechJammer for Raspberry Pi</a></li>
+<li><a href="/top-english/speechpen">SpeechPen</a></li>
+<li><a href="/top-english/speechprotector">SpeechProtector</a></li>
+<li><a href="/top-english/spiemenu">sPieMenu</a></li>
+<li><a href="/top-english/srtjs">srtjs</a></li>
+<li><a href="/top-english/tailstat">tailstat</a></li>
+<li><a href="/top-english/t3dm">Tetris 3D Modeler</a></li>
+<li><a href="/top-english/timeline">Timeline</a></li>
+<li><a href="/top-english/ubf">Universal Background Filter</a></li>
+<li><a href="/top-english/whisperpoint">WhisperPoint</a></li>
+</ul></details>
+<a class="nav-top" href="/profile">Profile</a>
+<a class="nav-top" href="/publications">Publications</a>
+<a class="nav-top" href="/lab">栗原研究室</a>
+</nav>
+  </div>
+  <main id="main" class="content">
+<h1>SpeechJammer.net for Raspberry Pi</h1>
+<p>Using a Raspberry Pi, we built an embedded SpeechJammer: an Internet-of-Things device that can be built into the sound system of a meeting room so that speech can be jammed from anywhere in the world.</p>
+<iframe src="https://www.gstatic.com/atari/embeds/8306a3600875750e6acc147fd93569bf/intermediate-frame-minified.html"></iframe>
+<p><a href="https://www.slideshare.net/presensensei/iotinternet-of-tetrisignobel-of-things" target="_blank"><strong>Talking about the Internet of Tetris and the Ig Nobel of Things at the Silly IoT Symposium</strong></a><strong> </strong>from <a href="https://www.slideshare.net/presensensei" target="_blank"><strong>Kazutaka Kurihara</strong></a></p>
+<p>How to build and use it:</p>
+<p>Please see the following site.</p>
+<p>Github:</p>
+<p><a href="https://github.com/qurihara/SpeechJammer.net_RPi" target="_blank">https://github.com/qurihara/SpeechJammer.net_RPi</a></p>
+<p>Appearance:</p>
+<p>(The push button with an LED was added for demonstrations; it works without one. No soldering is required.)</p>
+<img width="1280" height="960" loading="lazy" src="/assets/img/b11cc3f10a2f5d30.jpg">
+<img width="147" height="100" loading="lazy" src="/assets/img/7806295e16903f55.jpg">
+<p>(c) Kazutaka Kurihara</p>
+  </main>
+</div>
+<footer class="site-footer">
+  <p>Kazutaka Kurihara — <a href="https://unryu.org/">unryu.org</a></p>
+</footer>
+<script src="/assets/site.js"></script>
+</body>
+</html>

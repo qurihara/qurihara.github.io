@@ -122,14 +122,6 @@
   "href": "/top-english",
   "children": [
    {
-    "href": "/top-english/borderless-canvas",
-    "label": "Borderless Canvas"
-   },
-   {
-    "href": "/top-english/cinemagazer",
-    "label": "CinemaGazer"
-   },
-   {
     "href": "/top-english/publications",
     "label": "Publications"
    },
@@ -138,8 +130,32 @@
     "label": "Curriculum Vitae"
    },
    {
+    "href": "/top-english/2ff/2ffhci",
+    "label": "2FF for HCI Conferences"
+   },
+   {
+    "href": "/top-english/2ff",
+    "label": "2FF YouTube Viewer"
+   },
+   {
+    "href": "/top-english/vs_covid19",
+    "label": "Activities on COVID-19"
+   },
+   {
+    "href": "/top-english/borderless-canvas",
+    "label": "Borderless Canvas"
+   },
+   {
+    "href": "/top-english/cinemagazer",
+    "label": "CinemaGazer"
+   },
+   {
     "href": "/top-english/dining-presenter",
     "label": "Dining Presenter"
+   },
+   {
+    "href": "/top-english/gc",
+    "label": "GameControllerizer"
    },
    {
     "href": "/top-english/irgel",
@@ -150,8 +166,36 @@
     "label": "Kotodama"
    },
    {
+    "href": "/top-english/kotodama-lecture",
+    "label": "Kotodama Lecture"
+   },
+   {
     "href": "/top-english/kotodamulti",
     "label": "KotodaMulti"
+   },
+   {
+    "href": "/top-english/looselocker",
+    "label": "LooseLocker"
+   },
+   {
+    "href": "/top-english/ig-research19",
+    "label": "Making Things That Make People Laugh"
+   },
+   {
+    "href": "/top-english/microslip-hci",
+    "label": "Micro-slips and HCI"
+   },
+   {
+    "href": "/top-english/old-projects",
+    "label": "Old Projects"
+   },
+   {
+    "href": "/top-english/oah",
+    "label": "Openness-adjustable Headset"
+   },
+   {
+    "href": "/top-english/peepdetectorfake",
+    "label": "PeepDetectorFake"
    },
    {
     "href": "/top-english/picognizer",
@@ -164,6 +208,10 @@
    {
     "href": "/top-english/speechjammer",
     "label": "SpeechJammer"
+   },
+   {
+    "href": "/top-english/speechjammer/rpi",
+    "label": "SpeechJammer for Raspberry Pi"
    },
    {
     "href": "/top-english/speechpen",
@@ -182,12 +230,24 @@
     "label": "srtjs"
    },
    {
+    "href": "/top-english/tailstat",
+    "label": "tailstat"
+   },
+   {
     "href": "/top-english/t3dm",
     "label": "Tetris 3D Modeler"
    },
    {
     "href": "/top-english/timeline",
     "label": "Timeline"
+   },
+   {
+    "href": "/top-english/ubf",
+    "label": "Universal Background Filter"
+   },
+   {
+    "href": "/top-english/whisperpoint",
+    "label": "WhisperPoint"
    }
   ],
   "top_label": "Main Page"

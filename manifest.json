@@ -220,14 +220,14 @@
   "path": "/top-english/borderless-canvas",
   "title": "Kazutaka Kurihara - Borderless Canvas",
   "fragment": "top-english__borderless-canvas.fragment.html",
-  "text_len": 161,
+  "text_len": 146,
   "images": 2
  },
  {
   "path": "/top-english/cinemagazer",
   "title": "Kazutaka Kurihara - CinemaGazer",
   "fragment": "top-english__cinemagazer.fragment.html",
-  "text_len": 1776,
+  "text_len": 1748,
   "images": 1
  },
  {
@@ -248,91 +248,91 @@
   "path": "/top-english/dining-presenter",
   "title": "Kazutaka Kurihara - Dining Presenter",
   "fragment": "top-english__dining-presenter.fragment.html",
-  "text_len": 166,
+  "text_len": 157,
   "images": 1
  },
  {
   "path": "/top-english/irgel",
   "title": "Kazutaka Kurihara - Irgel",
   "fragment": "top-english__irgel.fragment.html",
-  "text_len": 78,
+  "text_len": 69,
   "images": 1
  },
  {
   "path": "/top-english/kotodama",
   "title": "Kazutaka Kurihara - Kotodama",
   "fragment": "top-english__kotodama.fragment.html",
-  "text_len": 791,
+  "text_len": 779,
   "images": 1
  },
  {
   "path": "/top-english/kotodamulti",
   "title": "Kazutaka Kurihara - KotodaMulti",
   "fragment": "top-english__kotodamulti.fragment.html",
-  "text_len": 1011,
+  "text_len": 1000,
   "images": 1
  },
  {
   "path": "/top-english/picognizer",
   "title": "Kazutaka Kurihara - Picognizer",
   "fragment": "top-english__picognizer.fragment.html",
-  "text_len": 2930,
+  "text_len": 2914,
   "images": 1
  },
  {
   "path": "/top-english/presentation-sensei",
   "title": "Kazutaka Kurihara - Presentation Sensei",
   "fragment": "top-english__presentation-sensei.fragment.html",
-  "text_len": 1931,
+  "text_len": 1917,
   "images": 1
  },
  {
   "path": "/top-english/speechjammer",
   "title": "Kazutaka Kurihara - SpeechJammer",
   "fragment": "top-english__speechjammer.fragment.html",
-  "text_len": 10375,
+  "text_len": 10228,
   "images": 2
  },
  {
   "path": "/top-english/speechpen",
   "title": "Kazutaka Kurihara - SpeechPen",
   "fragment": "top-english__speechpen.fragment.html",
-  "text_len": 1919,
+  "text_len": 1903,
   "images": 1
  },
  {
   "path": "/top-english/speechprotector",
   "title": "Kazutaka Kurihara - SpeechProtector",
   "fragment": "top-english__speechprotector.fragment.html",
-  "text_len": 876,
+  "text_len": 861,
   "images": 1
  },
  {
   "path": "/top-english/spiemenu",
   "title": "Kazutaka Kurihara - sPieMenu",
   "fragment": "top-english__spiemenu.fragment.html",
-  "text_len": 1766,
+  "text_len": 1749,
   "images": 2
  },
  {
   "path": "/top-english/srtjs",
   "title": "Kazutaka Kurihara - srtjs",
   "fragment": "top-english__srtjs.fragment.html",
-  "text_len": 3551,
+  "text_len": 3484,
   "images": 1
  },
  {
   "path": "/top-english/t3dm",
   "title": "Kazutaka Kurihara - Tetris 3D Modeler",
   "fragment": "top-english__t3dm.fragment.html",
-  "text_len": 1051,
+  "text_len": 1028,
   "images": 1
  },
  {
   "path": "/top-english/timeline",
   "title": "Kazutaka Kurihara - Timeline",
   "fragment": "top-english__timeline.fragment.html",
-  "text_len": 1203,
+  "text_len": 1187,
   "images": 1
  },
  {
@@ -395,14 +395,119 @@
   "path": "/top-english/speechjammer/lt",
   "title": "Kazutaka Kurihara - SpeechJammerLite (free!)",
   "fragment": "top-english__speechjammer__lt.fragment.html",
-  "text_len": 1001,
+  "text_len": 983,
   "images": 2
  },
  {
   "path": "/top-english/srtjs/doc",
   "title": "Kazutaka Kurihara - doc",
   "fragment": "top-english__srtjs__doc.fragment.html",
-  "text_len": 11191,
+  "text_len": 11126,
   "images": 2
+ },
+ {
+  "path": "/top-english/old-projects",
+  "title": "Kazutaka Kurihara - Old Projects",
+  "fragment": "top-english__old-projects.fragment.html",
+  "text_len": 1075,
+  "images": 3
+ },
+ {
+  "path": "/top-english/kotodama-lecture",
+  "title": "Kazutaka Kurihara - Kotodama Lecture (for educators)",
+  "fragment": "top-english__kotodama-lecture.fragment.html",
+  "text_len": 844,
+  "images": 1
+ },
+ {
+  "path": "/top-english/microslip-hci",
+  "title": "Kazutaka Kurihara - Micro-slips and Human-Computer Interaction",
+  "fragment": "top-english__microslip-hci.fragment.html",
+  "text_len": 817,
+  "images": 2
+ },
+ {
+  "path": "/top-english/tailstat",
+  "title": "Kazutaka Kurihara - tailstat",
+  "fragment": "top-english__tailstat.fragment.html",
+  "text_len": 1185,
+  "images": 1
+ },
+ {
+  "path": "/top-english/whisperpoint",
+  "title": "Kazutaka Kurihara - WhisperPoint",
+  "fragment": "top-english__whisperpoint.fragment.html",
+  "text_len": 2780,
+  "images": 1
+ },
+ {
+  "path": "/top-english/peepdetectorfake",
+  "title": "Kazutaka Kurihara - PeepDetectorFake",
+  "fragment": "top-english__peepdetectorfake.fragment.html",
+  "text_len": 801,
+  "images": 3
+ },
+ {
+  "path": "/top-english/looselocker",
+  "title": "Kazutaka Kurihara - LooseLocker",
+  "fragment": "top-english__looselocker.fragment.html",
+  "text_len": 1798,
+  "images": 2
+ },
+ {
+  "path": "/top-english/oah",
+  "title": "Kazutaka Kurihara - Openness-adjustable Headset",
+  "fragment": "top-english__oah.fragment.html",
+  "text_len": 7166,
+  "images": 7
+ },
+ {
+  "path": "/top-english/ubf",
+  "title": "Kazutaka Kurihara - The Universal Background Filter",
+  "fragment": "top-english__ubf.fragment.html",
+  "text_len": 2456,
+  "images": 4
+ },
+ {
+  "path": "/top-english/2ff",
+  "title": "Kazutaka Kurihara - 2FF YouTube Viewer",
+  "fragment": "top-english__2ff.fragment.html",
+  "text_len": 3167,
+  "images": 1
+ },
+ {
+  "path": "/top-english/gc",
+  "title": "Kazutaka Kurihara - GameControllerizer",
+  "fragment": "top-english__gc.fragment.html",
+  "text_len": 102,
+  "images": 1
+ },
+ {
+  "path": "/top-english/ig-research19",
+  "title": "Kazutaka Kurihara - Making Things That Make People Laugh, and Then Think, 2019-2020",
+  "fragment": "top-english__ig-research19.fragment.html",
+  "text_len": 4013,
+  "images": 1
+ },
+ {
+  "path": "/top-english/vs_covid19",
+  "title": "Kazutaka Kurihara - Activities Related to the COVID-19 Crisis",
+  "fragment": "top-english__vs_covid19.fragment.html",
+  "text_len": 4831,
+  "images": 7
+ },
+ {
+  "path": "/top-english/speechjammer/rpi",
+  "title": "Kazutaka Kurihara - SpeechJammer.net for Raspberry Pi",
+  "fragment": "top-english__speechjammer__rpi.fragment.html",
+  "text_len": 603,
+  "images": 2
+ },
+ {
+  "path": "/top-english/2ff/2ffhci",
+  "title": "Kazutaka Kurihara - 2FF YouTube Viewer for HCI Conferences",
+  "fragment": "top-english__2ff__2ffhci.fragment.html",
+  "text_len": 766,
+  "images": 1
  }
 ]
