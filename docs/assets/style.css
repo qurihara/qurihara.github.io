@@ -409,3 +409,32 @@ body {
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* 紙に刷るとき、およびPDFにするとき。
+   CVを応募書類として出す場面があるため、画面用の飾りを落として本文だけを残す。 */
+@media print {
+  .sidebar, .site-header, .site-footer, .nav-toggle, .skip-link { display: none !important; }
+  .layout { display: block; }
+  .content {
+    max-width: none;
+    padding: 0;
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+  html, body { background: #fff; color: #000; }
+  a { color: #000; text-decoration: none; }
+  /* 紙では飛べないので、リンク先を括弧書きで添える。ただしサイト内リンクは省く */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #444;
+    word-break: break-all;
+  }
+  h2 { font-size: 15pt; margin: 0 0 6pt; }
+  h3 { font-size: 12pt; margin: 12pt 0 4pt; break-after: avoid; page-break-after: avoid; }
+  p { margin: 0 0 3pt; }
+  ul, ol { margin: 0 0 8pt; padding-left: 18pt; }
+  li { margin: 0 0 2pt; break-inside: avoid; page-break-inside: avoid; }
+  .blk { margin: 0 0 8pt; break-inside: auto; }
+  img, iframe, .embed-wrap { display: none; }
+}
