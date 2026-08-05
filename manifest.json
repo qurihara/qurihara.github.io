@@ -238,6 +238,13 @@
   "images": 1
  },
  {
+  "path": "/top-english/cv",
+  "title": "Kazutaka Kurihara - Curriculum Vitae",
+  "fragment": "top-english__cv.fragment.html",
+  "text_len": 24351,
+  "images": 0
+ },
+ {
   "path": "/top-english/dining-presenter",
   "title": "Kazutaka Kurihara - Dining Presenter",
   "fragment": "top-english__dining-presenter.fragment.html",
