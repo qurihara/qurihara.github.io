@@ -27,7 +27,21 @@ def url_path_of(page_file):
     return "/" if rel == "." else "/" + rel.replace(os.sep, "/")
 
 
+# 同じドメインで配信されるが、この仕組みが作るものではないページ。
+# qurihara.github.io の配下にあるプロジェクトサイトは、
+# GitHub Pages のはたらきで unryu.org/<名前>/ としても配信される。
+# docs/ には無いので、飛び先が無いように見えるが、実際には開ける。
+PROJECT_SITES = ("/chordika/", "/ai-fue/")
+
+
 def exists_as_page(path):
+    # 別リポジトリのプロジェクトサイトは、この仕組みの管理外なので確かめない
+    if any(path == p or path.startswith(p) for p in PROJECT_SITES):
+        return True
+    return _exists_as_page(path)
+
+
+def _exists_as_page(path):
     if path == "/":
         return os.path.exists(os.path.join(DOCS, "index.html"))
     # ページとして存在するか
