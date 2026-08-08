@@ -1,527 +1,569 @@
 [
-  {
-    "path": "/",
-    "title": "Kazutaka Kurihara",
-    "fragment": "index.fragment.html",
-    "text_len": 6433,
-    "images": 56
-  },
-  {
-    "path": "/home",
-    "title": "Kazutaka Kurihara",
-    "fragment": "home.fragment.html",
-    "text_len": 6433,
-    "images": 56
-  },
-  {
-    "path": "/home/old-projects",
-    "title": "Kazutaka Kurihara - 00. Old Projects",
-    "fragment": "home__old-projects.fragment.html",
-    "text_len": 482,
-    "images": 3
-  },
-  {
-    "path": "/home/kotodama",
-    "title": "Kazutaka Kurihara - 01. ことだま",
-    "fragment": "home__kotodama.fragment.html",
-    "text_len": 1025,
-    "images": 1
-  },
-  {
-    "path": "/home/kotodama-lecture",
-    "title": "Kazutaka Kurihara - 01α. ことだまレクチャー（教育関係者向け）",
-    "fragment": "home__kotodama-lecture.fragment.html",
-    "text_len": 382,
-    "images": 1
-  },
-  {
-    "path": "/home/speechpen",
-    "title": "Kazutaka Kurihara - 02. 音声ペン",
-    "fragment": "home__speechpen.fragment.html",
-    "text_len": 1150,
-    "images": 1
-  },
-  {
-    "path": "/home/timeline",
-    "title": "Kazutaka Kurihara - 03. 柔軟なタイムライン",
-    "fragment": "home__timeline.fragment.html",
-    "text_len": 627,
-    "images": 1
-  },
-  {
-    "path": "/home/presentationsensei",
-    "title": "Kazutaka Kurihara - 04. プレゼン先生",
-    "fragment": "home__presentationsensei.fragment.html",
-    "text_len": 952,
-    "images": 1
-  },
-  {
-    "path": "/home/kotodamulti",
-    "title": "Kazutaka Kurihara - 05. ことだまるち",
-    "fragment": "home__kotodamulti.fragment.html",
-    "text_len": 870,
-    "images": 1
-  },
-  {
-    "path": "/home/irgel",
-    "title": "Kazutaka Kurihara - 06. 居るゴール",
-    "fragment": "home__irgel.fragment.html",
-    "text_len": 78,
-    "images": 1
-  },
-  {
-    "path": "/home/dining-presenter",
-    "title": "Kazutaka Kurihara - 07. Dining Presenter",
-    "fragment": "home__dining-presenter.fragment.html",
-    "text_len": 133,
-    "images": 1
-  },
-  {
-    "path": "/home/microslip-hci",
-    "title": "Kazutaka Kurihara - 08. マイクロスリップとHCI",
-    "fragment": "home__microslip-hci.fragment.html",
-    "text_len": 504,
-    "images": 2
-  },
-  {
-    "path": "/home/borderless-canvas",
-    "title": "Kazutaka Kurihara - 09. Borderless Canvas",
-    "fragment": "home__borderless-canvas.fragment.html",
-    "text_len": 690,
-    "images": 2
-  },
-  {
-    "path": "/home/tailstat",
-    "title": "Kazutaka Kurihara - 10. tailstat",
-    "fragment": "home__tailstat.fragment.html",
-    "text_len": 749,
-    "images": 1
-  },
-  {
-    "path": "/home/spiemenu",
-    "title": "Kazutaka Kurihara - 11. sPieMenu",
-    "fragment": "home__spiemenu.fragment.html",
-    "text_len": 1300,
-    "images": 2
-  },
-  {
-    "path": "/home/speechjammer",
-    "title": "Kazutaka Kurihara - 12. SpeechJammer",
-    "fragment": "home__speechjammer.fragment.html",
-    "text_len": 4966,
-    "images": 2
-  },
-  {
-    "path": "/home/cinemagazer",
-    "title": "Kazutaka Kurihara - 13. CinemaGazer",
-    "fragment": "home__cinemagazer.fragment.html",
-    "text_len": 1898,
-    "images": 2
-  },
-  {
-    "path": "/home/speechprotector",
-    "title": "Kazutaka Kurihara - 14. SpeechProtector",
-    "fragment": "home__speechprotector.fragment.html",
-    "text_len": 420,
-    "images": 1
-  },
-  {
-    "path": "/home/whisperpoint",
-    "title": "Kazutaka Kurihara - 15. WhisperPoint",
-    "fragment": "home__whisperpoint.fragment.html",
-    "text_len": 1433,
-    "images": 1
-  },
-  {
-    "path": "/home/peepdetectorfake",
-    "title": "Kazutaka Kurihara - 16. PeepDetectorFake",
-    "fragment": "home__peepdetectorfake.fragment.html",
-    "text_len": 427,
-    "images": 3
-  },
-  {
-    "path": "/home/looselocker",
-    "title": "Kazutaka Kurihara - 17. LooseLocker",
-    "fragment": "home__looselocker.fragment.html",
-    "text_len": 1002,
-    "images": 2
-  },
-  {
-    "path": "/home/t3dm",
-    "title": "Kazutaka Kurihara - 18. Tetris 3D Modeler",
-    "fragment": "home__t3dm.fragment.html",
-    "text_len": 1134,
-    "images": 6
-  },
-  {
-    "path": "/home/oah",
-    "title": "Kazutaka Kurihara - 19. Openness-adjustable Headset",
-    "fragment": "home__oah.fragment.html",
-    "text_len": 3967,
-    "images": 7
-  },
-  {
-    "path": "/home/ubf",
-    "title": "Kazutaka Kurihara - 20. The Universal Background Filter",
-    "fragment": "home__ubf.fragment.html",
-    "text_len": 1323,
-    "images": 4
-  },
-  {
-    "path": "/home/2ff",
-    "title": "Kazutaka Kurihara - 21. 2FF Youtube Viewer",
-    "fragment": "home__2ff.fragment.html",
-    "text_len": 1710,
-    "images": 1
-  },
-  {
-    "path": "/home/srtjs",
-    "title": "Kazutaka Kurihara - 22. srt.js",
-    "fragment": "home__srtjs.fragment.html",
-    "text_len": 2704,
-    "images": 1
-  },
-  {
-    "path": "/home/keiba",
-    "title": "Kazutaka Kurihara - 競馬の研究",
-    "fragment": "home__keiba.fragment.html",
-    "text_len": 1003,
-    "images": 1
-  },
-  {
-    "path": "/home/picognizer",
-    "title": "Kazutaka Kurihara - 23.Picognizer",
-    "fragment": "home__picognizer.fragment.html",
-    "text_len": 1136,
-    "images": 1
-  },
-  {
-    "path": "/home/gc",
-    "title": "Kazutaka Kurihara - 24.GameControllerizer",
-    "fragment": "home__gc.fragment.html",
-    "text_len": 109,
-    "images": 1
-  },
-  {
-    "path": "/home/ig-research19",
-    "title": "Kazutaka Kurihara - 25. Ig Nobel Research 2019",
-    "fragment": "home__ig-research19.fragment.html",
-    "text_len": 2326,
-    "images": 1
-  },
-  {
-    "path": "/home/vs_covid19",
-    "title": "Kazutaka Kurihara - vs_covid19",
-    "fragment": "home__vs_covid19.fragment.html",
-    "text_len": 2425,
-    "images": 7
-  },
-  {
-    "path": "/top-english",
-    "title": "Kazutaka Kurihara - English",
-    "fragment": "top-english.fragment.html",
-    "text_len": 13764,
-    "images": 56
-  },
-  {
-    "path": "/top-english/borderless-canvas",
-    "title": "Kazutaka Kurihara - Borderless Canvas",
-    "fragment": "top-english__borderless-canvas.fragment.html",
-    "text_len": 146,
-    "images": 2
-  },
-  {
-    "path": "/top-english/cinemagazer",
-    "title": "Kazutaka Kurihara - CinemaGazer",
-    "fragment": "top-english__cinemagazer.fragment.html",
-    "text_len": 1748,
-    "images": 1
-  },
-  {
-    "path": "/top-english/publications",
-    "title": "Kazutaka Kurihara - Publications",
-    "fragment": "top-english__publications.fragment.html",
-    "text_len": 107257,
-    "images": 1
-  },
-  {
-    "path": "/top-english/cv",
-    "title": "Kazutaka Kurihara - Curriculum Vitae",
-    "fragment": "top-english__cv.fragment.html",
-    "text_len": 24351,
-    "images": 0
-  },
-  {
-    "path": "/top-english/dining-presenter",
-    "title": "Kazutaka Kurihara - Dining Presenter",
-    "fragment": "top-english__dining-presenter.fragment.html",
-    "text_len": 157,
-    "images": 1
-  },
-  {
-    "path": "/top-english/irgel",
-    "title": "Kazutaka Kurihara - Irgel",
-    "fragment": "top-english__irgel.fragment.html",
-    "text_len": 69,
-    "images": 1
-  },
-  {
-    "path": "/top-english/kotodama",
-    "title": "Kazutaka Kurihara - Kotodama",
-    "fragment": "top-english__kotodama.fragment.html",
-    "text_len": 779,
-    "images": 1
-  },
-  {
-    "path": "/top-english/kotodamulti",
-    "title": "Kazutaka Kurihara - KotodaMulti",
-    "fragment": "top-english__kotodamulti.fragment.html",
-    "text_len": 1000,
-    "images": 1
-  },
-  {
-    "path": "/top-english/keiba",
-    "title": "Kazutaka Kurihara - Research on Horse Racing",
-    "fragment": "top-english__keiba.fragment.html",
-    "text_len": 1525,
-    "images": 1
-  },
-  {
-    "path": "/top-english/picognizer",
-    "title": "Kazutaka Kurihara - Picognizer",
-    "fragment": "top-english__picognizer.fragment.html",
-    "text_len": 2914,
-    "images": 1
-  },
-  {
-    "path": "/top-english/presentation-sensei",
-    "title": "Kazutaka Kurihara - Presentation Sensei",
-    "fragment": "top-english__presentation-sensei.fragment.html",
-    "text_len": 1917,
-    "images": 1
-  },
-  {
-    "path": "/top-english/speechjammer",
-    "title": "Kazutaka Kurihara - SpeechJammer",
-    "fragment": "top-english__speechjammer.fragment.html",
-    "text_len": 10228,
-    "images": 2
-  },
-  {
-    "path": "/top-english/speechpen",
-    "title": "Kazutaka Kurihara - SpeechPen",
-    "fragment": "top-english__speechpen.fragment.html",
-    "text_len": 1903,
-    "images": 1
-  },
-  {
-    "path": "/top-english/speechprotector",
-    "title": "Kazutaka Kurihara - SpeechProtector",
-    "fragment": "top-english__speechprotector.fragment.html",
-    "text_len": 861,
-    "images": 1
-  },
-  {
-    "path": "/top-english/spiemenu",
-    "title": "Kazutaka Kurihara - sPieMenu",
-    "fragment": "top-english__spiemenu.fragment.html",
-    "text_len": 1749,
-    "images": 2
-  },
-  {
-    "path": "/top-english/srtjs",
-    "title": "Kazutaka Kurihara - srtjs",
-    "fragment": "top-english__srtjs.fragment.html",
-    "text_len": 3484,
-    "images": 1
-  },
-  {
-    "path": "/top-english/t3dm",
-    "title": "Kazutaka Kurihara - Tetris 3D Modeler",
-    "fragment": "top-english__t3dm.fragment.html",
-    "text_len": 1028,
-    "images": 1
-  },
-  {
-    "path": "/top-english/timeline",
-    "title": "Kazutaka Kurihara - Timeline",
-    "fragment": "top-english__timeline.fragment.html",
-    "text_len": 1187,
-    "images": 1
-  },
-  {
-    "path": "/profile",
-    "title": "Kazutaka Kurihara - Profile",
-    "fragment": "profile.fragment.html",
-    "text_len": 858,
-    "images": 1
-  },
-  {
-    "path": "/publications",
-    "title": "Kazutaka Kurihara - Publications",
-    "fragment": "publications.fragment.html",
-    "text_len": 66354,
-    "images": 1
-  },
-  {
-    "path": "/lab",
-    "title": "Kazutaka Kurihara - 栗原研究室",
-    "fragment": "lab.fragment.html",
-    "text_len": 20508,
-    "images": 1
-  },
-  {
-    "path": "/schedule",
-    "title": "Kazutaka Kurihara - Schedule",
-    "fragment": "schedule.fragment.html",
-    "text_len": 174,
-    "images": 1
-  },
-  {
-    "path": "/home/speechjammer/rpi",
-    "title": "Kazutaka Kurihara - SpeechJammer.net for Raspberry Pi",
-    "fragment": "home__speechjammer__rpi.fragment.html",
-    "text_len": 364,
-    "images": 2
-  },
-  {
-    "path": "/home/speechjammer/lt",
-    "title": "Kazutaka Kurihara - SpeechJammerLite (無料)",
-    "fragment": "home__speechjammer__lt.fragment.html",
-    "text_len": 861,
-    "images": 2
-  },
-  {
-    "path": "/home/2ff/2ffhci",
-    "title": "Kazutaka Kurihara - 2ffhci",
-    "fragment": "home__2ff__2ffhci.fragment.html",
-    "text_len": 565,
-    "images": 1
-  },
-  {
-    "path": "/home/srtjs/doc",
-    "title": "Kazutaka Kurihara - doc",
-    "fragment": "home__srtjs__doc.fragment.html",
-    "text_len": 6255,
-    "images": 2
-  },
-  {
-    "path": "/top-english/speechjammer/lt",
-    "title": "Kazutaka Kurihara - SpeechJammerLite (free!)",
-    "fragment": "top-english__speechjammer__lt.fragment.html",
-    "text_len": 983,
-    "images": 2
-  },
-  {
-    "path": "/top-english/srtjs/doc",
-    "title": "Kazutaka Kurihara - doc",
-    "fragment": "top-english__srtjs__doc.fragment.html",
-    "text_len": 11126,
-    "images": 2
-  },
-  {
-    "path": "/top-english/old-projects",
-    "title": "Kazutaka Kurihara - Old Projects",
-    "fragment": "top-english__old-projects.fragment.html",
-    "text_len": 1075,
-    "images": 3
-  },
-  {
-    "path": "/top-english/kotodama-lecture",
-    "title": "Kazutaka Kurihara - Kotodama Lecture (for educators)",
-    "fragment": "top-english__kotodama-lecture.fragment.html",
-    "text_len": 844,
-    "images": 1
-  },
-  {
-    "path": "/top-english/microslip-hci",
-    "title": "Kazutaka Kurihara - Micro-slips and Human-Computer Interaction",
-    "fragment": "top-english__microslip-hci.fragment.html",
-    "text_len": 817,
-    "images": 2
-  },
-  {
-    "path": "/top-english/tailstat",
-    "title": "Kazutaka Kurihara - tailstat",
-    "fragment": "top-english__tailstat.fragment.html",
-    "text_len": 1185,
-    "images": 1
-  },
-  {
-    "path": "/top-english/whisperpoint",
-    "title": "Kazutaka Kurihara - WhisperPoint",
-    "fragment": "top-english__whisperpoint.fragment.html",
-    "text_len": 2780,
-    "images": 1
-  },
-  {
-    "path": "/top-english/peepdetectorfake",
-    "title": "Kazutaka Kurihara - PeepDetectorFake",
-    "fragment": "top-english__peepdetectorfake.fragment.html",
-    "text_len": 801,
-    "images": 3
-  },
-  {
-    "path": "/top-english/looselocker",
-    "title": "Kazutaka Kurihara - LooseLocker",
-    "fragment": "top-english__looselocker.fragment.html",
-    "text_len": 1798,
-    "images": 2
-  },
-  {
-    "path": "/top-english/oah",
-    "title": "Kazutaka Kurihara - Openness-adjustable Headset",
-    "fragment": "top-english__oah.fragment.html",
-    "text_len": 7166,
-    "images": 7
-  },
-  {
-    "path": "/top-english/ubf",
-    "title": "Kazutaka Kurihara - The Universal Background Filter",
-    "fragment": "top-english__ubf.fragment.html",
-    "text_len": 2456,
-    "images": 4
-  },
-  {
-    "path": "/top-english/2ff",
-    "title": "Kazutaka Kurihara - 2FF YouTube Viewer",
-    "fragment": "top-english__2ff.fragment.html",
-    "text_len": 3167,
-    "images": 1
-  },
-  {
-    "path": "/top-english/gc",
-    "title": "Kazutaka Kurihara - GameControllerizer",
-    "fragment": "top-english__gc.fragment.html",
-    "text_len": 102,
-    "images": 1
-  },
-  {
-    "path": "/top-english/ig-research19",
-    "title": "Kazutaka Kurihara - Making Things That Make People Laugh, and Then Think, 2019-2020",
-    "fragment": "top-english__ig-research19.fragment.html",
-    "text_len": 4013,
-    "images": 1
-  },
-  {
-    "path": "/top-english/vs_covid19",
-    "title": "Kazutaka Kurihara - Activities Related to the COVID-19 Crisis",
-    "fragment": "top-english__vs_covid19.fragment.html",
-    "text_len": 4831,
-    "images": 7
-  },
-  {
-    "path": "/top-english/speechjammer/rpi",
-    "title": "Kazutaka Kurihara - SpeechJammer.net for Raspberry Pi",
-    "fragment": "top-english__speechjammer__rpi.fragment.html",
-    "text_len": 603,
-    "images": 2
-  },
-  {
-    "path": "/top-english/2ff/2ffhci",
-    "title": "Kazutaka Kurihara - 2FF YouTube Viewer for HCI Conferences",
-    "fragment": "top-english__2ff__2ffhci.fragment.html",
-    "text_len": 766,
-    "images": 1
-  }
+ {
+  "path": "/",
+  "title": "Kazutaka Kurihara",
+  "fragment": "index.fragment.html",
+  "text_len": 6887,
+  "images": 66
+ },
+ {
+  "path": "/home",
+  "title": "Kazutaka Kurihara",
+  "fragment": "home.fragment.html",
+  "text_len": 6930,
+  "images": 67
+ },
+ {
+  "path": "/home/old-projects",
+  "title": "Kazutaka Kurihara - 00. Old Projects",
+  "fragment": "home__old-projects.fragment.html",
+  "text_len": 482,
+  "images": 3
+ },
+ {
+  "path": "/home/kotodama",
+  "title": "Kazutaka Kurihara - 01. ことだま",
+  "fragment": "home__kotodama.fragment.html",
+  "text_len": 1025,
+  "images": 1
+ },
+ {
+  "path": "/home/kotodama-lecture",
+  "title": "Kazutaka Kurihara - 01α. ことだまレクチャー（教育関係者向け）",
+  "fragment": "home__kotodama-lecture.fragment.html",
+  "text_len": 382,
+  "images": 1
+ },
+ {
+  "path": "/home/speechpen",
+  "title": "Kazutaka Kurihara - 02. 音声ペン",
+  "fragment": "home__speechpen.fragment.html",
+  "text_len": 1150,
+  "images": 1
+ },
+ {
+  "path": "/home/timeline",
+  "title": "Kazutaka Kurihara - 03. 柔軟なタイムライン",
+  "fragment": "home__timeline.fragment.html",
+  "text_len": 627,
+  "images": 1
+ },
+ {
+  "path": "/home/presentationsensei",
+  "title": "Kazutaka Kurihara - 04. プレゼン先生",
+  "fragment": "home__presentationsensei.fragment.html",
+  "text_len": 952,
+  "images": 1
+ },
+ {
+  "path": "/home/kotodamulti",
+  "title": "Kazutaka Kurihara - 05. ことだまるち",
+  "fragment": "home__kotodamulti.fragment.html",
+  "text_len": 870,
+  "images": 1
+ },
+ {
+  "path": "/home/irgel",
+  "title": "Kazutaka Kurihara - 06. 居るゴール",
+  "fragment": "home__irgel.fragment.html",
+  "text_len": 78,
+  "images": 1
+ },
+ {
+  "path": "/home/dining-presenter",
+  "title": "Kazutaka Kurihara - 07. Dining Presenter",
+  "fragment": "home__dining-presenter.fragment.html",
+  "text_len": 133,
+  "images": 1
+ },
+ {
+  "path": "/home/microslip-hci",
+  "title": "Kazutaka Kurihara - 08. マイクロスリップとHCI",
+  "fragment": "home__microslip-hci.fragment.html",
+  "text_len": 504,
+  "images": 2
+ },
+ {
+  "path": "/home/borderless-canvas",
+  "title": "Kazutaka Kurihara - 09. Borderless Canvas",
+  "fragment": "home__borderless-canvas.fragment.html",
+  "text_len": 690,
+  "images": 2
+ },
+ {
+  "path": "/home/tailstat",
+  "title": "Kazutaka Kurihara - 10. tailstat",
+  "fragment": "home__tailstat.fragment.html",
+  "text_len": 749,
+  "images": 1
+ },
+ {
+  "path": "/home/spiemenu",
+  "title": "Kazutaka Kurihara - 11. sPieMenu",
+  "fragment": "home__spiemenu.fragment.html",
+  "text_len": 1300,
+  "images": 2
+ },
+ {
+  "path": "/home/speechjammer",
+  "title": "Kazutaka Kurihara - 12. SpeechJammer",
+  "fragment": "home__speechjammer.fragment.html",
+  "text_len": 4966,
+  "images": 2
+ },
+ {
+  "path": "/home/cinemagazer",
+  "title": "Kazutaka Kurihara - 13. CinemaGazer",
+  "fragment": "home__cinemagazer.fragment.html",
+  "text_len": 1898,
+  "images": 2
+ },
+ {
+  "path": "/home/speechprotector",
+  "title": "Kazutaka Kurihara - 14. SpeechProtector",
+  "fragment": "home__speechprotector.fragment.html",
+  "text_len": 420,
+  "images": 1
+ },
+ {
+  "path": "/home/whisperpoint",
+  "title": "Kazutaka Kurihara - 15. WhisperPoint",
+  "fragment": "home__whisperpoint.fragment.html",
+  "text_len": 1433,
+  "images": 1
+ },
+ {
+  "path": "/home/peepdetectorfake",
+  "title": "Kazutaka Kurihara - 16. PeepDetectorFake",
+  "fragment": "home__peepdetectorfake.fragment.html",
+  "text_len": 427,
+  "images": 3
+ },
+ {
+  "path": "/home/looselocker",
+  "title": "Kazutaka Kurihara - 17. LooseLocker",
+  "fragment": "home__looselocker.fragment.html",
+  "text_len": 1002,
+  "images": 2
+ },
+ {
+  "path": "/home/t3dm",
+  "title": "Kazutaka Kurihara - 18. Tetris 3D Modeler",
+  "fragment": "home__t3dm.fragment.html",
+  "text_len": 1134,
+  "images": 6
+ },
+ {
+  "path": "/home/oah",
+  "title": "Kazutaka Kurihara - 19. Openness-adjustable Headset",
+  "fragment": "home__oah.fragment.html",
+  "text_len": 3967,
+  "images": 7
+ },
+ {
+  "path": "/home/ubf",
+  "title": "Kazutaka Kurihara - 20. The Universal Background Filter",
+  "fragment": "home__ubf.fragment.html",
+  "text_len": 1323,
+  "images": 4
+ },
+ {
+  "path": "/home/2ff",
+  "title": "Kazutaka Kurihara - 21. 2FF Youtube Viewer",
+  "fragment": "home__2ff.fragment.html",
+  "text_len": 1710,
+  "images": 1
+ },
+ {
+  "path": "/home/srtjs",
+  "title": "Kazutaka Kurihara - 22. srt.js",
+  "fragment": "home__srtjs.fragment.html",
+  "text_len": 2704,
+  "images": 1
+ },
+ {
+  "path": "/home/keiba",
+  "title": "Kazutaka Kurihara - 競馬の研究",
+  "fragment": "home__keiba.fragment.html",
+  "text_len": 1003,
+  "images": 1
+ },
+ {
+  "path": "/home/picognizer",
+  "title": "Kazutaka Kurihara - 23.Picognizer",
+  "fragment": "home__picognizer.fragment.html",
+  "text_len": 1136,
+  "images": 1
+ },
+ {
+  "path": "/home/gc",
+  "title": "Kazutaka Kurihara - 24.GameControllerizer",
+  "fragment": "home__gc.fragment.html",
+  "text_len": 109,
+  "images": 1
+ },
+ {
+  "path": "/home/ig-research19",
+  "title": "Kazutaka Kurihara - 25. Ig Nobel Research 2019",
+  "fragment": "home__ig-research19.fragment.html",
+  "text_len": 2326,
+  "images": 1
+ },
+ {
+  "path": "/home/vs_covid19",
+  "title": "Kazutaka Kurihara - vs_covid19",
+  "fragment": "home__vs_covid19.fragment.html",
+  "text_len": 2425,
+  "images": 7
+ },
+ {
+  "path": "/top-english",
+  "title": "Kazutaka Kurihara - English",
+  "fragment": "top-english.fragment.html",
+  "text_len": 13764,
+  "images": 56
+ },
+ {
+  "path": "/top-english/borderless-canvas",
+  "title": "Kazutaka Kurihara - Borderless Canvas",
+  "fragment": "top-english__borderless-canvas.fragment.html",
+  "text_len": 146,
+  "images": 2
+ },
+ {
+  "path": "/top-english/cinemagazer",
+  "title": "Kazutaka Kurihara - CinemaGazer",
+  "fragment": "top-english__cinemagazer.fragment.html",
+  "text_len": 1748,
+  "images": 1
+ },
+ {
+  "path": "/top-english/publications",
+  "title": "Kazutaka Kurihara - Publications",
+  "fragment": "top-english__publications.fragment.html",
+  "text_len": 107257,
+  "images": 1
+ },
+ {
+  "path": "/top-english/cv",
+  "title": "Kazutaka Kurihara - Curriculum Vitae",
+  "fragment": "top-english__cv.fragment.html",
+  "text_len": 24351,
+  "images": 0
+ },
+ {
+  "path": "/top-english/dining-presenter",
+  "title": "Kazutaka Kurihara - Dining Presenter",
+  "fragment": "top-english__dining-presenter.fragment.html",
+  "text_len": 157,
+  "images": 1
+ },
+ {
+  "path": "/top-english/irgel",
+  "title": "Kazutaka Kurihara - Irgel",
+  "fragment": "top-english__irgel.fragment.html",
+  "text_len": 69,
+  "images": 1
+ },
+ {
+  "path": "/top-english/kotodama",
+  "title": "Kazutaka Kurihara - Kotodama",
+  "fragment": "top-english__kotodama.fragment.html",
+  "text_len": 779,
+  "images": 1
+ },
+ {
+  "path": "/top-english/kotodamulti",
+  "title": "Kazutaka Kurihara - KotodaMulti",
+  "fragment": "top-english__kotodamulti.fragment.html",
+  "text_len": 1000,
+  "images": 1
+ },
+ {
+  "path": "/top-english/keiba",
+  "title": "Kazutaka Kurihara - Research on Horse Racing",
+  "fragment": "top-english__keiba.fragment.html",
+  "text_len": 1525,
+  "images": 1
+ },
+ {
+  "path": "/top-english/picognizer",
+  "title": "Kazutaka Kurihara - Picognizer",
+  "fragment": "top-english__picognizer.fragment.html",
+  "text_len": 2914,
+  "images": 1
+ },
+ {
+  "path": "/top-english/presentation-sensei",
+  "title": "Kazutaka Kurihara - Presentation Sensei",
+  "fragment": "top-english__presentation-sensei.fragment.html",
+  "text_len": 1917,
+  "images": 1
+ },
+ {
+  "path": "/top-english/speechjammer",
+  "title": "Kazutaka Kurihara - SpeechJammer",
+  "fragment": "top-english__speechjammer.fragment.html",
+  "text_len": 10228,
+  "images": 2
+ },
+ {
+  "path": "/top-english/speechpen",
+  "title": "Kazutaka Kurihara - SpeechPen",
+  "fragment": "top-english__speechpen.fragment.html",
+  "text_len": 1903,
+  "images": 1
+ },
+ {
+  "path": "/top-english/speechprotector",
+  "title": "Kazutaka Kurihara - SpeechProtector",
+  "fragment": "top-english__speechprotector.fragment.html",
+  "text_len": 861,
+  "images": 1
+ },
+ {
+  "path": "/top-english/spiemenu",
+  "title": "Kazutaka Kurihara - sPieMenu",
+  "fragment": "top-english__spiemenu.fragment.html",
+  "text_len": 1749,
+  "images": 2
+ },
+ {
+  "path": "/top-english/srtjs",
+  "title": "Kazutaka Kurihara - srtjs",
+  "fragment": "top-english__srtjs.fragment.html",
+  "text_len": 3484,
+  "images": 1
+ },
+ {
+  "path": "/top-english/t3dm",
+  "title": "Kazutaka Kurihara - Tetris 3D Modeler",
+  "fragment": "top-english__t3dm.fragment.html",
+  "text_len": 1028,
+  "images": 1
+ },
+ {
+  "path": "/top-english/timeline",
+  "title": "Kazutaka Kurihara - Timeline",
+  "fragment": "top-english__timeline.fragment.html",
+  "text_len": 1187,
+  "images": 1
+ },
+ {
+  "path": "/profile",
+  "title": "Kazutaka Kurihara - Profile",
+  "fragment": "profile.fragment.html",
+  "text_len": 858,
+  "images": 1
+ },
+ {
+  "path": "/publications",
+  "title": "Kazutaka Kurihara - Publications",
+  "fragment": "publications.fragment.html",
+  "text_len": 66354,
+  "images": 1
+ },
+ {
+  "path": "/lab",
+  "title": "Kazutaka Kurihara - 栗原研究室",
+  "fragment": "lab.fragment.html",
+  "text_len": 20508,
+  "images": 1
+ },
+ {
+  "path": "/schedule",
+  "title": "Kazutaka Kurihara - Schedule",
+  "fragment": "schedule.fragment.html",
+  "text_len": 174,
+  "images": 1
+ },
+ {
+  "path": "/home/speechjammer/rpi",
+  "title": "Kazutaka Kurihara - SpeechJammer.net for Raspberry Pi",
+  "fragment": "home__speechjammer__rpi.fragment.html",
+  "text_len": 364,
+  "images": 2
+ },
+ {
+  "path": "/home/speechjammer/lt",
+  "title": "Kazutaka Kurihara - SpeechJammerLite (無料)",
+  "fragment": "home__speechjammer__lt.fragment.html",
+  "text_len": 861,
+  "images": 2
+ },
+ {
+  "path": "/home/2ff/2ffhci",
+  "title": "Kazutaka Kurihara - 2ffhci",
+  "fragment": "home__2ff__2ffhci.fragment.html",
+  "text_len": 565,
+  "images": 1
+ },
+ {
+  "path": "/home/srtjs/doc",
+  "title": "Kazutaka Kurihara - doc",
+  "fragment": "home__srtjs__doc.fragment.html",
+  "text_len": 6255,
+  "images": 2
+ },
+ {
+  "path": "/top-english/speechjammer/lt",
+  "title": "Kazutaka Kurihara - SpeechJammerLite (free!)",
+  "fragment": "top-english__speechjammer__lt.fragment.html",
+  "text_len": 983,
+  "images": 2
+ },
+ {
+  "path": "/top-english/srtjs/doc",
+  "title": "Kazutaka Kurihara - doc",
+  "fragment": "top-english__srtjs__doc.fragment.html",
+  "text_len": 11126,
+  "images": 2
+ },
+ {
+  "path": "/top-english/old-projects",
+  "title": "Kazutaka Kurihara - Old Projects",
+  "fragment": "top-english__old-projects.fragment.html",
+  "text_len": 1075,
+  "images": 3
+ },
+ {
+  "path": "/top-english/kotodama-lecture",
+  "title": "Kazutaka Kurihara - Kotodama Lecture (for educators)",
+  "fragment": "top-english__kotodama-lecture.fragment.html",
+  "text_len": 844,
+  "images": 1
+ },
+ {
+  "path": "/top-english/microslip-hci",
+  "title": "Kazutaka Kurihara - Micro-slips and Human-Computer Interaction",
+  "fragment": "top-english__microslip-hci.fragment.html",
+  "text_len": 817,
+  "images": 2
+ },
+ {
+  "path": "/top-english/tailstat",
+  "title": "Kazutaka Kurihara - tailstat",
+  "fragment": "top-english__tailstat.fragment.html",
+  "text_len": 1185,
+  "images": 1
+ },
+ {
+  "path": "/top-english/whisperpoint",
+  "title": "Kazutaka Kurihara - WhisperPoint",
+  "fragment": "top-english__whisperpoint.fragment.html",
+  "text_len": 2780,
+  "images": 1
+ },
+ {
+  "path": "/top-english/peepdetectorfake",
+  "title": "Kazutaka Kurihara - PeepDetectorFake",
+  "fragment": "top-english__peepdetectorfake.fragment.html",
+  "text_len": 801,
+  "images": 3
+ },
+ {
+  "path": "/top-english/looselocker",
+  "title": "Kazutaka Kurihara - LooseLocker",
+  "fragment": "top-english__looselocker.fragment.html",
+  "text_len": 1798,
+  "images": 2
+ },
+ {
+  "path": "/top-english/oah",
+  "title": "Kazutaka Kurihara - Openness-adjustable Headset",
+  "fragment": "top-english__oah.fragment.html",
+  "text_len": 7166,
+  "images": 7
+ },
+ {
+  "path": "/top-english/ubf",
+  "title": "Kazutaka Kurihara - The Universal Background Filter",
+  "fragment": "top-english__ubf.fragment.html",
+  "text_len": 2456,
+  "images": 4
+ },
+ {
+  "path": "/top-english/2ff",
+  "title": "Kazutaka Kurihara - 2FF YouTube Viewer",
+  "fragment": "top-english__2ff.fragment.html",
+  "text_len": 3167,
+  "images": 1
+ },
+ {
+  "path": "/top-english/gc",
+  "title": "Kazutaka Kurihara - GameControllerizer",
+  "fragment": "top-english__gc.fragment.html",
+  "text_len": 102,
+  "images": 1
+ },
+ {
+  "path": "/top-english/ig-research19",
+  "title": "Kazutaka Kurihara - Making Things That Make People Laugh, and Then Think, 2019-2020",
+  "fragment": "top-english__ig-research19.fragment.html",
+  "text_len": 4013,
+  "images": 1
+ },
+ {
+  "path": "/top-english/vs_covid19",
+  "title": "Kazutaka Kurihara - Activities Related to the COVID-19 Crisis",
+  "fragment": "top-english__vs_covid19.fragment.html",
+  "text_len": 4831,
+  "images": 7
+ },
+ {
+  "path": "/top-english/speechjammer/rpi",
+  "title": "Kazutaka Kurihara - SpeechJammer.net for Raspberry Pi",
+  "fragment": "top-english__speechjammer__rpi.fragment.html",
+  "text_len": 603,
+  "images": 2
+ },
+ {
+  "path": "/top-english/2ff/2ffhci",
+  "title": "Kazutaka Kurihara - 2FF YouTube Viewer for HCI Conferences",
+  "fragment": "top-english__2ff__2ffhci.fragment.html",
+  "text_len": 766,
+  "images": 1
+ },
+ {
+  "path": "/home/ekuriharalab",
+  "title": "e栗原研究室",
+  "fragment": "home__ekuriharalab.fragment.html",
+  "text_len": 1824,
+  "images": 2
+ },
+ {
+  "path": "/home/ekuriharalab/devices",
+  "title": "試作デバイス一覧",
+  "fragment": "home__ekuriharalab__devices.fragment.html",
+  "text_len": 4542,
+  "images": 24
+ },
+ {
+  "path": "/home/ekuriharalab/software",
+  "title": "ソフトウェアとコンテンツ",
+  "fragment": "home__ekuriharalab__software.fragment.html",
+  "text_len": 1524,
+  "images": 2
+ },
+ {
+  "path": "/home/ekuriharalab/videos",
+  "title": "動画",
+  "fragment": "home__ekuriharalab__videos.fragment.html",
+  "text_len": 1548,
+  "images": 0
+ },
+ {
+  "path": "/home/ekuriharalab/quarterly",
+  "title": "四半期ごとの提供案内",
+  "fragment": "home__ekuriharalab__quarterly.fragment.html",
+  "text_len": 905,
+  "images": 0
+ },
+ {
+  "path": "/home/ekuriharalab/quarterly/2026-08",
+  "title": "2026年8月期 試作デバイス提供のご案内",
+  "fragment": "home__ekuriharalab__quarterly__2026-08.fragment.html",
+  "text_len": 578,
+  "images": 0
+ }
 ]

@@ -1,278 +1,282 @@
 [
-  {
-    "title": "日本語",
-    "href": "/home",
-    "children": [
-      {
-        "href": "/home/old-projects",
-        "label": "00. Old Projects"
-      },
-      {
-        "href": "/home/kotodama",
-        "label": "01. ことだま"
-      },
-      {
-        "href": "/home/kotodama-lecture",
-        "label": "01α. ことだまレクチャー（教育関係者向け）"
-      },
-      {
-        "href": "/home/speechpen",
-        "label": "02. 音声ペン"
-      },
-      {
-        "href": "/home/timeline",
-        "label": "03. 柔軟なタイムライン"
-      },
-      {
-        "href": "/home/presentationsensei",
-        "label": "04. プレゼン先生"
-      },
-      {
-        "href": "/home/kotodamulti",
-        "label": "05. ことだまるち"
-      },
-      {
-        "href": "/home/irgel",
-        "label": "06. 居るゴール"
-      },
-      {
-        "href": "/home/dining-presenter",
-        "label": "07. Dining Presenter"
-      },
-      {
-        "href": "/home/microslip-hci",
-        "label": "08. マイクロスリップとHCI"
-      },
-      {
-        "href": "/home/borderless-canvas",
-        "label": "09. Borderless Canvas"
-      },
-      {
-        "href": "/home/tailstat",
-        "label": "10. tailstat"
-      },
-      {
-        "href": "/home/spiemenu",
-        "label": "11. sPieMenu"
-      },
-      {
-        "href": "/home/speechjammer",
-        "label": "12. SpeechJammer"
-      },
-      {
-        "href": "/home/cinemagazer",
-        "label": "13. CinemaGazer"
-      },
-      {
-        "href": "/home/speechprotector",
-        "label": "14. SpeechProtector"
-      },
-      {
-        "href": "/home/whisperpoint",
-        "label": "15. WhisperPoint"
-      },
-      {
-        "href": "/home/peepdetectorfake",
-        "label": "16. PeepDetectorFake"
-      },
-      {
-        "href": "/home/looselocker",
-        "label": "17. LooseLocker"
-      },
-      {
-        "href": "/home/t3dm",
-        "label": "18. Tetris 3D Modeler"
-      },
-      {
-        "href": "/home/oah",
-        "label": "19. Openness-adjustable Headset"
-      },
-      {
-        "href": "/home/ubf",
-        "label": "20. The Universal Background Filter"
-      },
-      {
-        "href": "/home/2ff",
-        "label": "21. 2FF Youtube Viewer"
-      },
-      {
-        "href": "/home/srtjs",
-        "label": "22. srt.js"
-      },
-      {
-        "href": "/home/picognizer",
-        "label": "23.Picognizer"
-      },
-      {
-        "href": "/home/gc",
-        "label": "24.GameControllerizer"
-      },
-      {
-        "href": "/home/ig-research19",
-        "label": "25. Ig Nobel Research 2019"
-      },
-      {
-        "href": "/home/vs_covid19",
-        "label": "vs_covid19"
-      },
-      {
-        "href": "/home/keiba",
-        "label": "競馬の研究"
-      }
-    ]
-  },
-  {
-    "title": "English",
-    "href": "/top-english",
-    "children": [
-      {
-        "href": "/top-english/publications",
-        "label": "Publications"
-      },
-      {
-        "href": "/top-english/cv",
-        "label": "Curriculum Vitae"
-      },
-      {
-        "href": "/top-english/2ff/2ffhci",
-        "label": "2FF for HCI Conferences"
-      },
-      {
-        "href": "/top-english/2ff",
-        "label": "2FF YouTube Viewer"
-      },
-      {
-        "href": "/top-english/vs_covid19",
-        "label": "Activities on COVID-19"
-      },
-      {
-        "href": "/top-english/borderless-canvas",
-        "label": "Borderless Canvas"
-      },
-      {
-        "href": "/top-english/cinemagazer",
-        "label": "CinemaGazer"
-      },
-      {
-        "href": "/top-english/dining-presenter",
-        "label": "Dining Presenter"
-      },
-      {
-        "href": "/top-english/gc",
-        "label": "GameControllerizer"
-      },
-      {
-        "href": "/top-english/irgel",
-        "label": "Irgel"
-      },
-      {
-        "href": "/top-english/keiba",
-        "label": "Research on Horse Racing"
-      },
-      {
-        "href": "/top-english/kotodama",
-        "label": "Kotodama"
-      },
-      {
-        "href": "/top-english/kotodama-lecture",
-        "label": "Kotodama Lecture"
-      },
-      {
-        "href": "/top-english/kotodamulti",
-        "label": "KotodaMulti"
-      },
-      {
-        "href": "/top-english/looselocker",
-        "label": "LooseLocker"
-      },
-      {
-        "href": "/top-english/ig-research19",
-        "label": "Making Things That Make People Laugh"
-      },
-      {
-        "href": "/top-english/microslip-hci",
-        "label": "Micro-slips and HCI"
-      },
-      {
-        "href": "/top-english/old-projects",
-        "label": "Old Projects"
-      },
-      {
-        "href": "/top-english/oah",
-        "label": "Openness-adjustable Headset"
-      },
-      {
-        "href": "/top-english/peepdetectorfake",
-        "label": "PeepDetectorFake"
-      },
-      {
-        "href": "/top-english/picognizer",
-        "label": "Picognizer"
-      },
-      {
-        "href": "/top-english/presentation-sensei",
-        "label": "Presentation Sensei"
-      },
-      {
-        "href": "/top-english/speechjammer",
-        "label": "SpeechJammer"
-      },
-      {
-        "href": "/top-english/speechjammer/rpi",
-        "label": "SpeechJammer for Raspberry Pi"
-      },
-      {
-        "href": "/top-english/speechpen",
-        "label": "SpeechPen"
-      },
-      {
-        "href": "/top-english/speechprotector",
-        "label": "SpeechProtector"
-      },
-      {
-        "href": "/top-english/spiemenu",
-        "label": "sPieMenu"
-      },
-      {
-        "href": "/top-english/srtjs",
-        "label": "srtjs"
-      },
-      {
-        "href": "/top-english/tailstat",
-        "label": "tailstat"
-      },
-      {
-        "href": "/top-english/t3dm",
-        "label": "Tetris 3D Modeler"
-      },
-      {
-        "href": "/top-english/timeline",
-        "label": "Timeline"
-      },
-      {
-        "href": "/top-english/ubf",
-        "label": "Universal Background Filter"
-      },
-      {
-        "href": "/top-english/whisperpoint",
-        "label": "WhisperPoint"
-      }
-    ],
-    "top_label": "Main Page"
-  },
-  {
-    "title": "Profile",
-    "href": "/profile",
-    "children": []
-  },
-  {
-    "title": "Publications",
-    "href": "/publications",
-    "children": []
-  },
-  {
-    "title": "栗原研究室",
-    "href": "/lab",
-    "children": []
-  }
+ {
+  "title": "日本語",
+  "href": "/home",
+  "children": [
+   {
+    "href": "/home/old-projects",
+    "label": "00. Old Projects"
+   },
+   {
+    "href": "/home/kotodama",
+    "label": "01. ことだま"
+   },
+   {
+    "href": "/home/kotodama-lecture",
+    "label": "01α. ことだまレクチャー（教育関係者向け）"
+   },
+   {
+    "href": "/home/speechpen",
+    "label": "02. 音声ペン"
+   },
+   {
+    "href": "/home/timeline",
+    "label": "03. 柔軟なタイムライン"
+   },
+   {
+    "href": "/home/presentationsensei",
+    "label": "04. プレゼン先生"
+   },
+   {
+    "href": "/home/kotodamulti",
+    "label": "05. ことだまるち"
+   },
+   {
+    "href": "/home/irgel",
+    "label": "06. 居るゴール"
+   },
+   {
+    "href": "/home/dining-presenter",
+    "label": "07. Dining Presenter"
+   },
+   {
+    "href": "/home/microslip-hci",
+    "label": "08. マイクロスリップとHCI"
+   },
+   {
+    "href": "/home/borderless-canvas",
+    "label": "09. Borderless Canvas"
+   },
+   {
+    "href": "/home/tailstat",
+    "label": "10. tailstat"
+   },
+   {
+    "href": "/home/spiemenu",
+    "label": "11. sPieMenu"
+   },
+   {
+    "href": "/home/speechjammer",
+    "label": "12. SpeechJammer"
+   },
+   {
+    "href": "/home/cinemagazer",
+    "label": "13. CinemaGazer"
+   },
+   {
+    "href": "/home/speechprotector",
+    "label": "14. SpeechProtector"
+   },
+   {
+    "href": "/home/whisperpoint",
+    "label": "15. WhisperPoint"
+   },
+   {
+    "href": "/home/peepdetectorfake",
+    "label": "16. PeepDetectorFake"
+   },
+   {
+    "href": "/home/looselocker",
+    "label": "17. LooseLocker"
+   },
+   {
+    "href": "/home/t3dm",
+    "label": "18. Tetris 3D Modeler"
+   },
+   {
+    "href": "/home/oah",
+    "label": "19. Openness-adjustable Headset"
+   },
+   {
+    "href": "/home/ubf",
+    "label": "20. The Universal Background Filter"
+   },
+   {
+    "href": "/home/2ff",
+    "label": "21. 2FF Youtube Viewer"
+   },
+   {
+    "href": "/home/srtjs",
+    "label": "22. srt.js"
+   },
+   {
+    "href": "/home/picognizer",
+    "label": "23.Picognizer"
+   },
+   {
+    "href": "/home/gc",
+    "label": "24.GameControllerizer"
+   },
+   {
+    "href": "/home/ig-research19",
+    "label": "25. Ig Nobel Research 2019"
+   },
+   {
+    "href": "/home/vs_covid19",
+    "label": "vs_covid19"
+   },
+   {
+    "href": "/home/keiba",
+    "label": "競馬の研究"
+   },
+   {
+    "href": "/home/ekuriharalab",
+    "label": "e栗原研究室"
+   }
+  ]
+ },
+ {
+  "title": "English",
+  "href": "/top-english",
+  "children": [
+   {
+    "href": "/top-english/publications",
+    "label": "Publications"
+   },
+   {
+    "href": "/top-english/cv",
+    "label": "Curriculum Vitae"
+   },
+   {
+    "href": "/top-english/2ff/2ffhci",
+    "label": "2FF for HCI Conferences"
+   },
+   {
+    "href": "/top-english/2ff",
+    "label": "2FF YouTube Viewer"
+   },
+   {
+    "href": "/top-english/vs_covid19",
+    "label": "Activities on COVID-19"
+   },
+   {
+    "href": "/top-english/borderless-canvas",
+    "label": "Borderless Canvas"
+   },
+   {
+    "href": "/top-english/cinemagazer",
+    "label": "CinemaGazer"
+   },
+   {
+    "href": "/top-english/dining-presenter",
+    "label": "Dining Presenter"
+   },
+   {
+    "href": "/top-english/gc",
+    "label": "GameControllerizer"
+   },
+   {
+    "href": "/top-english/irgel",
+    "label": "Irgel"
+   },
+   {
+    "href": "/top-english/keiba",
+    "label": "Research on Horse Racing"
+   },
+   {
+    "href": "/top-english/kotodama",
+    "label": "Kotodama"
+   },
+   {
+    "href": "/top-english/kotodama-lecture",
+    "label": "Kotodama Lecture"
+   },
+   {
+    "href": "/top-english/kotodamulti",
+    "label": "KotodaMulti"
+   },
+   {
+    "href": "/top-english/looselocker",
+    "label": "LooseLocker"
+   },
+   {
+    "href": "/top-english/ig-research19",
+    "label": "Making Things That Make People Laugh"
+   },
+   {
+    "href": "/top-english/microslip-hci",
+    "label": "Micro-slips and HCI"
+   },
+   {
+    "href": "/top-english/old-projects",
+    "label": "Old Projects"
+   },
+   {
+    "href": "/top-english/oah",
+    "label": "Openness-adjustable Headset"
+   },
+   {
+    "href": "/top-english/peepdetectorfake",
+    "label": "PeepDetectorFake"
+   },
+   {
+    "href": "/top-english/picognizer",
+    "label": "Picognizer"
+   },
+   {
+    "href": "/top-english/presentation-sensei",
+    "label": "Presentation Sensei"
+   },
+   {
+    "href": "/top-english/speechjammer",
+    "label": "SpeechJammer"
+   },
+   {
+    "href": "/top-english/speechjammer/rpi",
+    "label": "SpeechJammer for Raspberry Pi"
+   },
+   {
+    "href": "/top-english/speechpen",
+    "label": "SpeechPen"
+   },
+   {
+    "href": "/top-english/speechprotector",
+    "label": "SpeechProtector"
+   },
+   {
+    "href": "/top-english/spiemenu",
+    "label": "sPieMenu"
+   },
+   {
+    "href": "/top-english/srtjs",
+    "label": "srtjs"
+   },
+   {
+    "href": "/top-english/tailstat",
+    "label": "tailstat"
+   },
+   {
+    "href": "/top-english/t3dm",
+    "label": "Tetris 3D Modeler"
+   },
+   {
+    "href": "/top-english/timeline",
+    "label": "Timeline"
+   },
+   {
+    "href": "/top-english/ubf",
+    "label": "Universal Background Filter"
+   },
+   {
+    "href": "/top-english/whisperpoint",
+    "label": "WhisperPoint"
+   }
+  ],
+  "top_label": "Main Page"
+ },
+ {
+  "title": "Profile",
+  "href": "/profile",
+  "children": []
+ },
+ {
+  "title": "Publications",
+  "href": "/publications",
+  "children": []
+ },
+ {
+  "title": "栗原研究室",
+  "href": "/lab",
+  "children": []
+ }
 ]

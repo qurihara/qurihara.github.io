@@ -438,3 +438,19 @@ body {
   .blk { margin: 0 0 8pt; break-inside: auto; }
   img, iframe, .embed-wrap { display: none; }
 }
+
+/* 写真を横に並べて見せる。画面が狭いときは自動的に縦に折り返す。
+   指定の強さについての注意。上の .content img[width] のほうが強いため、
+   .content を頭に付けて強さを揃え、後に書くことでこちらを優先させる。 */
+.photo-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+}
+.content .photo-row img {
+  max-width: calc(50% - 6px);
+  width: auto;
+  flex: 1 1 260px;
+  margin: 0;
+}
