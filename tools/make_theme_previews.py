@@ -34,12 +34,31 @@ SAMPLES = [
 ]
 
 
+def add_noindex(src_html):
+    """検索エンジンに登録させない指定を、ページの先頭に入れる。
+
+    見比べ用のページは本体と本文がまったく同じであるため、そのまま公開すると
+    検索エンジンから重複と見なされる。実際に Search Console で12ページが
+    「代替ページ」として報告された。人が手で開いて見比べる用途は残したいので、
+    ページ自体は公開したまま、検索の対象からだけ外す。
+
+    robots.txt で拒む方法は採らない。クローラがページを読めなくなり、
+    この指定そのものが伝わらなくなるためである。
+    """
+    tag = ('<meta name="robots" content="noindex">'
+           "<!-- 本体と同じ内容のため、検索の対象から外している -->")
+    if 'name="robots"' in src_html:
+        return src_html
+    return src_html.replace("<head>", "<head>\n" + tag, 1)
+
+
 def build_variant(src_html, theme_key, base_depth):
     """ページの見た目のファイルへの参照を、候補のものに差し替える。"""
     up = "../" * base_depth
     s = src_html
     s = s.replace('href="/assets/style.css"',
                   f'href="/assets/themes/{theme_key}.css"')
+    s = add_noindex(s)
     # 候補を見比べていることが分かる帯を、本文の先頭に足す
     banner = (
         '<div style="position:sticky;top:0;z-index:60;background:#111;color:#fff;'
@@ -130,7 +149,7 @@ def main():
 </main></body></html>
 """
     with open(os.path.join(PREVIEW, "index.html"), "w", encoding="utf-8") as fh:
-        fh.write(index)
+        fh.write(add_noindex(index))
 
     size = sum(
         os.path.getsize(os.path.join(dp, f))

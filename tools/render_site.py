@@ -28,6 +28,11 @@ SITE_NAME = "Kazutaka Kurihara"
 # GitHub Pages 側が自動でこちらへ転送する。
 CANONICAL = "https://unryu.org"
 
+# 同じ内容を2つのURLで配信しているページの対応表。左が別名、右が正規である。
+# 元サイトが / と /home の両方で同じトップページを配信していた名残であり、
+# そのまま両方を正規として伝えると、検索エンジンから重複と見なされる。
+CANONICAL_ALIASES = {"/home": "/"}
+
 # Google Analytics 4 の測定ID。空文字にすると解析のコードを埋め込まない。
 # 手元で試すときや、解析をやめるときは空にする。
 GA_MEASUREMENT_ID = "G-VSG5S34B14"
@@ -36,6 +41,21 @@ GA_MEASUREMENT_ID = "G-VSG5S34B14"
 #   独自ドメイン（https://www.unryu.org/）で公開する場合は空文字。
 #   GitHub Pages の qurihara.github.io/unryu-site/ で試す場合は "/unryu-site"。
 BASE = ""
+
+
+def canonical_url(path):
+    """検索エンジンに正規のURLとして伝える住所を組み立てる。
+
+    ページの実体は docs/home/kotodama/index.html という形で置いてあるため、
+    GitHub Pages は /home/kotodama へのアクセスを /home/kotodama/ へ転送する。
+    転送される前の形を正規として伝えると、Search Console に
+    「ページにリダイレクトがあります」と報告され、クロールが一段分無駄になる。
+    そこで、転送されたあとの形、つまり末尾にスラッシュを付けた形を正規とする。
+    """
+    path = CANONICAL_ALIASES.get(path, path)
+    if path == "/":
+        return CANONICAL + "/"
+    return CANONICAL + path.rstrip("/") + "/"
 
 
 def load_json(name):
@@ -207,8 +227,8 @@ PAGE = """<!DOCTYPE html>
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
 <meta property="og:type" content="website">
-<meta property="og:url" content="{canonical}{path}">
-<link rel="canonical" href="{canonical}{path}">
+<meta property="og:url" content="{canonical_url}">
+<link rel="canonical" href="{canonical_url}">
 <link rel="stylesheet" href="{base}/assets/style.css">
 {analytics}</head>
 <body>
@@ -347,6 +367,7 @@ def main():
             lang=lang,
             base=BASE,
             canonical=CANONICAL,
+            canonical_url=canonical_url(entry["path"]),
             analytics=analytics_snippet(),
             title=html.escape(full_title, quote=True),
             desc=make_description(body),
@@ -373,9 +394,10 @@ def main():
         fh.write("")
 
     # sitemap.xml。検索エンジンには本来のドメインのURLを伝える。
+    # 転送されるURLを載せないよう、canonical と同じ組み立て方をそろえる。
     urls = "\n".join(
-        f"  <url><loc>{CANONICAL}{e['path']}</loc></url>"
-        for e in manifest if e["path"] != "/home"
+        f"  <url><loc>{canonical_url(e['path'])}</loc></url>"
+        for e in manifest if e["path"] not in CANONICAL_ALIASES
     )
     with open(os.path.join(DOCS, "sitemap.xml"), "w", encoding="utf-8") as fh:
         fh.write('<?xml version="1.0" encoding="UTF-8"?>\n'
