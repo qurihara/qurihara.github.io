@@ -58,6 +58,27 @@ def canonical_url(path):
     return CANONICAL + path.rstrip("/") + "/"
 
 
+def robots_snippet(entry):
+    """検索エンジンに登録させない指定を組み立てる。
+
+    manifest.json の項目に "noindex": true を書いたページに入る。
+    支援者へ直接URLを知らせて読んでいただく案内のように、
+    誰でも開けてよいが検索結果には出したくないページのために使う。
+
+    このようなページは sitemap.xml からも外す。載せたまま noindex にすると、
+    Search Console が「送信されたURLに noindex タグが追加されています」と
+    エラーとして報告するためである。
+
+    robots.txt で拒む方法は採らない。クローラがページを読めなくなり、
+    この指定そのものが伝わらなくなる。見比べ用のページ（docs/preview/）で
+    同じ判断をしており、そちらは make_theme_previews.py が付けている。
+    """
+    if not entry.get("noindex"):
+        return ""
+    return ('<meta name="robots" content="noindex">'
+            "<!-- 検索結果には出さない。URLを知る方だけが読む案内 -->\n")
+
+
 def load_json(name):
     with open(os.path.join(ROOT, name), encoding="utf-8") as fh:
         return json.load(fh)
@@ -229,7 +250,7 @@ PAGE = """<!DOCTYPE html>
 <meta property="og:type" content="website">
 <meta property="og:url" content="{canonical_url}">
 <link rel="canonical" href="{canonical_url}">
-<link rel="stylesheet" href="{base}/assets/style.css">
+{robots}<link rel="stylesheet" href="{base}/assets/style.css">
 {analytics}</head>
 <body>
 <a class="skip-link" href="#main">本文へ移動</a>
@@ -368,6 +389,7 @@ def main():
             base=BASE,
             canonical=CANONICAL,
             canonical_url=canonical_url(entry["path"]),
+            robots=robots_snippet(entry),
             analytics=analytics_snippet(),
             title=html.escape(full_title, quote=True),
             desc=make_description(body),
@@ -395,9 +417,12 @@ def main():
 
     # sitemap.xml。検索エンジンには本来のドメインのURLを伝える。
     # 転送されるURLを載せないよう、canonical と同じ組み立て方をそろえる。
+    # noindex のページも載せない。載せると Search Console が
+    # 「送信されたURLに noindex タグが追加されています」と報告するためである。
     urls = "\n".join(
         f"  <url><loc>{canonical_url(e['path'])}</loc></url>"
-        for e in manifest if e["path"] not in CANONICAL_ALIASES
+        for e in manifest
+        if e["path"] not in CANONICAL_ALIASES and not e.get("noindex")
     )
     with open(os.path.join(DOCS, "sitemap.xml"), "w", encoding="utf-8") as fh:
         fh.write('<?xml version="1.0" encoding="UTF-8"?>\n'

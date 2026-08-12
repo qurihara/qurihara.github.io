@@ -553,17 +553,11 @@
   "images": 0
  },
  {
-  "path": "/home/ekuriharalab/quarterly",
-  "title": "四半期ごとの提供案内",
-  "fragment": "home__ekuriharalab__quarterly.fragment.html",
-  "text_len": 905,
-  "images": 0
- },
- {
   "path": "/home/ekuriharalab/quarterly/2026-08",
-  "title": "2026年8月期 試作デバイス提供のご案内",
+  "title": "2026年8月期 試作品デバイス提供のご案内",
   "fragment": "home__ekuriharalab__quarterly__2026-08.fragment.html",
-  "text_len": 578,
-  "images": 0
+  "text_len": 6201,
+  "images": 12,
+  "noindex": true
  }
 ]
