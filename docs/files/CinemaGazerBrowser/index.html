@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CinemaGazer for Android — ダウンロード</title>
+<meta name="description" content="字幕のあるところは少しゆっくり、ないところは速く再生して、短い時間で観るためのAndroidアプリ。HuluとDisney+に対応。">
+<!--
+  このページは配布の入口である。版が変わってもURLが変わらないようにするために置いてある。
+  ProtoPedia などからは https://www.unryu.org/files/CinemaGazerBrowser/ を指しておけばよい。
+
+  ★版を上げるときに直すのはこのファイルの2か所だけ★
+    1. 下の <a class="dl"> の href のクエリ（?v=1.5.0）
+    2. その下の .meta に書いてある版・大きさ・日付
+  APK 本体は cinemagazer-browser-latest.apk を上書きする（ファイル名は変えない）。
+  クエリを付けているのは、Cloudflare とブラウザのキャッシュに古い版を返させないためである。
+-->
+<style>
+  :root {
+    --brand: #5E5CE6;
+    --bg: #11121a;
+    --card: #1c1e2b;
+    --text: #f2f2f7;
+    --sub: #a5a8bd;
+    --line: rgba(255,255,255,.08);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 40px 20px 64px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    line-height: 1.8;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 36px; }
+  .logo { width: 72px; height: 72px; margin-bottom: 14px; }
+  .logo svg { display: block; width: 100%; height: 100%; }
+  h1 { font-size: 26px; margin: 0 0 8px; letter-spacing: .02em; }
+  .lead { color: var(--sub); font-size: 15px; margin: 0; }
+  h2 {
+    font-size: 15px; font-weight: 600; color: var(--sub);
+    letter-spacing: .06em; margin: 40px 0 12px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  a { color: #9b99ff; }
+  .dl {
+    display: block; text-align: center; text-decoration: none;
+    background: var(--brand); color: #fff; font-weight: 700; font-size: 17px;
+    padding: 18px 20px; border-radius: 14px; margin: 8px 0 10px;
+  }
+  .dl:active { opacity: .85; }
+  .meta { text-align: center; color: var(--sub); font-size: 13px; margin: 0 0 8px; }
+  ol, ul { padding-left: 1.3em; margin: 0; }
+  li { margin-bottom: 8px; }
+  .services { list-style: none; padding: 0; }
+  .services li {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px 16px; margin-bottom: 10px;
+  }
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 6px; margin-left: 8px; vertical-align: middle;
+    background: rgba(255,176,32,.16); color: #ffb020;
+  }
+  .tag.ng { background: rgba(255,90,90,.16); color: #ff7b7b; }
+  .tag.ok { background: rgba(28,231,131,.16); color: #1ce783; }
+  .note { color: var(--sub); font-size: 13px; }
+  footer {
+    margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--line);
+    color: var(--sub); font-size: 13px; text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 108 108" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="54" cy="54" r="50" fill="#C33D3C"/>
+      <circle cx="54" cy="54" r="41" fill="#34353A"/>
+      <rect x="26" y="42.5" width="30" height="7" rx="3.5" fill="#C33D3C"/>
+      <rect x="22" y="50.5" width="34" height="7" rx="3.5" fill="#C33D3C"/>
+      <rect x="26" y="58.5" width="30" height="7" rx="3.5" fill="#C33D3C"/>
+      <path d="M48 36 L80 54 L48 72 Z" fill="#EDEDED"/>
+    </svg>
+  </div>
+  <h1>CinemaGazer for Android</h1>
+  <p class="lead" data-en="Slower where there are subtitles, faster where there are none.<br>Watch it in less time.">字幕のあるところは少しゆっくり、ないところは速く再生して、<br>短い時間で観る。</p>
+</header>
+
+<a class="dl" href="cinemagazer-browser-latest.apk?v=1.5.0" data-en="Download the app (APK)">アプリをダウンロード（APK）</a>
+<p class="meta">v1.5.0 &middot; 4.7MB &middot; Android 7.0 以降 &middot; 2026年8月15日</p>
+<p class="note" data-en="Google Play does not carry this app, so you install the file yourself. Follow the steps below.">Google Play では配布していないため、ファイルから自分で入れます。手順は下にあります。</p>
+
+<h2 data-en="Supported services">対応しているサービス</h2>
+<ul class="services">
+  <li><strong>Hulu</strong><span class="tag ok" data-en="Supported">対応</span></li>
+  <li><strong>Disney+</strong><span class="tag ok" data-en="Supported">対応</span></li>
+  <li><strong>Amazon Prime Video</strong><span class="tag" data-en="Experimental">実験的</span><br>
+    <span class="note" data-en="Many titles cannot be played, for technical reasons.">技術的な事情により、再生できない作品が多くあります。</span></li>
+  <li><strong>Netflix</strong><span class="tag ng" data-en="Unavailable">利用不可</span><br>
+    <span class="note" data-en="Android's WebView cannot handle the stronger level of DRM that Netflix requires, so it cannot be played at all. Please use the Netflix app.">AndroidのWebViewがNetflixの求める強い保護に対応できないため、原理的に再生できません。Netflixのアプリをお使いください。</span></li>
+</ul>
+
+<h2 data-en="How to install">入れかた</h2>
+<ol>
+  <li data-en="Open the button above on your Android device and download the APK file.">Android端末で上のボタンを押し、APKファイルをダウンロードします。</li>
+  <li data-en="Open the file. A warning appears because the source cannot be verified, so follow the guidance, open Settings, and allow that browser to install unknown apps.">ファイルを開くと、提供元が確認できない旨の警告が出ます。案内に従って設定を開き、そのブラウザに「不明なアプリのインストール」を許可します。</li>
+  <li data-en="Go back and open the file again to install it.">戻ってもう一度ファイルを開き、インストールします。</li>
+  <li data-en="Start the app, choose a service, sign in as usual, and play something.">アプリを起動し、視聴するサービスを選んで、いつもどおりログインして再生します。</li>
+</ol>
+<p class="note" data-en="The app is signed with the author's own certificate (CN=Kazutaka Kurihara, O=Kurihara Lab, C=JP). Updates keep the same signature, so you can install a new version over the old one and stay signed in.">アプリには作者名義の証明書（CN=Kazutaka Kurihara, O=Kurihara Lab, C=JP）で署名してあります。更新のたびに署名は変えていないので、古い版に上書きして入れられます（動画配信サービスのログインも保たれます）。</p>
+
+<h2 data-en="Using it">使いかた</h2>
+<ul>
+  <li data-en="Once playback starts, the subtitled parts play at 1.5× and the rest at 4.0×, and the subtitles appear large in the middle of the screen.">再生が始まると、字幕のある区間は1.5倍、ない区間は4.0倍で流れ、字幕が画面の中央に大きく出ます。</li>
+  <li data-en="Tap the badge at the top right to change the speeds, the caption size, and the subtitle timing.">画面右上のバッジをタップすると、速度・字幕の大きさ・字幕のタイミングを変えられます。</li>
+  <li data-en="If no captions appear, turn subtitles on in the player itself.">字幕が出ないときは、プレイヤー側で字幕を有効にしてください。</li>
+  <li data-en="When the captions arrive after the dialogue and the beginning of a line gets played fast, move the subtitle timing to the minus side.">セリフより字幕が遅れて出て、話し始めが速く飛ばされてしまうときは、「字幕タイミング微調整」をマイナス側へ動かします。</li>
+</ul>
+
+<footer>
+  <p data-en="There is also a Chrome extension for computers.">パソコンでは <a href="https://chromewebstore.google.com/detail/cinemagazer/iogcniihehmjmclbhakekencmlplclii">Chrome拡張版</a> が使えます。</p>
+  <p><a href="https://protopedia.net/prototype/8397">ProtoPedia の作品ページ</a> &middot; <a href="https://www.unryu.org/">栗原一貴</a></p>
+</footer>
+
+</div>
+
+<script>
+  // 端末やブラウザの言語が日本語でなければ、data-en に書いた英語に差し替える。
+  // アプリの中の画面（assets/home.html）と同じやり方で、日本語と英語を1つのファイルにまとめている。
+  (function () {
+    var lang = (navigator.language || '').toLowerCase();
+    if (lang.indexOf('ja') === 0) return;
+    document.documentElement.lang = 'en';
+    document.title = 'CinemaGazer for Android — Download';
+    var nodes = document.querySelectorAll('[data-en]');
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].innerHTML = nodes[i].getAttribute('data-en');
+    }
+  })();
+</script>
+
+</body>
+</html>
