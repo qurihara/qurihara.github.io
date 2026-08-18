@@ -10,10 +10,15 @@
   ProtoPedia などからは https://www.unryu.org/files/CinemaGazerBrowser/ を指しておけばよい。
 
   ★版を上げるときに直すのはこのファイルの2か所だけ★
-    1. 下の <a class="dl"> の href のクエリ（?v=1.5.0）
+    1. 下の <a class="dl"> の href（cinemagazer-browser-vX.Y.Z.apk）
     2. その下の .meta に書いてある版・大きさ・日付
-  APK 本体は cinemagazer-browser-latest.apk を上書きする（ファイル名は変えない）。
-  クエリを付けているのは、Cloudflare とブラウザのキャッシュに古い版を返させないためである。
+  tools/publish_site.sh がここを機械的に書き換えるので、手で直すことは普段ない。
+
+  APKのファイル名に版を入れているのは、キャッシュに古い版を返させないためである。
+  最初は latest.apk という固定名にして ?v=1.5.0 のクエリで避けようとしたが、
+  unryu.org の前段にいる Cloudflare がクエリを無視してキャッシュしており、
+  版を上げても古いAPKが配られた。ファイル名そのものを変えれば原理的に起きない。
+  外に見せるURLはこのページ（ディレクトリ）なので、ファイル名が変わっても困らない。
 -->
 <style>
   :root {
@@ -91,7 +96,7 @@
   <p class="lead" data-en="Slower where there are subtitles, faster where there are none.<br>Watch it in less time.">字幕のあるところは少しゆっくり、ないところは速く再生して、<br>短い時間で観る。</p>
 </header>
 
-<a class="dl" href="cinemagazer-browser-latest.apk?v=1.6.0" data-en="Download the app (APK)">アプリをダウンロード（APK）</a>
+<a class="dl" href="cinemagazer-browser-v1.6.0.apk" data-en="Download the app (APK)">アプリをダウンロード（APK）</a>
 <p class="meta">v1.6.0 &middot; 4.7MB &middot; Android 7.0 以降 &middot; 2026年8月18日</p>
 <p class="note" data-en="Google Play does not carry this app, so you install the file yourself. Follow the steps below.">Google Play では配布していないため、ファイルから自分で入れます。手順は下にあります。</p>
 
