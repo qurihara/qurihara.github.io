@@ -229,6 +229,32 @@ def compose_layout(body, path=""):
     return "\n".join(out)
 
 
+# サイト内のページのパス一覧。内部リンクに末尾のスラッシュを付けるかどうかの判定に使う。
+# main() が manifest.json から埋める。
+PAGE_PATHS = set()
+
+
+def add_trailing_slash(html_text):
+    """サイト内のページへのリンクに、末尾のスラッシュを付ける。
+
+    ページの実体は docs/<パス>/index.html なので、GitHub Pages は
+    /lab へのアクセスを /lab/ へ転送する。リンクを転送前の形のまま置くと、
+    検索エンジンが内部リンクを辿るたびに転送を踏み、Search Console に
+    「ページにリダイレクトがあります」として積み上がっていく。
+
+    付けるのは manifest にあるページへのリンクだけである。
+    論文PDFや動画などファイルへのリンクは転送が起きないので、そのままにする。
+    別リポジトリのプロジェクトサイトも manifest には無いため、触らない。
+    """
+    def repl(m):
+        href = m.group(1)
+        if href in PAGE_PATHS and not href.endswith("/"):
+            return 'href="%s/"' % href
+        return m.group(0)
+
+    return re.sub(r'href="(/[^"#?]*)"', repl, html_text)
+
+
 def apply_base(body):
     """本文中のサイト内リンクと画像参照に、公開先の起点を付ける。"""
     if not BASE:
@@ -323,6 +349,7 @@ def main():
 
     manifest = load_json("manifest.json")
     nav = load_json("nav.json")
+    PAGE_PATHS.update(e["path"] for e in manifest)
 
     # docs/ は作り直すが、この仕組みが生成しないものは失わないように退避しておく。
     #   CNAME    GitHub Pages の独自ドメイン設定。消すとドメインの設定が外れ、
@@ -382,7 +409,7 @@ def main():
         if entry["path"] not in ("/", "/home") and not re.match(r"\s*<h1", body):
             body = f"<h1>{html.escape(title_page)}</h1>\n" + body
 
-        body = apply_base(body)
+        body = add_trailing_slash(apply_base(body))
 
         out_html = PAGE.format(
             lang=lang,
@@ -395,7 +422,7 @@ def main():
             desc=make_description(body),
             path=entry["path"],
             site_name=html.escape(SITE_NAME),
-            nav=nav_html(nav, entry["path"]),
+            nav=add_trailing_slash(nav_html(nav, entry["path"])),
             body=body,
         )
 
