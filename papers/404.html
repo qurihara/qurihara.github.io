@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="utf-8"><title>ページが見つかりません</title>
+<script>
+// 旧 ai-fue のPagesは cipherflute へ移転した。パス・パラメータを引き継いで転送する。
+if (location.pathname.indexOf("/ai-fue/") === 0) {
+  location.replace("https://unryu.org/cipherflute/" +
+    location.pathname.slice("/ai-fue/".length) + location.search + location.hash);
+}
+</script>
+</head>
+<body>
+<p>ページが見つかりません。<a href="https://www.unryu.org/">www.unryu.org</a> へどうぞ。</p>
+</body>
+</html>
