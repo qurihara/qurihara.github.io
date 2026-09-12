@@ -31,7 +31,7 @@ def url_path_of(page_file):
 # qurihara.github.io の配下にあるプロジェクトサイトは、
 # GitHub Pages のはたらきで unryu.org/<名前>/ としても配信される。
 # docs/ には無いので、飛び先が無いように見えるが、実際には開ける。
-PROJECT_SITES = ("/chordika/", "/ai-fue/")
+PROJECT_SITES = ("/chordika/", "/ai-fue/", "/cipherflute/")
 
 
 def exists_as_page(path):
