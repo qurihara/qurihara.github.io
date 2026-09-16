@@ -191,8 +191,24 @@ body {
   border-bottom: 1px solid var(--line);
   text-wrap: balance;
 }
-.content h3 { font-size: 1.11rem; margin: 32px 0 10px; }
-.content h4 { font-size: 1rem; margin: 22px 0 8px; }
+.content h3 {
+  font-size: 1.2rem;
+  margin: 44px 0 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* h4 は業績ページ（/publications）の小分類に使っている。
+   ［英文誌 査読有り 筆頭］のような札で、業績の一覧の中で区切りとして働く。
+   本文と同じ見た目だと一覧に埋もれるため、薄い帯と左の線で目印にしてある。 */
+.content h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 28px 0 10px;
+  padding: 5px 10px;
+  background: var(--sidebar-bg);
+  border-left: 3px solid var(--accent);
+}
 
 .content p { margin: 0 0 14px; }
 
