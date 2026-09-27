@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>重ね音 — iRecorika</title>
-<link rel="stylesheet" href="lib/irk.css?v=1">
+<link rel="stylesheet" href="lib/irk.css?v=2">
 </head>
 <body>
-<script src="lib/fft_peak.js?v=1"></script>
-<script src="lib/irk-common.js?v=1"></script>
-<script src="lib/irk-audio.js?v=1"></script>
-<script src="lib/irk-stage.js?v=1"></script>
-<script src="lib/irk-theory.js?v=1"></script>
+<script src="lib/fft_peak.js?v=2"></script>
+<script src="lib/irk-common.js?v=2"></script>
+<script src="lib/irk-audio.js?v=2"></script>
+<script src="lib/irk-stage.js?v=2"></script>
+<script src="lib/irk-theory.js?v=2"></script>
 <script>
 /* 重ね音：吹いた音をマイクで拾い、スマートフォンが同じ音名を別の音色・別のオクターブで重ねる。
  * 指の操作面は、クロマチックハーモニカのスライドボタンのように音を変える。
@@ -19,16 +19,16 @@
  *   半音上           … 押している間だけ半音上げる
  *   ハモり           … 調の中で3度下（または6度下）を足す。自動の二重奏になる
  *   ドローン         … 吹きやめても音を伸ばし続ける
- * 笛の音は高く鋭いので、既定では1オクターブ下に重ねる。聞きやすくなり、マイクへの回り込みも避けられる。 */
+ * 笛の音は高く鋭いので、既定では2オクターブ下に重ねる。聞きやすくなり、保護（1200Hz より下だけを通す）もそのまま通る。 */
 (function () {
   "use strict";
   const T = IRKTheory;
-  const st = { oct: -1, voice: "triangle", key: 8, harmony: 0, fifth: false, drone: false, mute: false,
+  const st = { oct: -2, voice: "triangle", key: 8, harmony: 0, fifth: false, drone: false, mute: false,
                octDown: false, octUp: false, semi: false, vib: false, blown: null, level: 0, t0: performance.now() };
 
   const panel = "<fieldset><legend>音</legend><div class='row'>"
     + "<label>音色 <select id='voice'>" + Object.entries(IRKAudio.VOICES).map(([k, v]) => "<option value='" + k + "'>" + v + "</option>").join("") + "</select></label>"
-    + "<label>重ねる高さ <select id='oct'><option value='-2'>2オクターブ下</option><option value='-1' selected>1オクターブ下</option>"
+    + "<label>重ねる高さ <select id='oct'><option value='-2' selected>2オクターブ下</option><option value='-1'>1オクターブ下（高い笛は保護で弱まる）</option>"
     + "<option value='0'>同じ高さ（保護を切る必要あり）</option><option value='1'>1オクターブ上</option></select></label>"
     + "<label>ハモりの調 <select id='key'>" + T.KEYS.map(k => "<option value='" + k.pc + "'>" + k.name + "</option>").join("") + "</select></label>"
     + "</div><p class='note' id='octWarn'></p></fieldset>";

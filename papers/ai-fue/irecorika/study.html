@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>持ち方の検討 — iRecorika</title>
-<link rel="stylesheet" href="lib/irk.css?v=1">
+<link rel="stylesheet" href="lib/irk.css?v=2">
 <style>
   .figs { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
   .fig { border: 1px solid var(--line); border-radius: 10px; padding: 8px; background: #10131b; text-align: center; font-size: 13px; }
@@ -73,7 +73,7 @@
 
   <h3>5. スピーカーの音の回り込み</h3>
   <p>伴奏や打楽器の音がマイクに入ると、笛の検出を乱す。検出は笛の音域（1600〜3250 Hz）の山だけを見るので、
-  スマートフォンから出す音をすべて、この音域を抜く経路（1350 Hz より下と 3350 Hz より上だけを通す）に通すことにした。これを「保護」と呼ぶ。
+  スマートフォンから出す音をすべて、この音域を抜く経路（1200 Hz より下と 4000 Hz より上だけを、それぞれ48 dB/オクターブの傾きで通す）に通すことにした。これを「保護」と呼ぶ。
   笛と同じ高さの音を鳴らす必要があるとき（まねっこの手本、練習の手本、ルーパーの再生）は保護を通さず、手本の間はマイクの判定を止める。
   ルーパーと動画の音は止められないので、気になるときはイヤホンを使う。</p>
 
@@ -85,7 +85,7 @@
   <p>最初は <b>A（画面の上・画面が上）</b> で試すのがよい。8本の指が使え、光る効果も確かめられ、4通りの中でいちばん多くのアプリが活きる。
   息の湿りで誤動作する場合は C に切り替える。B と D は、画面を見ずに息と少しの操作だけで演奏する使い方（重ね音・傾きと揺れ）に絞る。</p>
 </div>
-<script src="lib/irk-common.js?v=1"></script>
+<script src="lib/irk-common.js?v=2"></script>
 <script>
 (function () {
   document.getElementById("ver").textContent = IRK.VERSION;

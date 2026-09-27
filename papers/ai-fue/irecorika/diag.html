@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>実機の診断 — iRecorika</title>
-<link rel="stylesheet" href="lib/irk.css?v=1">
+<link rel="stylesheet" href="lib/irk.css?v=2">
 <style>
   canvas.spec { width: 100%; height: 160px; background: #0c0f16; border: 1px solid var(--line); border-radius: 8px; display: block; }
   .kv { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; font-size: 14px; }
@@ -70,9 +70,9 @@
   <pre class="log" id="summary"></pre>
 </div>
 
-<script src="lib/fft_peak.js?v=1"></script>
-<script src="lib/irk-common.js?v=1"></script>
-<script src="lib/irk-audio.js?v=1"></script>
+<script src="lib/fft_peak.js?v=2"></script>
+<script src="lib/irk-common.js?v=2"></script>
+<script src="lib/irk-audio.js?v=2"></script>
 <script>
 (function () {
   "use strict";
@@ -122,7 +122,8 @@
         "山の強さ": fr.level.toFixed(1) + " dB",
         "暗騒音": fr.noise === null ? "—" : fr.noise.toFixed(1) + " dB",
         "しきい値": fr.onDb === null ? "—" : fr.onDb.toFixed(1) + " dB",
-        "際立ち": fr.prominence.toFixed(1) + " dB",
+        "際立ち（25以上で笛）": fr.prominence.toFixed(1) + " dB",
+        "集中（0.6以上で笛）": fr.conc.toFixed(2),
         "判定": fr.cur ? fr.cur.slot + "番 " + IRK.noteName(fr.cur.midi, "sharp") + "（" + (sl ? (sl.cents > 0 ? "+" : "") + sl.cents : "?") + "セント）" : "鳴っていない",
       });
       R.noise = fr.noise === null ? null : fr.noise.toFixed(1);

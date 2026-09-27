@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>傾きと揺れ — iRecorika</title>
-<link rel="stylesheet" href="lib/irk.css?v=1">
+<link rel="stylesheet" href="lib/irk.css?v=2">
 </head>
 <body>
-<script src="lib/fft_peak.js?v=1"></script>
-<script src="lib/irk-common.js?v=1"></script>
-<script src="lib/irk-audio.js?v=1"></script>
-<script src="lib/irk-stage.js?v=1"></script>
+<script src="lib/fft_peak.js?v=2"></script>
+<script src="lib/irk-common.js?v=2"></script>
+<script src="lib/irk-audio.js?v=2"></script>
+<script src="lib/irk-stage.js?v=2"></script>
 <script>
 /* 傾きと揺れ：吹いた音をスマートフォンが重ねて鳴らし、その音を傾きと揺れで変える。
  *   左右に傾ける … 音の高さを曲げる（ベンド）。移調の設定では、傾けた側へ4度ずつ移調する
@@ -21,11 +21,11 @@
   "use strict";
   const st = { blown: null, level: 0, bend: true, wah: true, trem: true, shaker: false, transpose: false,
                bendRange: 200, zeroRoll: 0, zeroPitch: 0, m: { roll: 0, pitch: 0, shake: 0 }, trans: 0, transArmed: true,
-               oct: -1, voice: "brass", lastShake: 0, shakeEnv: 0, mute: false, t0: performance.now() };
+               oct: -2, voice: "brass", lastShake: 0, shakeEnv: 0, mute: false, t0: performance.now() };
 
   const panel = "<fieldset><legend>音</legend><div class='row'>"
     + "<label>音色 <select id='voice'>" + Object.entries(IRKAudio.VOICES).map(([k, v]) => "<option value='" + k + "'" + (k === "brass" ? " selected" : "") + ">" + v + "</option>").join("") + "</select></label>"
-    + "<label>重ねる高さ <select id='oct'><option value='-2'>2オクターブ下</option><option value='-1' selected>1オクターブ下</option><option value='1'>1オクターブ上</option></select></label>"
+    + "<label>重ねる高さ <select id='oct'><option value='-2' selected>2オクターブ下</option><option value='-1'>1オクターブ下（高い笛は保護で弱まる）</option><option value='1'>1オクターブ上</option></select></label>"
     + "<label>ベンドの幅 <select id='range'><option value='100'>半音</option><option value='200' selected>全音</option><option value='500'>4度</option><option value='1200'>1オクターブ</option></select></label>"
     + "</div><p class='note'>「傾けて移調」を入れると、左右の傾きは音の高さの曲げではなく、4度ずつの移調になります。傾けた状態を保つと、その調のまま吹けます。</p></fieldset>";
 

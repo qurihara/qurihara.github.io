@@ -10,10 +10,12 @@
  *
  * 保護
  * ----
- * スマートフォンから出す音は、すべて「笛の音域を抜く」経路を通す。1350Hz より下を通す
- * 低域通過と、3350Hz より上を通す高域通過を並べて足し合わせ、その間（笛の 1600〜3250Hz）を
- * 24dB/オクターブで落とす。笛と同じ高さの音をそのまま鳴らしたいとき（まねっこの手本など）は
- * 保護を通らない経路（rawOut）へつなぎ、そのあいだは検出を止める。
+ * スマートフォンから出す音は、すべて「笛の音域を抜く」経路を通す。1200Hz より下を通す
+ * 低域通過と、4000Hz より上を通す高域通過を、それぞれ4段（48dB/オクターブ）重ねて並べ、足し合わせる。
+ * v1 は 1350Hz と 3350Hz の2段（24dB/オクターブ）で、1600Hz ではわずか約7dBしか落ちず、伴奏の倍音が
+ * マイクに回り込んで笛と誤認された（v2 で改めた。評価は scripts/irecorika_eval.js）。
+ * 笛と同じ高さの音をそのまま鳴らしたいとき（まねっこの手本など）は保護を通らない経路（rawOut）へつなぎ、
+ * そのあいだは検出を止める。
  */
 (function (root) {
   "use strict";
@@ -22,22 +24,38 @@
   const BAND_LO = 1600, BAND_HI = 3250;   // 検出に使う音域[Hz]。G#6 の半音弱下から G7 の半音弱上まで
 
   // ================================================================ 検出の判定（純粋な処理）
-  /* 1フレームごとに、山の強さ・周波数・際立ち（山と音域の中央値の差）を受け取り、
-   * 笛が鳴り始めた・変わった・止んだ、を判定する。ブラウザに依存しないので node で検査できる。 */
+  /* 1フレームごとに特徴量（bandFeatures の戻り値）を受け取り、笛が鳴り始めた・変わった・止んだ、を判定する。
+   * ブラウザに依存しないので node で検査でき、録音での評価（scripts/irecorika_eval.js）にも使う。
+   *
+   * 笛の音と認める条件（v2、2026-09-27）。v1 は笛が鳴っていないのに鳴ったと判定することがあった。
+   *   1. 強さ … 暗騒音より marginDb 上、かつ absFloorDb より上。静かな部屋で暗騒音が低く見積もられても、
+   *              小さな物音までは拾わない
+   *   2. 際立ち … 山が音域の中央値より minProminenceDb 上。息の擦れや拍手のような平たい音を落とす
+   *   3. 集中 … 音域の力の minConc 以上が山の前後3ビンに集まっている。笛は1本の正弦波に近い。
+   *              声は倍音が何本も音域に入るので、力が分散する
+   *   4. 高さ … いちばん近い笛の高さから maxCents 以内。笛は決まった高さでしか鳴らない
+   *   5. 安定 … 同じ笛の高さが onFrames 回続き、その間の揺れが stableCents 以内。叩く音や声の子音は
+   *              一瞬で高さが定まらない
+   * 鳴り続けている間は、1 の強さを releaseDb だけ緩め、3・4・5 は問わない（息の揺れで途切れないように）。 */
+  const TRACKER_DEFAULTS = {
+    marginDb: 14,          // 暗騒音からこれだけ上なら鳴っているとみなす
+    absFloorDb: -100,      // これより弱い山は、暗騒音にかかわらず鳴っていないとみなす
+    releaseDb: 6,          // 鳴っている間は、これだけ下がるまで鳴り続けとみなす
+    minProminenceDb: 25,   // 山が音域の中央値よりこれだけ高くなければ、雑音とみなす（v1 は 10）
+    minConc: 0.6,          // 山の前後に集まる力の割合の下限（v1 は 0＝問わない）
+    maxCents: 45,          // 笛の高さからのずれの上限（v1 は 50＝問わない）
+    stableCents: 40,       // 鳴り始めを認めるまでの高さの揺れの上限（v1 は問わない）
+    onFrames: 4,           // この回数続けて同じ笛が読めたら鳴り始めとする（v1 は 2。4 で約48ms）
+    offFrames: 3,          // この回数続けて読めなかったら止んだとする
+    noiseWindowMs: 8000,   // 暗騒音を見積もる期間
+    centsOffset: 0,
+  };
   function NoteTracker(opts) {
-    opts = Object.assign({
-      marginDb: 14,          // 暗騒音からこれだけ上なら鳴っているとみなす
-      releaseDb: 6,          // 鳴っている間は、これだけ下がるまで鳴り続けとみなす
-      minProminenceDb: 10,   // 山が音域の中央値よりこれだけ高くなければ、雑音とみなす
-      onFrames: 2,           // この回数続けて同じ笛が読めたら鳴り始めとする
-      offFrames: 3,          // この回数続けて読めなかったら止んだとする
-      noiseWindowMs: 8000,   // 暗騒音を見積もる期間
-      centsOffset: 0,
-    }, opts || {});
+    opts = Object.assign({}, TRACKER_DEFAULTS, opts || {});
     const hist = [];        // [t, level]
     let noise = null;
     let cur = null;         // 鳴っている笛 {slot, midi, freq, cents, level, t0}
-    let cand = null, candCount = 0, missCount = 0;
+    let cand = null, candCount = 0, candLo = 0, candHi = 0, missCount = 0;
 
     function estimateNoise(t, level) {
       if (!isFinite(level)) return;
@@ -45,21 +63,28 @@
       while (hist.length && hist[0][0] < t - opts.noiseWindowMs) hist.shift();
       if (hist.length < 8) { noise = noise === null ? level : Math.min(noise, level); return; }
       const s = hist.map(h => h[1]).sort((a, b) => a - b);
-      const p10 = s[Math.floor(0.1 * (s.length - 1))];
-      noise = p10;
+      noise = s[Math.floor(0.1 * (s.length - 1))];
     }
 
-    /* noNoise を真にすると、そのフレームを暗騒音の見積もりに使わない（検出を止めている間など） */
-    function feed(t, level, freq, prominence, noNoise) {
+    /* feed(t, 特徴量, noNoise) または feed(t, level, freq, prominence, noNoise)。
+     * noNoise を真にすると、そのフレームを暗騒音の見積もりに使わない（検出を止めている間など） */
+    function feed(t, a, b, c, d) {
+      let ft, noNoise;
+      if (typeof a === "object" && a !== null) { ft = a; noNoise = b; }
+      else { ft = { level: a, freq: b, prominence: c, conc: 1 }; noNoise = d; }
+      const level = ft.level, freq = ft.freq;
       // 暗騒音は[* 鳴っていないフレームだけ]から見積もる。吹き続けると8秒の窓が笛の音で埋まり、
       // 暗騒音が笛の強さまで上がって、鳴っているのに止んだと判定してしまうため
       if (!noNoise && !cur) estimateNoise(t, level);
-      const onDb = (noise === null ? -100 : noise) + opts.marginDb;
+      const onDb = Math.max((noise === null ? -100 : noise) + opts.marginDb, opts.absFloorDb);
       const need = cur ? onDb - opts.releaseDb : onDb;
-      const tonal = prominence === undefined || prominence >= opts.minProminenceDb;
       let hit = null;
-      if (isFinite(level) && level >= need && tonal) {
-        hit = IRK.freqToSlot(freq, opts.centsOffset);
+      if (isFinite(level) && level >= need) {
+        const h = IRK.freqToSlot(freq, opts.centsOffset);
+        if (h && cur && h.slot === cur.slot) hit = h;                       // 鳴り続けは強さだけで見る
+        else if (h && (ft.prominence === undefined || ft.prominence >= opts.minProminenceDb)
+                 && (ft.conc === undefined || ft.conc >= opts.minConc)
+                 && Math.abs(h.cents) <= opts.maxCents) hit = h;
       }
       const events = [];
       if (hit) {
@@ -68,8 +93,10 @@
           cur.freq = freq; cur.cents = hit.cents; cur.level = level;
           cand = null; candCount = 0;
         } else {
-          if (cand && cand.slot === hit.slot) candCount++;
-          else { cand = hit; candCount = 1; }
+          const c = 1200 * Math.log2(freq);
+          if (cand && cand.slot === hit.slot) { candCount++; candLo = Math.min(candLo, c); candHi = Math.max(candHi, c); }
+          else { cand = hit; candCount = 1; candLo = candHi = c; }
+          if (candHi - candLo > opts.stableCents) { cand = hit; candCount = 1; candLo = candHi = c; }
           if (candCount >= opts.onFrames) {
             const prev = cur;
             cur = { slot: hit.slot, midi: hit.midi, freq: freq, cents: hit.cents, level: level, t0: t };
@@ -95,10 +122,37 @@
       feed: feed,
       current: () => cur,
       noise: () => noise,
-      onDb: () => (noise === null ? null : noise + opts.marginDb),
+      onDb: () => (noise === null ? null : Math.max(noise + opts.marginDb, opts.absFloorDb)),
       set: (k, v) => { opts[k] = v; },
+      opts: () => Object.assign({}, opts),
       reset: () => { hist.length = 0; noise = null; cur = null; cand = null; candCount = 0; missCount = 0; },
     };
+  }
+
+  /* デシベルのスペクトル（AnalyserNode の getFloatFrequencyData と同じ形）から、判定に使う量を求める。
+   *   level      … 音域の中でいちばん強い山の強さ[dB]
+   *   freq       … その山の周波数[Hz]（両隣で放物線補間）
+   *   prominence … 山と音域の中央値の差[dB]。息の擦れや拍手は平たいので小さい
+   *   conc       … 音域の力のうち、山の前後3ビンに集まっている割合（0〜1）。笛は1本の正弦波に近いので1に近い
+   * マイクで拾うときも、録音で評価するときも、この同じ関数を通す。 */
+  function bandFeatures(spec, binHz) {
+    const FP = root.FftPeak || (typeof require === "function" ? require("../../cipher/fft_peak.js") : null);
+    const pk = FP.peakInBand(spec, binHz, BAND_LO, BAND_HI);
+    const k0 = Math.ceil(BAND_LO / binHz), k1 = Math.floor(BAND_HI / binHz);
+    const band = [];
+    let total = 0, near = 0;
+    for (let k = k0; k <= k1; k++) {
+      const v = spec[k];
+      if (!isFinite(v)) continue;
+      band.push(v);
+      const p = Math.pow(10, v / 10);
+      total += p;
+      if (pk && Math.abs(k - pk.bin) <= 3) near += p;
+    }
+    band.sort((a, b) => a - b);
+    const median = band.length ? band[band.length >> 1] : -140;
+    const level = pk ? pk.level : -140;
+    return { level, freq: pk ? pk.freq : 0, prominence: level - median, conc: total > 0 ? near / total : 0, median };
   }
 
   // ================================================================ 音の文脈
@@ -171,15 +225,9 @@
       const ac = ctx();
       st.analyser.getFloatFrequencyData(st.data);
       const binHz = ac.sampleRate / st.analyser.fftSize;
-      const pk = root.FftPeak.peakInBand(st.data, binHz, BAND_LO, BAND_HI);
-      // 際立ち … 山が音域の中央値からどれだけ抜きん出ているか。息の擦れや拍手は平たいので低い
-      const k0 = Math.ceil(BAND_LO / binHz), k1 = Math.floor(BAND_HI / binHz);
-      const band = Array.prototype.slice.call(st.data, k0, k1 + 1).filter(isFinite).sort((a, b) => a - b);
-      const median = band.length ? band[band.length >> 1] : -140;
+      const ft = bandFeatures(st.data, binHz);
       const now = performance.now();
-      const level = pk ? pk.level : -140;
-      const freq = pk ? pk.freq : 0;
-      const prominence = level - median;
+      const level = ft.level, freq = ft.freq, prominence = ft.prominence;
       let events = [];
       // 検出を止めている間（スマートフォンが笛と同じ高さの音を鳴らしている間）は、鳴っていないとして扱う
       if (now >= st.muteUntil) events = tracker.feed(now, level, freq, prominence);
@@ -187,7 +235,7 @@
       const cur = tracker.current();
       const noise = tracker.noise();
       const strength = cur && noise !== null ? Math.max(0, Math.min(1, (level - noise - 6) / 30)) : 0;
-      const fr = { t: now, level, freq, prominence, noise, onDb: tracker.onDb(), cur, strength,
+      const fr = { t: now, level, freq, prominence, conc: ft.conc, noise, onDb: tracker.onDb(), cur, strength,
                    spectrum: st.data, binHz, muted: now < st.muteUntil };
       st.last = fr;
       for (const ev of events) {
@@ -252,6 +300,7 @@
     return b;
   }
 
+  const GUARD_LP_HZ = 1200, GUARD_HP_HZ = 4000, GUARD_STAGES = 4;
   let _bus = null;
   /* 出力の経路。guardIn に入れた音は保護（笛の音域を抜く）を通り、rawOut に入れた音は素通しになる */
   function bus() {
@@ -264,12 +313,15 @@
     const guardIn = new GainNode(ac, { gain: 1 });
     const guarded = new GainNode(ac, { gain: s.guard ? 1 : 0 });
     const direct = new GainNode(ac, { gain: s.guard ? 0 : 1 });
-    const lp1 = new BiquadFilterNode(ac, { type: "lowpass", frequency: 1350, Q: 0.707 });
-    const lp2 = new BiquadFilterNode(ac, { type: "lowpass", frequency: 1350, Q: 0.707 });
-    const hp1 = new BiquadFilterNode(ac, { type: "highpass", frequency: 3350, Q: 0.707 });
-    const hp2 = new BiquadFilterNode(ac, { type: "highpass", frequency: 3350, Q: 0.707 });
-    guardIn.connect(lp1).connect(lp2).connect(guarded);
-    guardIn.connect(hp1).connect(hp2).connect(guarded);
+    // 低域通過と高域通過をそれぞれ GUARD_STAGES 段重ねる
+    let lo = guardIn, hi = guardIn;
+    for (let i = 0; i < GUARD_STAGES; i++) {
+      const l = new BiquadFilterNode(ac, { type: "lowpass", frequency: GUARD_LP_HZ, Q: 0.707 });
+      const h = new BiquadFilterNode(ac, { type: "highpass", frequency: GUARD_HP_HZ, Q: 0.707 });
+      lo.connect(l); hi.connect(h); lo = l; hi = h;
+    }
+    lo.connect(guarded);
+    hi.connect(guarded);
     guardIn.connect(direct);
     guarded.connect(master);
     direct.connect(master);
@@ -501,7 +553,7 @@
     return iv.map(x => r + x);
   }
 
-  const api = { BAND_LO, BAND_HI, NoteTracker, ctx, Detector, bus, note, MonoVoice, VOICES, drum, DRUMS, Clock, CHORDS, voicing, noiseBuffer };
+  const api = { BAND_LO, BAND_HI, GUARD_LP_HZ, GUARD_HP_HZ, GUARD_STAGES, NoteTracker, TRACKER_DEFAULTS, bandFeatures, ctx, Detector, bus, note, MonoVoice, VOICES, drum, DRUMS, Clock, CHORDS, voicing, noiseBuffer };
   if (typeof module === "object" && module.exports) module.exports = api;
   if (root) root.IRKAudio = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);

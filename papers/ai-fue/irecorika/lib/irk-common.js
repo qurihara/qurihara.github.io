@@ -22,7 +22,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "v1";
+  const VERSION = "v2";
   const STORE_KEY = "irecorika.settings.v1";
 
   // 照合笛 v9 の寸法（fue/matching_flutes.py と fue/mini10.py から求めた値）
