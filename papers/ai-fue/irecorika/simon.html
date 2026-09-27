@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>まねっこ・音当て — iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+</head>
+<body>
+<script src="lib/fft_peak.js?v=1"></script>
+<script src="lib/irk-common.js?v=1"></script>
+<script src="lib/irk-audio.js?v=1"></script>
+<script src="lib/irk-stage.js?v=1"></script>
+<script src="lib/irk-theory.js?v=1"></script>
+<script>
+/* まねっこ・音当て：スマートフォンが鳴らした音を、笛で吹き返すゲーム。
+ *   まねっこ … 鳴らす音の列が1つずつ長くなる。覚えて同じ順に吹く（サイモンと同じ遊び）
+ *   音当て   … 1音だけ鳴らす。同じ高さの笛を探して吹く（耳の練習）
+ * 光のヒントを入れると、鳴らしている間その笛の帯が光る。切ると耳だけが頼りになる。
+ * 手本は笛と同じ高さで鳴らすので保護を通さず、その間はマイクの判定を止める。 */
+(function () {
+  "use strict";
+  const T = IRKTheory;
+  const st = { mode: "simon", seq: [], pos: 0, phase: "idle", hint: true, pool: "scale", speed: 1, best: 0, score: 0, tries: 0, right: 0, busy: false };
+  const POOLS = { scale: "A♭長調の7本", all: "12本すべて", five: "5本（ペンタトニック）" };
+  try { st.best = parseInt(localStorage.getItem("irecorika.simon.best") || "0", 10); } catch (_) {}
+
+  const panel = "<fieldset><legend>遊び方</legend><div class='row'>"
+    + "<label>種類 <select id='mode'><option value='simon'>まねっこ（だんだん長くなる）</option><option value='ear'>音当て（1音ずつ）</option></select></label>"
+    + "<label>使う笛 <select id='pool'>" + Object.entries(POOLS).map(([k, v]) => "<option value='" + k + "'>" + v + "</option>").join("") + "</select></label>"
+    + "</div></fieldset>";
+
+  const stage = IRKStage.create({
+    title: "まねっこ・音当て",
+    desc: "スマートフォンが鳴らした音を、笛で吹き返すゲームです。「まねっこ」は音の列が1つずつ長くなり、「音当て」は1音ずつ当てます。光のヒントを切ると、耳だけで当てることになります。",
+    panel,
+    pads: {
+      left: [{ id: "go", label: "始める" }, { id: "again", label: "もう一度聞く" }, { id: "slower", label: "ゆっくり" }, { id: "faster", label: "速く" }],
+      right: [{ id: "hint", label: "光のヒント", toggle: true }, { id: "pool", label: "使う笛", sub: POOLS[st.pool] }, { id: "mode", label: "種類", sub: "まねっこ" }, { id: "quit", label: "やめる" }],
+    },
+    onStart: async () => { await det.start(); },
+    onPad(id, down) {
+      if (id === "hint") { st.hint = down; return; }
+      if (!down) return;
+      if (id === "go") start();
+      if (id === "again") playSeq();
+      if (id === "slower") st.speed = Math.max(0.5, st.speed - 0.15);
+      if (id === "faster") st.speed = Math.min(2, st.speed + 0.15);
+      if (id === "pool") { const ks = Object.keys(POOLS); st.pool = ks[(ks.indexOf(st.pool) + 1) % ks.length]; stage.setPad("pool", "使う笛", POOLS[st.pool]); $("pool").value = st.pool; }
+      if (id === "mode") { st.mode = st.mode === "simon" ? "ear" : "simon"; stage.setPad("mode", "種類", st.mode === "simon" ? "まねっこ" : "音当て"); $("mode").value = st.mode; idle(); }
+      if (id === "quit") idle();
+    },
+  });
+  stage.setPadOn("hint", true);
+  const $ = id => document.getElementById(id);
+  $("mode").onchange = () => { st.mode = $("mode").value; stage.setPad("mode", "種類", st.mode === "simon" ? "まねっこ" : "音当て"); idle(); };
+  $("pool").onchange = () => { st.pool = $("pool").value; stage.setPad("pool", "使う笛", POOLS[st.pool]); };
+
+  function poolSlots() {
+    if (st.pool === "all") return [...Array(12).keys()];
+    if (st.pool === "five") return [0, 2, 4, 7, 9].map(i => IRK.midiToSlot(92 + i));   // A♭ B♭ C E♭ F
+    return [...Array(12).keys()].filter(s => T.inScale(IRK.slotToMidi(s), 8));
+  }
+  function rnd(avoid) {
+    const p = poolSlots().filter(s => s !== avoid);
+    return p[Math.floor(Math.random() * p.length)];
+  }
+  function idle() {
+    st.phase = "idle"; st.seq = [];
+    stage.clearHold(); stage.clearMarks();
+    stage.setCenter("<div class='mid'>" + (st.mode === "simon" ? "まねっこ" : "音当て") + "</div><div class='small'>「始める」を押してください　"
+      + (st.mode === "simon" ? "最高記録 " + st.best : "") + "</div>");
+  }
+  function start() {
+    st.seq = []; st.score = 0; st.tries = 0; st.right = 0;
+    nextRound();
+  }
+  function nextRound() {
+    if (st.mode === "simon") st.seq.push(rnd(st.seq.length ? st.seq[st.seq.length - 1] : -1));
+    else st.seq = [rnd(st.seq.length ? st.seq[0] : -1)];
+    st.pos = 0; st.missed = false;
+    setTimeout(playSeq, 500);
+  }
+  /* 手本を鳴らす。笛と同じ高さなので保護を通さない経路で鳴らし、その間はマイクを止める */
+  function playSeq() {
+    if (!st.seq.length || st.busy) return;
+    st.busy = true; st.phase = "listen";
+    const ac = IRKAudio.ctx();
+    const gap = 0.55 / st.speed, len = 0.42 / st.speed;
+    const t0 = ac.currentTime + 0.1;
+    st.seq.forEach((s, i) => IRKAudio.note(IRK.slotToMidi(s), { type: "triangle", vel: 0.35, when: t0 + i * gap, dur: len, dest: IRKAudio.bus().rawOut }));
+    const total = st.seq.length * gap;
+    det.mute(total * 1000 + 350);
+    stage.setCenter("<div class='mid'>よく聞いてください</div><div class='small'>" + st.seq.length + " 音</div>");
+    st.seq.forEach((s, i) => {
+      setTimeout(() => { stage.clearHold(); if (st.hint) stage.hold(s, 1); }, (0.1 + i * gap) * 1000);
+      setTimeout(() => stage.hold(s, 0), (0.1 + i * gap + len) * 1000);
+    });
+    setTimeout(() => {
+      st.busy = false; st.phase = "play"; st.pos = 0;
+      stage.clearHold();
+      stage.setCenter("<div class='mid'>どうぞ</div><div class='small'>" + (st.mode === "simon" ? st.seq.length + " 音を同じ順に吹いてください" : "同じ高さの笛を吹いてください") + "</div>");
+    }, (total + 0.4) * 1000);
+  }
+  function onBlow(ev) {
+    if (st.phase !== "play") return;
+    const want = st.seq[st.pos];
+    if (ev.slot === want) {
+      stage.flash(ev.slot, 1);
+      st.pos++;
+      if (st.pos >= st.seq.length) {
+        st.phase = "wait";
+        if (st.mode === "simon") {
+          st.score = st.seq.length;
+          if (st.score > st.best) { st.best = st.score; try { localStorage.setItem("irecorika.simon.best", String(st.best)); } catch (_) {} }
+          stage.setCenter("<div class='big' style='color:#6cf0c2'>○</div><div class='small'>" + st.seq.length + " 音できました</div>");
+        } else {
+          if (!st.missed) { st.tries++; st.right++; }
+          stage.setCenter("<div class='big' style='color:#6cf0c2'>○ " + IRK.noteName(ev.midi, "flat") + "</div><div class='small'>" + st.right + "/" + st.tries + "</div>");
+        }
+        setTimeout(nextRound, 700);
+      }
+    } else {
+      if (st.mode === "simon") {
+        st.phase = "over";
+        stage.mark(want, { color: "#ffffff", alpha: 0.5, label: "▲" });
+        stage.setCenter("<div class='big' style='color:#ff6b6b'>✕</div><div class='mid'>" + st.pos + "音目は " + IRK.noteName(IRK.slotToMidi(want), "flat") + " でした</div>"
+          + "<div class='small'>記録 " + (st.seq.length - 1) + "　最高 " + st.best + "　「始める」でもう一度</div>");
+      } else {
+        if (!st.missed) st.tries++;
+        st.missed = true;
+        stage.mark(want, { color: "#ffffff", alpha: 0.4 });
+        stage.setCenter("<div class='mid' style='color:#ff6b6b'>✕ " + IRK.noteName(ev.midi, "flat") + " ではありません</div><div class='small'>光った笛が正解です。吹くと次へ進みます（" + st.right + "/" + st.tries + "）</div>");
+      }
+    }
+  }
+
+  const det = IRKAudio.Detector({
+    onNote(ev) {
+      if (st.phase === "play") { stage.clearHold(); stage.hold(ev.slot, 0.6); }
+      onBlow(ev);
+      if (st.mode === "ear" && st.phase === "play" && ev.slot === st.seq[0]) stage.clearMarks();
+    },
+    onOff(ev) { if (!ev.changed && st.phase !== "listen") stage.hold(ev.slot, 0); },
+  });
+  stage.attachDetector(det);
+  idle();
+})();
+</script>
+</body>
+</html>

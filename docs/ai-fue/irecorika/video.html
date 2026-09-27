@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>動画と一緒に — iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+<style>
+  #vbox { position: absolute; top: 0; bottom: 0; z-index: 1; display: flex; align-items: center; justify-content: center; }
+  #vbox iframe, #vbox video { width: 100%; height: 100%; border: 0; background: #000; }
+  #irk-center { z-index: 2; }
+  .irk-zone { z-index: 3; }
+</style>
+</head>
+<body>
+<script src="lib/fft_peak.js?v=1"></script>
+<script src="lib/irk-common.js?v=1"></script>
+<script src="lib/irk-audio.js?v=1"></script>
+<script src="lib/irk-stage.js?v=1"></script>
+<script>
+/* 動画と一緒に：YouTube の動画（または手元の動画ファイル）を流しながら笛を吹く。
+ * 指の操作面で、再生・5秒戻る・区間の繰り返し（A点とB点）・速さを変えられるので、
+ * 両手でスマートフォンを持ったまま、難しいところを遅くして何度も練習できる。
+ * 動画は板の範囲に出し、透けて見えるようにして、吹いている笛の帯の光も重ねる。
+ *
+ * 動画の音は笛と同じ高さの音を含むので、マイクに回り込むと帯が勝手に光る。
+ * 気になるときは「持ち方と位置合わせ」でエコーキャンセルを入れるか、しきい値を上げる。 */
+(function () {
+  "use strict";
+  let vbox = null;
+  const st = { kind: null, yt: null, video: null, a: null, b: null, rate: 1, opacity: 0.55 };
+
+  const panel = "<fieldset><legend>動画</legend><div class='row'>"
+    + "<label>YouTube の URL <input type='url' id='url' placeholder='https://www.youtube.com/watch?v=…' style='width:22em'></label>"
+    + "<button class='btn small' id='loadYt'>読み込む</button></div>"
+    + "<div class='row'><label>手元の動画ファイル <input type='file' id='file' accept='video/*,audio/*'></label></div>"
+    + "<div class='row'><label>動画の濃さ <input type='range' id='opacity' min='0.1' max='1' step='0.05' value='0.55'></label>"
+    + "<span class='note'>薄くすると、吹いている笛の光が動画の上に見えます。</span></div>"
+    + "<p class='note'>YouTube は最初の1回だけ、動画の上の再生ボタンを直接押す必要があることがあります。"
+    + "その後は左の「再生／一時停止」で操作できます。動画の音で帯が勝手に光るときは、エコーキャンセルを試してください（持ち方と位置合わせのページ）。</p></fieldset>";
+
+  const stage = IRKStage.create({
+    title: "動画と一緒に",
+    desc: "YouTube の動画や手元の動画を流しながら笛を吹きます。左右の操作面で、再生・5秒戻る・区間の繰り返し・速さの変更ができます。",
+    panel,
+    pads: {
+      left: [{ id: "play", label: "再生／一時停止" }, { id: "back", label: "5秒戻る" }, { id: "ab", label: "区間の繰り返し", sub: "A点を置く" }, { id: "fwd", label: "5秒進む" }],
+      right: [{ id: "rate", label: "速さ", sub: "100%" }, { id: "volDown", label: "音量 −" }, { id: "volUp", label: "音量 ＋" }, { id: "hide", label: "動画を隠す", toggle: true }],
+    },
+    onStart: async () => { await det.start(); },
+    onLayout(geo) {
+      if (!vbox) return;
+      vbox.style.left = Math.max(0, geo.plate.x0) + "px";
+      vbox.style.width = Math.max(0, Math.min(geo.width, geo.plate.x1) - Math.max(0, geo.plate.x0)) + "px";
+    },
+    onPad(id, down) {
+      if (id === "hide") { vbox.style.visibility = down ? "hidden" : "visible"; return; }
+      if (!down) return;
+      if (id === "play") togglePlay();
+      if (id === "back") seek(-5);
+      if (id === "fwd") seek(5);
+      if (id === "ab") ab();
+      if (id === "rate") { const rs = [1, 0.75, 0.5]; st.rate = rs[(rs.indexOf(st.rate) + 1) % rs.length]; setRate(st.rate); stage.setPad("rate", "速さ", Math.round(st.rate * 100) + "%"); }
+      if (id === "volDown") vol(-15);
+      if (id === "volUp") vol(15);
+    },
+  });
+  vbox = IRKStage.h("div", { id: "vbox" });
+  document.getElementById("irk-stage").appendChild(vbox);
+  stage.layout();
+  const $ = id => document.getElementById(id);
+  $("opacity").oninput = () => { st.opacity = parseFloat($("opacity").value); vbox.style.opacity = st.opacity; };
+  vbox.style.opacity = st.opacity;
+
+  // ---------------------------------------------------------------- 読み込み
+  function ytId(u) {
+    const m = String(u).match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
+    return m ? m[1] : (/^[\w-]{11}$/.test(u) ? u : null);
+  }
+  $("loadYt").onclick = () => {
+    const id = ytId($("url").value.trim());
+    if (!id) { alert("YouTube の URL を読み取れませんでした。"); return; }
+    try { localStorage.setItem("irecorika.video.last", $("url").value.trim()); } catch (_) {}
+    loadYt(id);
+  };
+  try { $("url").value = localStorage.getItem("irecorika.video.last") || ""; } catch (_) {}
+  function loadYt(id) {
+    vbox.innerHTML = "<div id='ytp'></div>";
+    st.kind = "yt";
+    const make = () => {
+      st.yt = new YT.Player("ytp", { videoId: id, width: "100%", height: "100%",
+        playerVars: { playsinline: 1, controls: 1, rel: 0, modestbranding: 1 } });
+    };
+    if (window.YT && window.YT.Player) make();
+    else {
+      window.onYouTubeIframeAPIReady = make;
+      const s = document.createElement("script");
+      s.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(s);
+    }
+  }
+  $("file").onchange = () => {
+    const f = $("file").files[0];
+    if (!f) return;
+    vbox.innerHTML = "";
+    const v = document.createElement("video");
+    v.src = URL.createObjectURL(f);
+    v.playsInline = true; v.controls = false;
+    vbox.appendChild(v);
+    st.video = v; st.kind = "file";
+  };
+
+  // ---------------------------------------------------------------- 操作
+  function now() { return st.kind === "yt" ? (st.yt && st.yt.getCurrentTime ? st.yt.getCurrentTime() : 0) : (st.video ? st.video.currentTime : 0); }
+  function playing() { return st.kind === "yt" ? (st.yt && st.yt.getPlayerState && st.yt.getPlayerState() === 1) : (st.video && !st.video.paused); }
+  function togglePlay() {
+    if (st.kind === "yt" && st.yt && st.yt.playVideo) playing() ? st.yt.pauseVideo() : st.yt.playVideo();
+    if (st.kind === "file" && st.video) playing() ? st.video.pause() : st.video.play();
+  }
+  function seekTo(t) {
+    if (st.kind === "yt" && st.yt && st.yt.seekTo) st.yt.seekTo(Math.max(0, t), true);
+    if (st.kind === "file" && st.video) st.video.currentTime = Math.max(0, t);
+  }
+  function seek(d) { seekTo(now() + d); }
+  function setRate(r) {
+    if (st.kind === "yt" && st.yt && st.yt.setPlaybackRate) st.yt.setPlaybackRate(r);
+    if (st.kind === "file" && st.video) st.video.playbackRate = r;
+  }
+  function vol(d) {
+    if (st.kind === "yt" && st.yt && st.yt.getVolume) st.yt.setVolume(Math.max(0, Math.min(100, st.yt.getVolume() + d)));
+    if (st.kind === "file" && st.video) st.video.volume = Math.max(0, Math.min(1, st.video.volume + d / 100));
+  }
+  function ab() {
+    if (st.a === null) { st.a = now(); stage.setPad("ab", "区間の繰り返し", "B点を置く"); }
+    else if (st.b === null) { st.b = Math.max(st.a + 0.5, now()); stage.setPad("ab", "区間の繰り返し", "解除する"); stage.setPadOn("ab", true); seekTo(st.a); }
+    else { st.a = null; st.b = null; stage.setPad("ab", "区間の繰り返し", "A点を置く"); stage.setPadOn("ab", false); }
+  }
+  setInterval(() => {
+    if (st.a !== null && st.b !== null && now() >= st.b) seekTo(st.a);
+    const t = now();
+    stage.setStatus(st.kind ? Math.floor(t / 60) + ":" + String(Math.floor(t % 60)).padStart(2, "0") + (st.a !== null ? " A" + st.a.toFixed(0) : "") + (st.b !== null ? "–B" + st.b.toFixed(0) : "") : "");
+  }, 100);
+
+  const det = IRKAudio.Detector({
+    onNote(ev) { stage.clearHold(); stage.hold(ev.slot, 1); stage.setCenter("<div class='big'>" + IRK.noteName(ev.midi, "sharp") + "</div>"); },
+    onOff(ev) { if (!ev.changed) { stage.hold(ev.slot, 0); stage.flash(ev.slot, 0.6); stage.setCenter(""); } },
+  });
+  stage.attachDetector(det);
+})();
+</script>
+</body>
+</html>

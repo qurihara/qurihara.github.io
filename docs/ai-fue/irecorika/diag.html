@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>実機の診断 — iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+<style>
+  canvas.spec { width: 100%; height: 160px; background: #0c0f16; border: 1px solid var(--line); border-radius: 8px; display: block; }
+  .kv { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; font-size: 14px; }
+  .kv div { background: #10131b; border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+  .kv b { display: block; font-size: 18px; }
+  .flutes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .flutes div { border: 1px solid var(--line); border-radius: 8px; padding: 6px; text-align: center; font-size: 13px; background: #10131b; }
+  .flutes div.done { border-color: var(--accent); }
+  .flutes div.now { background: #1f6f58; }
+  .flutes b { display: block; font-size: 16px; }
+  #touch { height: 180px; border: 1px dashed var(--line); border-radius: 10px; position: relative; touch-action: none; background: #0c0f16; }
+  #touch i { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 22px; background: rgba(108,240,194,0.5); }
+  pre.log { background: #0c0f16; border: 1px solid var(--line); border-radius: 8px; padding: 8px; white-space: pre-wrap; font-size: 12px; max-height: 240px; overflow: auto; }
+</style>
+</head>
+<body class="irk-doc">
+<div class="doc">
+  <h1>実機の診断</h1>
+  <div class="note">iRecorika <span id="ver"></span>　<a href="index.html">一覧へ戻る</a></div>
+  <p>このスマートフォンで iRecorika が成り立つかを測ります。結果は最後の「まとめ」に集まるので、写して記録に残せます。</p>
+
+  <h2>1. マイクと検出</h2>
+  <div class="row"><button class="btn primary" id="micBtn">マイクを開く</button>
+    <label><input type="checkbox" id="ec"> エコーキャンセルを使う</label><span class="note" id="micState"></span></div>
+  <canvas class="spec" id="spec"></canvas>
+  <div class="note">横軸は 1000〜4000 Hz。緑の範囲が検出に使う音域（1600〜3250 Hz）、縦線が12本の笛の理論上の高さです。</div>
+  <div class="kv" id="live"></div>
+
+  <h2>2. 12本の検品</h2>
+  <p>0番（G#6）から11番（G7）まで順に1本ずつ、1秒ほど吹いてください。吹いた笛の高さを測り、理論上の高さとのずれ（セント）を出します。
+  ずれの中央値を「笛全体の音程のずれ」として設定に入れられます。</p>
+  <div class="flutes" id="flutes"></div>
+  <div class="row"><button class="btn" id="fluteReset">測り直す</button><button class="btn" id="fluteApply">ずれの中央値を設定に入れる</button><span class="note" id="fluteSum"></span></div>
+
+  <h2>3. スピーカーの音の回り込み</h2>
+  <p>スマートフォンから試験の音を鳴らし、マイクの笛の音域にどれだけ入るかを測ります。笛の板を載せ、吹かずに静かにしてから押してください（約12秒）。
+  「検出のしきい値との差」が負なら、その音は笛の検出を乱しません。</p>
+  <div class="row"><button class="btn" id="bleedBtn">回り込みを測る</button></div>
+  <table class="grid" id="bleed"></table>
+
+  <h2>4. 遅延</h2>
+  <p>音の出口の遅れはブラウザが報告する値です。「拍に合わせて叩く」では、メトロノームに合わせて下の枠を8回以上叩くと、叩いた時刻と拍のずれの平均を出します。
+  ずれが大きいほど、指で鳴らす楽器として遅れを感じやすくなります。</p>
+  <div class="kv" id="lat"></div>
+  <div class="row"><button class="btn" id="tapStart">拍に合わせて叩く（100 BPM）</button></div>
+  <div id="tapArea" style="height:90px;border:1px dashed var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;touch-action:none">ここを叩く</div>
+  <p class="note" id="tapRes"></p>
+
+  <h2>5. 傾きと揺れのセンサ</h2>
+  <div class="row"><button class="btn" id="motionBtn">センサを読む</button></div>
+  <div class="kv" id="motion"></div>
+
+  <h2>6. 同時に触れる指</h2>
+  <p>枠の中に指を何本でも置いてください。同時に認識できた最大の本数を記録します。</p>
+  <div id="touch"></div>
+  <p class="note" id="touchRes">最大 0 本</p>
+
+  <h2>7. 端末</h2>
+  <div class="kv" id="dev"></div>
+
+  <h2>まとめ</h2>
+  <div class="row"><button class="btn" id="copyBtn">まとめを写す</button></div>
+  <pre class="log" id="summary"></pre>
+</div>
+
+<script src="lib/fft_peak.js?v=1"></script>
+<script src="lib/irk-common.js?v=1"></script>
+<script src="lib/irk-audio.js?v=1"></script>
+<script>
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  $("ver").textContent = IRK.VERSION;
+  const S = IRK.load();
+  $("ec").checked = S.echoCancel;
+  const R = {};   // まとめに載せる結果
+  function kv(el, obj) { el.innerHTML = Object.entries(obj).map(([k, v]) => "<div>" + k + "<b>" + v + "</b></div>").join(""); }
+
+  // ---------------------------------------------------------------- 1. マイク
+  let det = null, lastFr = null;
+  $("micBtn").onclick = async () => {
+    IRK.update({ echoCancel: $("ec").checked });
+    if (det) det.stop();
+    det = IRKAudio.Detector({ onNote: onFluteNote, onOff: onFluteOff, onFrame: fr => { lastFr = fr; onFrameForFlute(fr); } });
+    const ok = await det.start();
+    $("micState").textContent = ok ? (det.sim ? "模擬入力で動いています" : "マイクを開きました") : "マイクを開けませんでした（許可が必要です）";
+    R.mic = ok ? "開けた（エコーキャンセル " + ($("ec").checked ? "あり" : "なし") + "）" : "開けなかった";
+    const ac = IRKAudio.ctx();
+    R.sampleRate = ac.sampleRate;
+    latency();
+    drawSpec();
+  };
+  $("ec").onchange = () => { if (det) $("micBtn").click(); };
+  function drawSpec() {
+    const cv = $("spec"), g = cv.getContext("2d");
+    const W = cv.clientWidth, H = cv.clientHeight, dpr = devicePixelRatio || 1;
+    cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.fillStyle = "#0c0f16"; g.fillRect(0, 0, W, H);
+    const f0 = 1000, f1 = 4000, x = f => (f - f0) / (f1 - f0) * W, y = db => H - (db + 140) / 120 * H;
+    g.fillStyle = "rgba(108,240,194,0.08)"; g.fillRect(x(IRKAudio.BAND_LO), 0, x(IRKAudio.BAND_HI) - x(IRKAudio.BAND_LO), H);
+    g.strokeStyle = "rgba(255,255,255,0.15)";
+    for (const f of IRK.FLUTE.freqs) { g.beginPath(); g.moveTo(x(f), 0); g.lineTo(x(f), H); g.stroke(); }
+    const fr = lastFr;
+    if (fr) {
+      g.strokeStyle = "#6cf0c2"; g.beginPath();
+      for (let k = Math.floor(f0 / fr.binHz); k * fr.binHz <= f1; k++) {
+        const xx = x(k * fr.binHz), yy = y(fr.spectrum[k]);
+        k === Math.floor(f0 / fr.binHz) ? g.moveTo(xx, yy) : g.lineTo(xx, yy);
+      }
+      g.stroke();
+      if (fr.onDb !== null) { g.strokeStyle = "#ffb35c"; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(0, y(fr.onDb)); g.lineTo(W, y(fr.onDb)); g.stroke(); g.setLineDash([]); }
+      const sl = IRK.freqToSlot(fr.freq, S.centsOffset);
+      kv($("live"), {
+        "山の周波数": Math.round(fr.freq) + " Hz",
+        "山の強さ": fr.level.toFixed(1) + " dB",
+        "暗騒音": fr.noise === null ? "—" : fr.noise.toFixed(1) + " dB",
+        "しきい値": fr.onDb === null ? "—" : fr.onDb.toFixed(1) + " dB",
+        "際立ち": fr.prominence.toFixed(1) + " dB",
+        "判定": fr.cur ? fr.cur.slot + "番 " + IRK.noteName(fr.cur.midi, "sharp") + "（" + (sl ? (sl.cents > 0 ? "+" : "") + sl.cents : "?") + "セント）" : "鳴っていない",
+      });
+      R.noise = fr.noise === null ? null : fr.noise.toFixed(1);
+    }
+    requestAnimationFrame(drawSpec);
+  }
+
+  // ---------------------------------------------------------------- 2. 検品
+  const fl = { cur: null, freqs: [], res: new Array(12).fill(null) };
+  function fluteGrid() {
+    $("flutes").innerHTML = "";
+    for (let i = 0; i < 12; i++) {
+      const r = fl.res[i];
+      const d = document.createElement("div");
+      d.className = (r ? "done" : "") + (fl.cur && fl.cur.slot === i ? " now" : "");
+      d.innerHTML = i + "番 " + IRK.noteName(IRK.slotToMidi(i), "sharp") + "<b>" + (r ? (r.cents > 0 ? "+" : "") + r.cents + "¢" : "—") + "</b>" + (r ? Math.round(r.freq) + " Hz" : IRK.FLUTE.freqs[i].toFixed(0) + " Hz");
+      $("flutes").appendChild(d);
+    }
+    const cs = fl.res.filter(Boolean).map(r => r.cents).sort((a, b) => a - b);
+    const med = cs.length ? cs[cs.length >> 1] : null;
+    fl.median = med;
+    $("fluteSum").textContent = cs.length ? cs.length + "本を測りました。ずれの中央値 " + (med > 0 ? "+" : "") + med + " セント、最大 " + Math.max.apply(null, cs.map(Math.abs)) + " セント" : "";
+    R.flutes = fl.res.map((r, i) => i + ":" + (r ? (r.cents > 0 ? "+" : "") + r.cents : "未")).join(" ");
+    R.fluteMedian = med;
+  }
+  function onFluteNote(ev) { fl.cur = { slot: ev.slot, freqs: [] }; fluteGrid(); }
+  function onFrameForFlute(fr) { if (fl.cur && fr.cur && fr.cur.slot === fl.cur.slot) fl.cur.freqs.push(fr.freq); }
+  function onFluteOff(ev) {
+    if (!fl.cur || fl.cur.freqs.length < 10) { fl.cur = null; fluteGrid(); return; }
+    const f = fl.cur.freqs.slice().sort((a, b) => a - b)[fl.cur.freqs.length >> 1];
+    const cents = Math.round(1200 * Math.log2(f / IRK.FLUTE.freqs[fl.cur.slot]));
+    fl.res[fl.cur.slot] = { freq: f, cents };
+    fl.cur = null; fluteGrid();
+  }
+  $("fluteReset").onclick = () => { fl.res.fill(null); fluteGrid(); };
+  $("fluteApply").onclick = () => { if (fl.median !== null && fl.median !== undefined) { IRK.update({ centsOffset: fl.median }); alert("笛全体の音程のずれを " + fl.median + " セントに設定しました。"); } };
+  fluteGrid();
+
+  // ---------------------------------------------------------------- 3. 回り込み
+  $("bleedBtn").onclick = async () => {
+    if (!det) { alert("先に「マイクを開く」を押してください。"); return; }
+    const ac = IRKAudio.ctx(), bus = IRKAudio.bus();
+    const tests = [
+      ["無音（基準）", () => {}],
+      ["伴奏の和音（保護あり）", t => { bus.setGuard(true); IRKAudio.voicing(8, "", 55).forEach(n => IRKAudio.note(n, { type: "organ", vel: 0.3, when: t, dur: 1.4 })); IRKAudio.note(44, { type: "bass", vel: 0.5, when: t, dur: 1.4 }); }],
+      ["同じ和音（保護なし）", t => { bus.setGuard(false); IRKAudio.voicing(8, "", 55).forEach(n => IRKAudio.note(n, { type: "organ", vel: 0.3, when: t, dur: 1.4 })); IRKAudio.note(44, { type: "bass", vel: 0.5, when: t, dur: 1.4 }); }],
+      ["ドラム（保護あり）", t => { bus.setGuard(true); for (let i = 0; i < 8; i++) IRKAudio.drum(["kick", "hat", "snare", "hat"][i % 4], t + i * 0.18, 0.9); }],
+      ["ドラム（保護なし）", t => { bus.setGuard(false); for (let i = 0; i < 8; i++) IRKAudio.drum(["kick", "hat", "snare", "hat"][i % 4], t + i * 0.18, 0.9); }],
+      ["笛と同じ高さの音 C7（素通し）", t => { IRKAudio.note(96, { type: "triangle", vel: 0.3, when: t, dur: 1.4, dest: bus.rawOut }); }],
+    ];
+    const rows = [];
+    $("bleed").innerHTML = "<tr><th>鳴らした音</th><th>笛の音域の山（最大）</th><th>検出のしきい値との差</th><th>誤って検出した回数</th></tr>";
+    for (const [name, fn] of tests) {
+      const t = ac.currentTime + 0.2;
+      fn(t);
+      let peak = -200, falses = 0;
+      const unsub = { on: true };
+      const onNote = () => { if (unsub.on) falses++; };
+      det.on("note", onNote);
+      const t1 = performance.now();
+      await new Promise(res => {
+        const iv = setInterval(() => {
+          const fr = det.last();
+          if (fr && performance.now() - t1 > 250) peak = Math.max(peak, fr.level);
+          if (performance.now() - t1 > 1800) { clearInterval(iv); res(); }
+        }, 15);
+      });
+      unsub.on = false;
+      const th = det.tracker.onDb();
+      const diff = th === null ? null : peak - th;
+      rows.push([name, peak.toFixed(1) + " dB", diff === null ? "—" : (diff > 0 ? "+" : "") + diff.toFixed(1) + " dB", falses]);
+      $("bleed").insertAdjacentHTML("beforeend", "<tr><td>" + rows[rows.length - 1].join("</td><td>") + "</td></tr>");
+    }
+    bus.setGuard(IRK.load().guard);
+    R.bleed = rows.map(r => r[0] + "=" + r[2] + "（誤検出" + r[3] + "）").join("、");
+    summary();
+  };
+
+  // ---------------------------------------------------------------- 4. 遅延
+  function latency() {
+    const ac = IRKAudio.ctx();
+    const o = {
+      "基本の遅れ": ac.baseLatency !== undefined ? (ac.baseLatency * 1000).toFixed(1) + " ms" : "報告なし",
+      "出口の遅れ": ac.outputLatency !== undefined && ac.outputLatency ? (ac.outputLatency * 1000).toFixed(1) + " ms" : "報告なし",
+      "検出の窓": (2048 / ac.sampleRate * 1000).toFixed(0) + " ms",
+      "標本化周波数": ac.sampleRate + " Hz",
+    };
+    kv($("lat"), o);
+    R.latency = Object.entries(o).map(([k, v]) => k + " " + v).join("、");
+  }
+  let tap = null;
+  $("tapStart").onclick = () => {
+    const ac = IRKAudio.ctx();
+    latency();
+    const beat = 0.6, t0 = ac.currentTime + 0.5, beats = [];
+    for (let i = 0; i < 16; i++) { beats.push(t0 + i * beat); IRKAudio.drum("rim", t0 + i * beat, i % 4 === 0 ? 0.9 : 0.6, IRKAudio.bus().rawOut); }
+    tap = { beats, offs: [] };
+    $("tapRes").textContent = "拍に合わせて枠を叩いてください…";
+    setTimeout(() => {
+      const o = tap.offs;
+      if (o.length < 4) { $("tapRes").textContent = "叩いた回数が足りませんでした。"; return; }
+      const mean = o.reduce((a, b) => a + b, 0) / o.length;
+      const sd = Math.sqrt(o.reduce((a, b) => a + (b - mean) * (b - mean), 0) / o.length);
+      $("tapRes").textContent = "拍とのずれの平均 " + (mean > 0 ? "+" : "") + mean.toFixed(0) + " ms（ばらつき " + sd.toFixed(0) + " ms、" + o.length + "回）。正なら拍より遅れて叩いています。";
+      R.tap = "平均 " + mean.toFixed(0) + " ms、ばらつき " + sd.toFixed(0) + " ms";
+      summary();
+    }, (0.5 + 16 * beat + 0.3) * 1000);
+  };
+  $("tapArea").addEventListener("pointerdown", ev => {
+    ev.preventDefault();
+    const ac = IRKAudio.ctx();
+    IRKAudio.drum("clap", 0, 0.6);
+    if (!tap) return;
+    // 叩いた時刻を、スピーカーから音が出ている時刻の物差しに直す
+    const ts = ac.getOutputTimestamp ? ac.getOutputTimestamp() : null;
+    const at = ts && ts.performanceTime ? ts.contextTime + (ev.timeStamp - ts.performanceTime) / 1000 : ac.currentTime;
+    let best = null;
+    for (const b of tap.beats) if (best === null || Math.abs(at - b) < Math.abs(at - best)) best = b;
+    if (best !== null && Math.abs(at - best) < 0.25) tap.offs.push((at - best) * 1000);
+  });
+
+  // ---------------------------------------------------------------- 5. センサ
+  $("motionBtn").onclick = async () => {
+    const ok = await IRK.motion.start(m => {
+      kv($("motion"), { "左右の傾き": m.roll.toFixed(1) + "°", "前後の傾き": m.pitch.toFixed(1) + "°", "揺れ": m.shake.toFixed(2),
+        "重力 x": m.raw.x.toFixed(2), "重力 y": m.raw.y.toFixed(2), "重力 z": m.raw.z.toFixed(2),
+        "画面の角度": (screen.orientation ? screen.orientation.angle : "?") + "°" });
+      R.motion = "読めた";
+    });
+    if (!ok) { $("motion").textContent = "センサを使えません。"; R.motion = "使えない"; }
+    setTimeout(() => { if (!IRK.motion.last().ok) { $("motion").textContent = "センサの値が来ません（パソコンではこうなります）。"; R.motion = R.motion || "値が来ない"; summary(); } }, 1500);
+  };
+
+  // ---------------------------------------------------------------- 6. 指
+  let maxTouch = 0;
+  const touches = new Map();
+  const ta = $("touch");
+  function drawTouch() {
+    ta.innerHTML = "";
+    touches.forEach(p => { const i = document.createElement("i"); i.style.left = p.x + "px"; i.style.top = p.y + "px"; ta.appendChild(i); });
+    maxTouch = Math.max(maxTouch, touches.size);
+    $("touchRes").textContent = "いま " + touches.size + " 本　最大 " + maxTouch + " 本";
+    R.touch = maxTouch;
+  }
+  ta.addEventListener("pointerdown", ev => { ev.preventDefault(); const r = ta.getBoundingClientRect(); touches.set(ev.pointerId, { x: ev.clientX - r.left, y: ev.clientY - r.top }); drawTouch(); });
+  ta.addEventListener("pointermove", ev => { if (!touches.has(ev.pointerId)) return; const r = ta.getBoundingClientRect(); touches.set(ev.pointerId, { x: ev.clientX - r.left, y: ev.clientY - r.top }); drawTouch(); });
+  const tu = ev => { touches.delete(ev.pointerId); drawTouch(); summary(); };
+  ta.addEventListener("pointerup", tu); ta.addEventListener("pointercancel", tu);
+
+  // ---------------------------------------------------------------- 7. 端末
+  function dev() {
+    const w = Math.max(screen.width, screen.height), h = Math.min(screen.width, screen.height);
+    const mm = IRK.load().mmPerPx || IRK.defaultMmPerPx();
+    const o = { "画面（CSS画素）": w + " × " + h, "画素の比": devicePixelRatio, "1画素の長さ": mm.toFixed(4) + " mm",
+                "画面の長辺": (w * mm).toFixed(1) + " mm", "笛の板が占める割合": Math.round(IRK.FLUTE.plateSpanMm / (w * mm) * 100) + "%",
+                "マルチタッチの報告": navigator.maxTouchPoints + " 点" };
+    kv($("dev"), o);
+    R.device = navigator.userAgent;
+    R.screen = Object.entries(o).map(([k, v]) => k + " " + v).join("、");
+  }
+  dev();
+
+  function summary() {
+    const lines = [
+      "iRecorika " + IRK.VERSION + " 実機の診断　" + new Date().toLocaleString(),
+      "端末: " + R.device, "画面: " + R.screen, "持ち方: " + IRK.describe(IRK.load()),
+      "マイク: " + (R.mic || "未測定") + "　暗騒音 " + (R.noise || "—") + " dB",
+      "12本の検品: " + (R.flutes || "未測定") + "（中央値 " + (R.fluteMedian === undefined || R.fluteMedian === null ? "—" : R.fluteMedian) + "）",
+      "回り込み: " + (R.bleed || "未測定"),
+      "遅延: " + (R.latency || "未測定") + "　拍に合わせて叩く: " + (R.tap || "未測定"),
+      "センサ: " + (R.motion || "未測定"), "同時に触れる指: 最大 " + (R.touch || 0) + " 本",
+    ];
+    $("summary").textContent = lines.join("\n");
+  }
+  setInterval(summary, 1000);
+  $("copyBtn").onclick = () => navigator.clipboard && navigator.clipboard.writeText($("summary").textContent);
+})();
+</script>
+</body>
+</html>

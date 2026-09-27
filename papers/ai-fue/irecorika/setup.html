@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>持ち方と位置合わせ — iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+<style>
+  .opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+  .opt { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: #10131b; }
+  .opt h3 { margin: 0 0 6px; font-size: 15px; }
+  .opt label { display: block; margin: 4px 0; }
+  #summary { border-left: 3px solid var(--accent); padding: 6px 12px; background: #0f1a17; border-radius: 6px; }
+  #cal { position: fixed; inset: 0; background: #07080c; z-index: 40; display: none; touch-action: none; user-select: none; }
+  #cal.on { display: block; }
+  #calCanvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #calBar { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; padding: 6px; background: rgba(7,8,12,0.85); }
+  #calBar .btn { padding: 8px 12px; font-size: 14px; }
+  #calInfo { position: absolute; left: 0; right: 0; top: 4px; text-align: center; font-size: 13px; color: var(--dim); pointer-events: none; }
+</style>
+</head>
+<body class="irk-doc">
+<div class="doc">
+  <h1>持ち方と位置合わせ</h1>
+  <div class="note">iRecorika <span id="ver"></span>　<a href="index.html">一覧へ戻る</a>　<a href="study.html">持ち方の検討</a></div>
+  <p>ここで決めた持ち方は、すべてのアプリで共通に使います（このスマートフォンのブラウザに保存します）。</p>
+
+  <div class="opts">
+    <div class="opt"><h3>1. 笛の板をどこに置くか</h3>
+      <label><input type="radio" name="placement" value="screen"> 画面の上に置く（透明な笛の真下を光らせられる）</label>
+      <label><input type="radio" name="placement" value="back"> 裏面に置く（画面はすべて触れる）</label></div>
+    <div class="opt"><h3>2. 吹くとき画面をどちらに向けるか</h3>
+      <label><input type="radio" name="facing" value="up"> 上に向ける（上側の8本の指が画面に触れる）</label>
+      <label><input type="radio" name="facing" value="down"> 下に向ける（親指2本だけが画面に触れる）</label></div>
+    <div class="opt"><h3>3. 低い音の笛が画面のどちら側か</h3>
+      <label><input type="radio" name="lowSide" value="left"> 左（吹き込み口を手前にして左から右へ高くなる、標準の並び）</label>
+      <label><input type="radio" name="lowSide" value="right"> 右</label></div>
+    <div class="opt"><h3>4. 画面に触れる指</h3>
+      <label><input type="radio" name="fingers" value="auto"> 画面の向きから決める</label>
+      <label><input type="radio" name="fingers" value="8"> 8本（片側4つずつの操作面）</label>
+      <label><input type="radio" name="fingers" value="2"> 2本（片側2つずつの操作面）</label></div>
+    <div class="opt"><h3>5. 片側4つの操作面の並べ方</h3>
+      <label><input type="radio" name="padLayout" value="rows"> 縦に4段（指先が短辺に沿って並ぶ持ち方）</label>
+      <label><input type="radio" name="padLayout" value="cols"> 横に4列（指先が長辺に沿って並ぶ持ち方）</label>
+      <label><input type="radio" name="padLayout" value="grid"> 2×2</label></div>
+    <div class="opt"><h3>6. 音名の書き方</h3>
+      <label><input type="radio" name="showNames" value="sharp"> C#7 のように書く</label>
+      <label><input type="radio" name="showNames" value="flat"> D♭7 のように書く</label>
+      <label><input type="radio" name="showNames" value="doremi"> ドレミで書く</label>
+      <label><input type="radio" name="showNames" value="none"> 書かない</label></div>
+  </div>
+
+  <p id="summary"></p>
+
+  <h2>画面の上の笛の位置を合わせる</h2>
+  <p>笛の板を画面の上に置く場合は、帯の位置を板に合わせます。裏面に置く場合も、帯を笛の真裏に合わせておくと、
+  吹いている穴の真裏が光ります。</p>
+  <ol>
+    <li>下の「位置合わせを始める」を押します。画面が横向きの全画面になり、12本の帯と板の輪郭が出ます。</li>
+    <li>画面のどこかを指で左右に動かすと、帯全体が動きます。板の輪郭を実物の板に重ねてください。</li>
+    <li>帯の間隔が実物とずれている場合は「間隔 −」「間隔 ＋」で合わせます。画面の下の物差しに本物の定規を当てて確かめることもできます。</li>
+    <li>「マイクで確かめる」を押して笛を吹くと、吹いた笛の帯が光ります。光った帯が吹いた笛の真下にあれば、合っています。</li>
+  </ol>
+  <div class="row"><button class="btn primary" id="calStart">位置合わせを始める</button>
+    <button class="btn" id="calReset">位置を初期値に戻す</button></div>
+  <p class="note" id="calNow"></p>
+
+  <h2>マイクの調整</h2>
+  <div class="opts">
+    <div class="opt"><h3>鳴っているとみなす強さ</h3>
+      <label>暗騒音から <input type="number" id="onMarginDb" min="6" max="30" step="1" style="width:5em"> dB 上</label>
+      <div class="note">周りがうるさくて勝手に光るときは大きく、弱く吹くと反応しないときは小さくします。</div></div>
+    <div class="opt"><h3>笛全体の音程のずれ</h3>
+      <label><input type="number" id="centsOffset" min="-80" max="80" step="1" style="width:5em"> セント</label>
+      <div class="note">刷った笛が全体に高い（低い）とき、そのずれを入れると判定の中心が合います。「実機の診断」の「12本の検品」で測れます。</div></div>
+    <div class="opt"><h3>エコーキャンセル</h3>
+      <label><input type="checkbox" id="echoCancel"> マイクのエコーキャンセルを使う</label>
+      <div class="note">スマートフォンの音が大きく回り込むときに試します。笛の音まで弱めることがあるので、既定では使いません。</div></div>
+  </div>
+  <div class="row"><button class="btn" id="resetAll">すべての設定を初期値に戻す</button></div>
+</div>
+
+<div id="cal">
+  <canvas id="calCanvas"></canvas>
+  <div id="calInfo"></div>
+  <div id="calBar">
+    <button class="btn" id="pitchMinus">間隔 −</button>
+    <button class="btn" id="pitchPlus">間隔 ＋</button>
+    <button class="btn" id="flip">低音の側を入れ替える</button>
+    <button class="btn" id="calMic">マイクで確かめる</button>
+    <button class="btn primary" id="calDone">完了</button>
+  </div>
+</div>
+
+<script src="lib/fft_peak.js?v=1"></script>
+<script src="lib/irk-common.js?v=1"></script>
+<script src="lib/irk-audio.js?v=1"></script>
+<script>
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  $("ver").textContent = IRK.VERSION;
+  let S = IRK.load();
+
+  function fill() {
+    S = IRK.load();
+    for (const name of ["placement", "facing", "lowSide", "fingers", "padLayout", "showNames"]) {
+      document.querySelectorAll("input[name=" + name + "]").forEach(r => { r.checked = (String(S[name]) === r.value); });
+    }
+    $("onMarginDb").value = S.onMarginDb;
+    $("centsOffset").value = S.centsOffset;
+    $("echoCancel").checked = S.echoCancel;
+    summary();
+  }
+  function summary() {
+    const f = IRK.fingerCount(S);
+    let t = "いまの持ち方：" + IRK.describe(S) + "。";
+    if (S.placement === "screen" && S.facing === "up") t += "吹いている笛が光るのが見え、指8本で左右の操作面を使えます。演奏者からも観客からも光が見える、見せる演奏に向いた持ち方です。";
+    if (S.placement === "screen" && S.facing === "down") t += "笛の板は下を向いた画面に付くので、スマートフォンの下面で吹きます。光は床の側を向き、演奏者からも観客からもほとんど見えません。親指2本で左右の操作面を使います。";
+    if (S.placement === "back" && S.facing === "up") t += "画面は全面が見えて8本の指で触れます。笛は裏にあるので、光は笛の真裏に出ます。練習や動画との合奏に向いた持ち方です。";
+    if (S.placement === "back" && S.facing === "down") t += "笛が上を向き、画面は下を向きます。親指2本で操作します。画面を見ずに演奏する使い方です。";
+    t += "　操作面は片側 " + (f === 2 ? 2 : 4) + " つずつ出ます。";
+    $("summary").textContent = t;
+    const geo = IRK.geometry(S, Math.max(innerWidth, innerHeight), Math.min(innerWidth, innerHeight));
+    $("calNow").textContent = "板の中心：画面の左端から " + (S.plateCenterMm === null ? "中央（初期値）" : S.plateCenterMm.toFixed(1) + " mm")
+      + "　1画素あたり " + geo.mmPerPx.toFixed(4) + " mm（笛の間隔 " + (IRK.FLUTE.pitchMm / geo.mmPerPx).toFixed(1) + " 画素）";
+  }
+  document.querySelectorAll("input[type=radio]").forEach(r => r.addEventListener("change", () => {
+    IRK.update({ [r.name]: r.value }); fill();
+  }));
+  $("onMarginDb").onchange = () => IRK.update({ onMarginDb: parseFloat($("onMarginDb").value) || 14 });
+  $("centsOffset").onchange = () => IRK.update({ centsOffset: parseFloat($("centsOffset").value) || 0 });
+  $("echoCancel").onchange = () => IRK.update({ echoCancel: $("echoCancel").checked });
+  $("resetAll").onclick = () => { if (confirm("すべての設定を初期値に戻しますか？")) { IRK.reset(); fill(); } };
+  $("calReset").onclick = () => { IRK.update({ plateCenterMm: null, mmPerPx: null }); fill(); };
+  fill();
+
+  // ---------------------------------------------------------------- 位置合わせ
+  const cal = $("cal"), cv = $("calCanvas");
+  let det = null, lit = -1, dragX = null, dragMm = 0;
+  $("calStart").onclick = async () => {
+    cal.classList.add("on");
+    await IRK.enterFullscreen();
+    draw();
+  };
+  $("calDone").onclick = () => { cal.classList.remove("on"); IRK.exitFullscreen(); fill(); };
+  $("pitchMinus").onclick = () => scale(1.004);
+  $("pitchPlus").onclick = () => scale(1 / 1.004);
+  function scale(k) {
+    const s = IRK.load();
+    IRK.update({ mmPerPx: (s.mmPerPx || IRK.defaultMmPerPx()) * k });
+  }
+  $("flip").onclick = () => { const s = IRK.load(); IRK.update({ lowSide: s.lowSide === "left" ? "right" : "left" }); };
+  $("calMic").onclick = async () => {
+    if (det) return;
+    det = IRKAudio.Detector({
+      onNote(ev) { lit = ev.slot; },
+      onOff(ev) { if (lit === ev.slot) lit = -1; },
+    });
+    const ok = await det.start();
+    $("calMic").textContent = ok ? "マイク：聞いています" : "マイクを使えません";
+  };
+  cv.addEventListener("pointerdown", ev => {
+    const s = IRK.load();
+    const geo = IRK.geometry(s, innerWidth, innerHeight);
+    dragX = ev.clientX;
+    dragMm = s.plateCenterMm === null ? innerWidth * geo.mmPerPx / 2 : s.plateCenterMm;
+    if (det && det.sim) { const sl = IRK.slotAtX(geo, ev.clientX); if (sl >= 0) det.simOn(sl); }
+  });
+  cv.addEventListener("pointermove", ev => {
+    if (dragX === null || (det && det.sim)) return;
+    const s = IRK.load();
+    const mmPerPx = s.mmPerPx || IRK.defaultMmPerPx();
+    IRK.update({ plateCenterMm: dragMm + (ev.clientX - dragX) * mmPerPx });
+  });
+  const up = () => { dragX = null; if (det && det.sim) det.simOff(); };
+  cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+
+  function draw() {
+    if (!cal.classList.contains("on")) return;
+    const s = IRK.load();
+    const dpr = devicePixelRatio || 1;
+    const W = innerWidth, H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.fillStyle = "#07080c"; g.fillRect(0, 0, W, H);
+    const geo = IRK.geometry(s, W, H);
+    // 板の輪郭
+    g.fillStyle = "rgba(108,240,194,0.07)";
+    g.fillRect(geo.plate.x0, 0, geo.plate.x1 - geo.plate.x0, H);
+    g.strokeStyle = "#6cf0c2"; g.lineWidth = 2;
+    g.strokeRect(geo.plate.x0, 1, geo.plate.x1 - geo.plate.x0, H - 2);
+    for (const l of geo.lanes) {
+      g.fillStyle = l.slot === lit ? IRK.slotColor(l.slot, 1) : IRK.slotColor(l.slot, 0.25);
+      g.fillRect(l.x - (IRK.FLUTE.widthMm / 2 - 0.3) / geo.mmPerPx, 30, (IRK.FLUTE.widthMm - 0.6) / geo.mmPerPx, H - 110);
+      g.fillStyle = "#fff"; g.font = "bold 13px sans-serif"; g.textAlign = "center";
+      g.fillText(String(l.slot), l.x, 48);
+      g.font = "10px sans-serif";
+      g.fillText(IRK.noteName(IRK.slotToMidi(l.slot), s.showNames === "none" ? "sharp" : s.showNames), l.x, 64);
+    }
+    // 物差し（50mm）
+    const x0 = 20, len = 50 / geo.mmPerPx, y = H - 70;
+    g.strokeStyle = "#fff"; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(x0, y); g.lineTo(x0 + len, y); g.stroke();
+    for (let mm = 0; mm <= 50; mm++) {
+      const x = x0 + mm / geo.mmPerPx, t = mm % 10 === 0 ? 12 : (mm % 5 === 0 ? 8 : 4);
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x, y - t); g.stroke();
+      if (mm % 10 === 0) { g.fillStyle = "#fff"; g.font = "10px sans-serif"; g.fillText(String(mm), x, y - 15); }
+    }
+    $("calInfo").textContent = "指で左右に動かして板に重ねる　板の中心 "
+      + (s.plateCenterMm === null ? (W * geo.mmPerPx / 2).toFixed(1) : s.plateCenterMm.toFixed(1)) + " mm　低音は" + (s.lowSide === "left" ? "左" : "右")
+      + "　物差しは 50 mm";
+    requestAnimationFrame(draw);
+  }
+})();
+</script>
+</body>
+</html>

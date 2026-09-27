@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ルーパー — iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+</head>
+<body>
+<script src="lib/fft_peak.js?v=1"></script>
+<script src="lib/irk-common.js?v=1"></script>
+<script src="lib/irk-audio.js?v=1"></script>
+<script src="lib/irk-stage.js?v=1"></script>
+<script>
+/* ルーパー：吹いたフレーズをマイクで録り、繰り返し再生する。その上に次のフレーズを重ねていく。
+ * 1本の笛で和音やカノンが作れる。
+ *
+ * 録った音は笛そのものの音なので、保護（笛の音域を抜く仕組み）を通さずに鳴らす。
+ * そのため重ね録りのときは再生中の音もマイクに入る。気になる場合はイヤホンをつなぐ。 */
+(function () {
+  "use strict";
+  const st = { layers: [], muted: [false, false, false, false, false, false, false, false], loopLen: 0, loopT0: 0,
+               state: "empty", recBuf: [], recFrom: 0, sources: [], comp: 0.08, useBeat: false, bpm: 90, bars: 2,
+               metro: false, maxLayers: 8 };
+
+  const panel = "<fieldset><legend>ループ</legend><div class='row'>"
+    + "<label><input type='checkbox' id='useBeat'> 長さを拍で決める</label>"
+    + "<label>速さ <input type='number' id='bpm' value='90' min='40' max='200' style='width:5em'></label>"
+    + "<label>小節 <select id='bars'><option>1</option><option selected>2</option><option>4</option></select></label>"
+    + "<label><input type='checkbox' id='metro'> メトロノーム（保護を通して低く鳴らす）</label>"
+    + "</div><div class='row'><label>録音のずれ補正 <input type='range' id='comp' min='0' max='300' value='80'> <span id='compv'>80</span> ms</label></div>"
+    + "<p class='note'>拍で決めない場合は、最初の録音を始めてから止めるまでがループの長さになります。重ね録りは1周したところで自動で終わります。"
+    + "重ねた音が遅れて聞こえるときは、ずれ補正を大きくしてください。</p></fieldset>";
+
+  const stage = IRKStage.create({
+    title: "ルーパー",
+    desc: "吹いたフレーズを録って繰り返し、その上に次のフレーズを重ねます。1本ずつ吹いて和音やカノンを作れます。",
+    panel,
+    pads: {
+      left: [{ id: "rec", label: "● 録音", sub: "もう一度で止める" }, { id: "play", label: "▶ 再生／停止" }, { id: "m0", label: "1層目", sub: "消音", toggle: true }, { id: "m1", label: "2層目", sub: "消音", toggle: true }],
+      right: [{ id: "undo", label: "1つ取り消す" }, { id: "clear", label: "全部消す" }, { id: "m2", label: "3層目", sub: "消音", toggle: true }, { id: "m3", label: "4層目", sub: "消音", toggle: true }],
+    },
+    onStart: async () => {
+      const ok = await det.start();
+      if (!ok) { stage.setCenter("<div class='mid warn'>マイクを使えません。</div>"); return; }
+      const ac = IRKAudio.ctx();
+      proc = ac.createScriptProcessor(2048, 1, 1);
+      det.analyser().connect(proc);
+      const sink = new GainNode(ac, { gain: 0 });
+      proc.connect(sink).connect(ac.destination);   // 出力へつないでおかないと処理が呼ばれない
+      proc.onaudioprocess = onAudio;
+      outGain = new GainNode(ac, { gain: 1 });
+      outGain.connect(IRKAudio.bus().rawOut);
+      draw();
+    },
+    onPad(id, down) {
+      if (id[0] === "m" && id.length === 2) { const k = parseInt(id[1], 10); st.muted[k] = down; applyMute(); return; }
+      if (!down) return;
+      if (id === "rec") recToggle();
+      if (id === "play") playToggle();
+      if (id === "undo") undo();
+      if (id === "clear") clearAll();
+    },
+  });
+  let proc = null, outGain = null;
+  const $ = id => document.getElementById(id);
+  $("useBeat").onchange = () => st.useBeat = $("useBeat").checked;
+  $("bpm").onchange = () => st.bpm = parseInt($("bpm").value, 10) || 90;
+  $("bars").onchange = () => st.bars = parseInt($("bars").value, 10);
+  $("metro").onchange = () => st.metro = $("metro").checked;
+  $("comp").oninput = () => { st.comp = parseInt($("comp").value, 10) / 1000; $("compv").textContent = $("comp").value; };
+
+  // ---------------------------------------------------------------- 録音
+  function onAudio(e) {
+    if (st.state !== "rec" && st.state !== "dub") return;
+    const x = e.inputBuffer.getChannelData(0);
+    st.recBuf.push({ t: e.playbackTime, data: new Float32Array(x) });
+    const ac = IRKAudio.ctx();
+    if (st.state === "rec" && st.useBeat && ac.currentTime - st.recFrom >= beatLen()) finishFirst();
+    if (st.state === "dub" && ac.currentTime - st.recFrom >= st.loopLen + 0.05) finishDub();
+  }
+  function beatLen() { return 60 / st.bpm * 4 * st.bars; }
+
+  function recToggle() {
+    const ac = IRKAudio.ctx();
+    if (st.state === "empty") {
+      st.state = "rec"; st.recBuf = []; st.recFrom = ac.currentTime;
+      if (st.useBeat) { st.loopLen = beatLen(); st.loopT0 = ac.currentTime; }
+    } else if (st.state === "rec") {
+      finishFirst();
+    } else if (st.state === "play" || st.state === "stopped") {
+      if (st.layers.length >= st.maxLayers) return;
+      if (st.state === "stopped") startPlayback();
+      st.state = "dub"; st.recBuf = []; st.recFrom = ac.currentTime;
+    } else if (st.state === "dub") {
+      finishDub();
+    }
+  }
+  /* 録った断片をつないで、ループ上の位置へ書き込んだバッファを作る */
+  function render(t0) {
+    const ac = IRKAudio.ctx();
+    const sr = ac.sampleRate;
+    const L = Math.round(st.loopLen * sr);
+    const out = new Float32Array(L);
+    const cover = new Uint8Array(L);
+    for (const ch of st.recBuf) {
+      let pos = Math.round((ch.t - st.comp - t0) * sr);
+      for (let i = 0; i < ch.data.length; i++) {
+        const p = pos + i;
+        const k = ((p % L) + L) % L;
+        if (p < 0 || cover[k]) continue;          // 1周より長く録れた分は捨てる（先に書いた方を残す）
+        out[k] = ch.data[i]; cover[k] = 1;
+      }
+    }
+    // 継ぎ目の雑音を消すため、ループの両端を5msずつ絞る
+    const f = Math.min(L >> 1, Math.round(0.005 * sr));
+    for (let i = 0; i < f; i++) { out[i] *= i / f; out[L - 1 - i] *= i / f; }
+    const buf = ac.createBuffer(1, L, sr);
+    buf.copyToChannel(out, 0);
+    return buf;
+  }
+  function finishFirst() {
+    const ac = IRKAudio.ctx();
+    if (!st.useBeat) { st.loopLen = Math.max(0.3, ac.currentTime - st.recFrom); st.loopT0 = st.recFrom; }
+    st.state = "play";
+    st.layers.push(render(st.loopT0));
+    // 1周目の終わりに合わせて再生を始める
+    startPlayback();
+  }
+  function finishDub() {
+    if (st.state !== "dub") return;
+    st.state = "play";
+    const buf = render(st.loopT0);
+    st.layers.push(buf);
+    addSource(buf, st.layers.length - 1);
+  }
+  // ---------------------------------------------------------------- 再生
+  function addSource(buf, idx) {
+    const ac = IRKAudio.ctx();
+    const src = new AudioBufferSourceNode(ac, { buffer: buf, loop: true });
+    const g = new GainNode(ac, { gain: st.muted[idx] ? 0 : 0.9 });
+    src.connect(g).connect(outGain);
+    const now = ac.currentTime + 0.02;
+    const off = ((now - st.loopT0) % st.loopLen + st.loopLen) % st.loopLen;
+    src.start(now, off);
+    st.sources[idx] = { src, g };
+  }
+  function startPlayback() {
+    stopPlayback();
+    st.layers.forEach((b, i) => addSource(b, i));
+    if (st.state === "stopped") st.state = "play";
+  }
+  function stopPlayback() {
+    st.sources.forEach(s => { if (s) { try { s.src.stop(); } catch (_) {} } });
+    st.sources = [];
+  }
+  function playToggle() {
+    if (st.state === "play") { stopPlayback(); st.state = "stopped"; }
+    else if (st.state === "stopped") { st.loopT0 = IRKAudio.ctx().currentTime; startPlayback(); st.state = "play"; }
+    else if (st.state === "dub") { finishDub(); }
+  }
+  function applyMute() {
+    st.sources.forEach((s, i) => { if (s) s.g.gain.setTargetAtTime(st.muted[i] ? 0 : 0.9, IRKAudio.ctx().currentTime, 0.02); });
+  }
+  function undo() {
+    if (st.state === "dub" || st.state === "rec") { st.state = st.layers.length ? "play" : "empty"; st.recBuf = []; return; }
+    if (!st.layers.length) return;
+    const i = st.layers.length - 1;
+    const s = st.sources[i];
+    if (s) { try { s.src.stop(); } catch (_) {} }
+    st.layers.pop(); st.sources.length = st.layers.length;
+    if (!st.layers.length) st.state = "empty";
+  }
+  function clearAll() { stopPlayback(); st.layers = []; st.state = "empty"; st.recBuf = []; }
+
+  // ---------------------------------------------------------------- 表示
+  let lastBeat = -1;
+  function draw() {
+    const ac = IRKAudio.ctx();
+    let pos = 0;
+    if (st.loopLen && (st.state === "play" || st.state === "dub")) pos = ((ac.currentTime - st.loopT0) % st.loopLen + st.loopLen) % st.loopLen / st.loopLen;
+    if (st.state === "rec" && st.useBeat) pos = (ac.currentTime - st.recFrom) / st.loopLen;
+    if (st.metro && st.useBeat && st.loopLen && st.state !== "empty") {
+      const beat = Math.floor(pos * 4 * st.bars);
+      if (beat !== lastBeat) { lastBeat = beat; IRKAudio.note(beat % 4 === 0 ? 84 : 79, { type: "sine", dur: 0.03, vel: 0.4 }); }
+    }
+    const label = { empty: "録音ボタンで始めます", rec: "● 1層目を録音中", play: "▶ 再生中", dub: "● 重ね録り中", stopped: "■ 停止中" }[st.state];
+    const deg = Math.round(pos * 360);
+    stage.setCenter("<div style='width:110px;height:110px;border-radius:55px;margin:0 auto 8px;background:conic-gradient("
+      + (st.state === "rec" || st.state === "dub" ? "#ff6b6b" : "#6cf0c2") + " " + deg + "deg,#1a1e29 0)'></div>"
+      + "<div class='mid'" + (st.state === "rec" || st.state === "dub" ? " style='color:#ff6b6b'" : "") + ">" + label + "</div>"
+      + "<div class='small'>" + st.layers.length + " 層" + (st.loopLen ? "　長さ " + st.loopLen.toFixed(2) + " 秒" : "") + "</div>");
+    stage.setPadOn("rec", st.state === "rec" || st.state === "dub");
+    stage.setPad("rec", st.state === "empty" ? "● 録音" : (st.state === "rec" || st.state === "dub") ? "■ 録音を止める" : "● 重ね録り", "");
+    requestAnimationFrame(draw);
+  }
+
+  const det = IRKAudio.Detector({
+    onNote(ev) { stage.clearHold(); stage.hold(ev.slot, 1); },
+    onOff(ev) { if (!ev.changed) { stage.hold(ev.slot, 0); stage.flash(ev.slot, 0.6); } },
+  });
+  stage.attachDetector(det);
+})();
+</script>
+</body>
+</html>

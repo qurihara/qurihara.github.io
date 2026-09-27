@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>傾きと揺れ — iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+</head>
+<body>
+<script src="lib/fft_peak.js?v=1"></script>
+<script src="lib/irk-common.js?v=1"></script>
+<script src="lib/irk-audio.js?v=1"></script>
+<script src="lib/irk-stage.js?v=1"></script>
+<script>
+/* 傾きと揺れ：吹いた音をスマートフォンが重ねて鳴らし、その音を傾きと揺れで変える。
+ *   左右に傾ける … 音の高さを曲げる（ベンド）。移調の設定では、傾けた側へ4度ずつ移調する
+ *   前後に傾ける … 音色の明るさを変える（ワウ）
+ *   振る         … トレモロ（音量の揺れ）が深くなる。シェイカーを鳴らすこともできる
+ * 息で音の高さを選び、手首で表情をつける。ハーモニカ奏者が手で音を包む奏法に近い操作である。 */
+(function () {
+  "use strict";
+  const st = { blown: null, level: 0, bend: true, wah: true, trem: true, shaker: false, transpose: false,
+               bendRange: 200, zeroRoll: 0, zeroPitch: 0, m: { roll: 0, pitch: 0, shake: 0 }, trans: 0, transArmed: true,
+               oct: -1, voice: "brass", lastShake: 0, shakeEnv: 0, mute: false, t0: performance.now() };
+
+  const panel = "<fieldset><legend>音</legend><div class='row'>"
+    + "<label>音色 <select id='voice'>" + Object.entries(IRKAudio.VOICES).map(([k, v]) => "<option value='" + k + "'" + (k === "brass" ? " selected" : "") + ">" + v + "</option>").join("") + "</select></label>"
+    + "<label>重ねる高さ <select id='oct'><option value='-2'>2オクターブ下</option><option value='-1' selected>1オクターブ下</option><option value='1'>1オクターブ上</option></select></label>"
+    + "<label>ベンドの幅 <select id='range'><option value='100'>半音</option><option value='200' selected>全音</option><option value='500'>4度</option><option value='1200'>1オクターブ</option></select></label>"
+    + "</div><p class='note'>「傾けて移調」を入れると、左右の傾きは音の高さの曲げではなく、4度ずつの移調になります。傾けた状態を保つと、その調のまま吹けます。</p></fieldset>";
+
+  const stage = IRKStage.create({
+    title: "傾きと揺れ",
+    desc: "吹いた音をスマートフォンが重ねて鳴らし、その音を傾きと揺れで変えます。左右に傾けると音が曲がり、前後に傾けると音色が明るく・暗くなり、振るとトレモロがかかります。",
+    panel,
+    pads: {
+      left: [{ id: "bend", label: "ベンド", sub: "左右の傾き", toggle: true }, { id: "zero", label: "いまを水平に", sub: "傾きの基準" },
+             { id: "wah", label: "ワウ", sub: "前後の傾き", toggle: true }, { id: "transpose", label: "傾けて移調", toggle: true }],
+      right: [{ id: "trem", label: "トレモロ", sub: "振る", toggle: true }, { id: "shaker", label: "シェイカー", sub: "振る", toggle: true },
+              { id: "sustain", label: "伸ばす", sub: "押している間" }, { id: "mute", label: "消音", toggle: true }],
+    },
+    onStart: async () => {
+      const ac = IRKAudio.ctx();
+      filt = new BiquadFilterNode(ac, { type: "lowpass", frequency: 1200, Q: 6 });
+      trem = new GainNode(ac, { gain: 1 });
+      filt.connect(trem).connect(IRKAudio.bus().guardIn);
+      voice = IRKAudio.MonoVoice(st.voice, filt);
+      await det.start();
+      const ok = await IRK.motion.start(onMotion);
+      if (!ok) stage.setCenter("<div class='mid warn'>傾きのセンサを使えません。</div>");
+      loop();
+    },
+    onPad(id, down) {
+      if (id === "zero" && down) { st.zeroRoll = st.m.roll; st.zeroPitch = st.m.pitch; }
+      if (["bend", "wah", "trem", "shaker", "transpose", "mute"].indexOf(id) >= 0) st[id] = down;
+      if (id === "sustain") { st.sustain = down; if (!down && !det.tracker.current()) st.blown = null; }
+      if (id === "transpose") st.trans = 0;
+    },
+  });
+  ["bend", "wah", "trem"].forEach(id => stage.setPadOn(id, true));
+  let filt = null, trem = null, voice = null;
+  const $ = id => document.getElementById(id);
+  $("voice").onchange = () => { st.voice = $("voice").value; if (voice) voice.setType(st.voice); };
+  $("oct").onchange = () => st.oct = parseInt($("oct").value, 10);
+  $("range").onchange = () => st.bendRange = parseInt($("range").value, 10);
+
+  function onMotion(m) {
+    st.m = m;
+    st.shakeEnv = Math.max(st.shakeEnv * 0.9, Math.min(1, m.shake / 15));
+    if (st.shaker && m.shake > 13 && performance.now() - st.lastShake > 90) {
+      st.lastShake = performance.now();
+      IRKAudio.drum("shaker", 0, Math.min(1, 0.4 + (m.shake - 13) / 20));
+    }
+    if (st.transpose) {
+      const r = m.roll - st.zeroRoll;
+      if (st.transArmed && Math.abs(r) > 20) { st.transArmed = false; st.trans += r > 0 ? 5 : -5; if (Math.abs(st.trans) > 10) st.trans = 0; if (navigator.vibrate) navigator.vibrate(20); }
+      if (Math.abs(r) < 8) st.transArmed = true;
+    }
+  }
+
+  function loop() {
+    const ac = IRKAudio.ctx();
+    const roll = st.m.roll - st.zeroRoll, pitch = st.m.pitch - st.zeroPitch;
+    if (voice && st.blown) {
+      const base = st.blown.midi + 12 * st.oct + (st.transpose ? st.trans : 0);
+      voice.setMidi(base, 0.02);
+      if (st.bend && !st.transpose) voice.bend(Math.max(-1, Math.min(1, roll / 35)) * st.bendRange);
+      const lv = st.mute ? 0 : (det.tracker.current() ? 0.25 + 0.75 * st.level : (st.sustain ? 0.4 : 0));
+      voice.setLevel(lv * 0.8, 0.03);
+    } else if (voice) voice.setLevel(0, 0.08);
+    if (filt) {
+      const cut = st.wah ? 250 * Math.pow(2, 2.4 + Math.max(-1, Math.min(1, pitch / 30)) * 2.2) : 1300;
+      filt.frequency.setTargetAtTime(Math.min(1300, cut), ac.currentTime, 0.03);
+    }
+    if (trem) {
+      const depth = st.trem ? st.shakeEnv * 0.8 : 0;
+      const t = (performance.now() - st.t0) / 1000;
+      trem.gain.setTargetAtTime(1 - depth * (0.5 + 0.5 * Math.sin(2 * Math.PI * 7 * t)), ac.currentTime, 0.01);
+    }
+    const nm = st.blown ? IRK.noteName(st.blown.midi, "sharp") : "—";
+    stage.setCenter("<div class='mid'>" + nm + (st.transpose && st.trans ? "　移調 " + (st.trans > 0 ? "+" : "") + st.trans : "") + "</div>"
+      + "<div class='small'>左右 " + roll.toFixed(0) + "°　前後 " + pitch.toFixed(0) + "°　揺れ " + st.m.shake.toFixed(1) + "</div>");
+    requestAnimationFrame(loop);
+  }
+
+  const det = IRKAudio.Detector({
+    onNote(ev) { st.blown = ev; stage.clearHold(); stage.hold(ev.slot, 1); },
+    onOff(ev) { if (ev.changed) return; stage.hold(ev.slot, 0); stage.flash(ev.slot, 0.6); if (!st.sustain) st.blown = null; },
+    onFrame(fr) { st.level = fr.strength; },
+  });
+  stage.attachDetector(det);
+})();
+</script>
+</body>
+</html>

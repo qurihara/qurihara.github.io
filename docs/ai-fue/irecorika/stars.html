@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>星あつめ — iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+</head>
+<body>
+<script src="lib/fft_peak.js?v=1"></script>
+<script src="lib/irk-common.js?v=1"></script>
+<script src="lib/irk-audio.js?v=1"></script>
+<script src="lib/irk-stage.js?v=1"></script>
+<script src="lib/irk-theory.js?v=1"></script>
+<script>
+/* 星あつめ：星が笛の帯を流れてくる。口の側の線に来たときに、その笛を吹くと星が取れる。
+ * 赤い玉は、線に来たときにその笛を吹いていると減点になる。
+ * 曲ではなく乱数で流れてくるので、どの穴がどの位置にあるかを体で覚える練習になる。
+ * 星を取ると、その音の1オクターブ下をスマートフォンが鳴らす（保護の範囲の下なので検出を乱さない）。 */
+(function () {
+  "use strict";
+  const T = IRKTheory;
+  const st = { running: false, items: [], score: 0, miss: 0, combo: 0, best: 0, speed: 1, pool: "scale", bombs: true, lastSpawn: 0, blown: null, level: 1, t0: 0, fx: [] };
+  try { st.best = parseInt(localStorage.getItem("irecorika.stars.best") || "0", 10); } catch (_) {}
+
+  const stage = IRKStage.create({
+    title: "星あつめ",
+    desc: "星が笛の帯を流れてきます。口の側の白い線に来たときに、その笛を吹くと取れます。赤い玉が来たときにその笛を吹いていると減点です。だんだん速くなります。",
+    pads: {
+      left: [{ id: "go", label: "始める" }, { id: "slower", label: "ゆっくり" }],
+      right: [{ id: "pool", label: "使う笛", sub: "A♭長調の7本" }, { id: "bombs", label: "赤い玉", toggle: true }],
+    },
+    onStart: async () => { await det.start(); },
+    onPause() { st.running = false; stage.setPad("go", "始める"); },
+    onPad(id, down) {
+      if (id === "bombs") { st.bombs = down; return; }
+      if (!down) return;
+      if (id === "go") st.running ? end() : begin();
+      if (id === "slower") st.speed = Math.max(0.5, st.speed - 0.15);
+      if (id === "pool") { st.pool = st.pool === "scale" ? "all" : "scale"; stage.setPad("pool", "使う笛", st.pool === "scale" ? "A♭長調の7本" : "12本すべて"); }
+    },
+    draw(g, geo, now) { frame(g, geo, now); },
+  });
+  stage.setPadOn("bombs", true);
+
+  function pool() {
+    const all = [...Array(12).keys()];
+    return st.pool === "all" ? all : all.filter(s => T.inScale(IRK.slotToMidi(s), 8));
+  }
+  function begin() {
+    st.running = true; st.items = []; st.score = 0; st.miss = 0; st.combo = 0; st.level = 1; st.speed = Math.max(st.speed, 0.8);
+    st.t0 = performance.now(); st.lastSpawn = 0;
+    stage.setPad("go", "止める");
+  }
+  function end() {
+    st.running = false; stage.setPad("go", "始める");
+    if (st.score > st.best) { st.best = st.score; try { localStorage.setItem("irecorika.stars.best", String(st.best)); } catch (_) {} }
+  }
+
+  let last = 0;
+  function frame(g, geo, now) {
+    const dt = last ? Math.min(0.05, (now - last) / 1000) : 0; last = now;
+    const H = geo.height, lineY = H * 0.82;
+    g.strokeStyle = "rgba(255,255,255,0.8)"; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(geo.plate.x0, lineY); g.lineTo(geo.plate.x1, lineY); g.stroke();
+    if (st.running) {
+      const el = (now - st.t0) / 1000;
+      st.level = 1 + Math.floor(el / 20);
+      const interval = Math.max(0.45, 1.4 / (st.speed * (1 + 0.15 * (st.level - 1))));
+      if (el - st.lastSpawn > interval) {
+        st.lastSpawn = el;
+        const p = pool();
+        const bomb = st.bombs && Math.random() < 0.18;
+        st.items.push({ slot: p[Math.floor(Math.random() * p.length)], y: -20, bomb, done: false });
+      }
+      const v = H * 0.32 * st.speed * (1 + 0.12 * (st.level - 1));
+      for (const it of st.items) {
+        it.y += v * dt;
+        if (!it.done && Math.abs(it.y - lineY) < 14) {
+          const on = st.blown && st.blown.slot === it.slot;
+          if (!it.bomb && on) {
+            it.done = true; it.hit = true; st.score += 10 + st.combo; st.combo++;
+            IRKAudio.note(IRK.slotToMidi(it.slot) - 24, { type: "bell", vel: 0.4 });
+            burst(geo.lanes[it.slot].x, lineY, IRK.slotColor(it.slot, 1));
+          } else if (it.bomb && on) {
+            it.done = true; it.hit = true; st.score = Math.max(0, st.score - 15); st.combo = 0;
+            IRKAudio.drum("crash", 0, 0.5);
+            burst(geo.lanes[it.slot].x, lineY, "#ff4d4d");
+          }
+        }
+        if (!it.done && it.y > lineY + 14) { it.done = true; if (!it.bomb) { st.miss++; st.combo = 0; } }
+      }
+      st.items = st.items.filter(it => it.y < H + 30 && !(it.hit));
+    }
+    for (const it of st.items) {
+      const l = geo.lanes[it.slot];
+      if (it.bomb) { g.fillStyle = "#ff4d4d"; g.beginPath(); g.arc(l.x, it.y, 9, 0, Math.PI * 2); g.fill(); }
+      else star(g, l.x, it.y, 11, it.done ? "rgba(255,255,255,0.25)" : "#ffe66b");
+    }
+    g.save(); g.globalCompositeOperation = "lighter";
+    st.fx = st.fx.filter(p => p.life > 0.03);
+    for (const p of st.fx) { p.x += p.vx; p.y += p.vy; p.life *= 0.93; g.globalAlpha = p.life; g.fillStyle = p.col; g.beginPath(); g.arc(p.x, p.y, 3, 0, Math.PI * 2); g.fill(); }
+    g.restore();
+    stage.setCenter("<div style='position:absolute;top:8px;left:0;right:0' class='mid'>" + st.score + " 点" + (st.combo > 1 ? "　" + st.combo + " 連続" : "") + "</div>"
+      + (st.running ? "" : "<div class='small'>最高 " + st.best + " 点　「始める」で開始</div>")
+      + "<div style='position:absolute;bottom:6px;left:0;right:0' class='small'>段階 " + st.level + "　取り逃し " + st.miss + "</div>");
+  }
+  function star(g, x, y, r, col) {
+    g.fillStyle = col; g.beginPath();
+    for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; g.lineTo(x + rr * Math.cos(a), y + rr * Math.sin(a)); }
+    g.closePath(); g.fill();
+  }
+  function burst(x, y, col) { for (let i = 0; i < 18; i++) { const a = Math.random() * Math.PI * 2, s = 1 + Math.random() * 3; st.fx.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, col }); } }
+
+  const det = IRKAudio.Detector({
+    onNote(ev) { st.blown = ev; stage.clearHold(); stage.hold(ev.slot, 0.6); },
+    onOff(ev) { if (ev.changed) return; st.blown = null; stage.hold(ev.slot, 0); },
+  });
+  stage.attachDetector(det);
+})();
+</script>
+</body>
+</html>

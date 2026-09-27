@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>重ね音 — iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+</head>
+<body>
+<script src="lib/fft_peak.js?v=1"></script>
+<script src="lib/irk-common.js?v=1"></script>
+<script src="lib/irk-audio.js?v=1"></script>
+<script src="lib/irk-stage.js?v=1"></script>
+<script src="lib/irk-theory.js?v=1"></script>
+<script>
+/* 重ね音：吹いた音をマイクで拾い、スマートフォンが同じ音名を別の音色・別のオクターブで重ねる。
+ * 指の操作面は、クロマチックハーモニカのスライドボタンのように音を変える。
+ *   オクターブ下・上 … 12本の外へ音域を広げる
+ *   半音上           … 押している間だけ半音上げる
+ *   ハモり           … 調の中で3度下（または6度下）を足す。自動の二重奏になる
+ *   ドローン         … 吹きやめても音を伸ばし続ける
+ * 笛の音は高く鋭いので、既定では1オクターブ下に重ねる。聞きやすくなり、マイクへの回り込みも避けられる。 */
+(function () {
+  "use strict";
+  const T = IRKTheory;
+  const st = { oct: -1, voice: "triangle", key: 8, harmony: 0, fifth: false, drone: false, mute: false,
+               octDown: false, octUp: false, semi: false, vib: false, blown: null, level: 0, t0: performance.now() };
+
+  const panel = "<fieldset><legend>音</legend><div class='row'>"
+    + "<label>音色 <select id='voice'>" + Object.entries(IRKAudio.VOICES).map(([k, v]) => "<option value='" + k + "'>" + v + "</option>").join("") + "</select></label>"
+    + "<label>重ねる高さ <select id='oct'><option value='-2'>2オクターブ下</option><option value='-1' selected>1オクターブ下</option>"
+    + "<option value='0'>同じ高さ（保護を切る必要あり）</option><option value='1'>1オクターブ上</option></select></label>"
+    + "<label>ハモりの調 <select id='key'>" + T.KEYS.map(k => "<option value='" + k.pc + "'>" + k.name + "</option>").join("") + "</select></label>"
+    + "</div><p class='note' id='octWarn'></p></fieldset>";
+
+  const stage = IRKStage.create({
+    title: "重ね音",
+    desc: "吹いた音と同じ音名を、スマートフォンが別の音色で重ねて鳴らします。左右の操作面で、オクターブを変えたり、半音上げたり、ハモりを足したりできます。"
+      + "息の強さがそのまま音量になります。",
+    panel,
+    pads: {
+      left: [{ id: "octDown", label: "オクターブ下", sub: "押している間" }, { id: "octUp", label: "オクターブ上", sub: "押している間" },
+             { id: "semi", label: "半音上", sub: "押している間" }, { id: "vib", label: "ビブラート", sub: "押している間" }],
+      right: [{ id: "harm", label: "ハモり", sub: "なし" }, { id: "drone", label: "ドローン", sub: "押している間 伸ばす" },
+              { id: "fifth", label: "5度下を足す", toggle: true }, { id: "mute", label: "消音", toggle: true }],
+    },
+    onStart: async () => {
+      main = IRKAudio.MonoVoice(st.voice); harm = IRKAudio.MonoVoice(st.voice); fifth = IRKAudio.MonoVoice(st.voice);
+      const ok = await det.start();
+      if (!ok) stage.setCenter("<div class='mid warn'>マイクを使えません。許可してください。</div>");
+    },
+    onPad(id, down) {
+      if (id === "harm" && down) { st.harmony = (st.harmony + 1) % 3; stage.setPad("harm", "ハモり", ["なし", "3度下", "6度下"][st.harmony]); stage.setPadOn("harm", st.harmony > 0); }
+      if (id === "octDown") st.octDown = down;
+      if (id === "octUp") st.octUp = down;
+      if (id === "semi") st.semi = down;
+      if (id === "vib") st.vib = down;
+      if (id === "drone") { st.drone = down; if (!down && !det.tracker.current()) st.blown = null; }
+      if (id === "fifth") st.fifth = down;
+      if (id === "mute") st.mute = down;
+      update(true);
+    },
+  });
+  let main = null, harm = null, fifth = null;
+
+  const $ = id => document.getElementById(id);
+  $("voice").onchange = () => { st.voice = $("voice").value; [main, harm, fifth].forEach(v => v && v.setType(st.voice)); };
+  $("oct").onchange = () => { st.oct = parseInt($("oct").value, 10); warn(); };
+  $("key").value = String(st.key);
+  $("key").onchange = () => { st.key = parseInt($("key").value, 10); };
+  function warn() {
+    $("octWarn").textContent = (st.oct === 0 && IRK.load().guard)
+      ? "同じ高さに重ねると、保護（笛の音域を抜く仕組み）に消されて聞こえません。共通の設定で保護を外すと鳴りますが、その音がマイクに入って検出が乱れます。イヤホンをつなぐと両立できます。" : "";
+  }
+  warn();
+
+  function targetMidi() {
+    if (!st.blown) return null;
+    let m = st.blown.midi + 12 * st.oct;
+    if (st.octDown) m -= 12;
+    if (st.octUp) m += 12;
+    if (st.semi) m += 1;
+    return m;
+  }
+  function update(immediate) {
+    if (!main) return;
+    const m = targetMidi();
+    const on = st.blown && !st.mute;
+    if (m !== null) {
+      main.setMidi(m, immediate ? 0.005 : 0.02);
+      if (st.harmony) harm.setMidi(st.harmony === 1 ? T.diatonicBelow(m, st.key, 2) : T.diatonicBelow(m, st.key, 5), 0.02);
+      if (st.fifth) fifth.setMidi(m - 7, 0.02);
+    }
+    const lv = on ? 0.25 + 0.75 * st.level : (st.drone && m !== null && !st.mute ? 0.5 : 0);
+    main.setLevel(lv * 0.8, on ? 0.02 : 0.08);
+    harm.setLevel(st.harmony ? lv * 0.55 : 0, 0.05);
+    fifth.setLevel(st.fifth ? lv * 0.5 : 0, 0.05);
+    const out = m === null ? "" : IRK.noteName(m, "sharp");
+    stage.setCenter(st.blown
+      ? "<div class='big'>" + IRK.noteName(st.blown.midi, "sharp") + "</div><div class='mid'>→ " + out
+        + (st.harmony ? "＋" + IRK.noteName(st.harmony === 1 ? T.diatonicBelow(m, st.key, 2) : T.diatonicBelow(m, st.key, 5), "sharp") : "")
+        + (st.fifth ? "＋" + IRK.noteName(m - 7, "sharp") : "") + "</div>"
+      : "<div class='small'>笛を吹いてください</div>");
+  }
+
+  const det = IRKAudio.Detector({
+    onNote(ev) {
+      st.blown = ev;
+      stage.clearHold(); stage.hold(ev.slot, 1);
+      update(!ev.legato);
+    },
+    onOff(ev) {
+      if (ev.changed) return;
+      stage.hold(ev.slot, 0); stage.flash(ev.slot, 0.6);
+      if (!st.drone) st.blown = null;
+      update();
+    },
+    onFrame(fr) {
+      st.level = fr.strength;
+      if (main && st.blown && fr.cur) {
+        main.setLevel(st.mute ? 0 : (0.25 + 0.75 * st.level) * 0.8, 0.03);
+        if (st.vib) main.bend(30 * Math.sin((performance.now() - st.t0) / 1000 * 2 * Math.PI * 5.5));
+      }
+    },
+  });
+  stage.attachDetector(det);
+})();
+</script>
+</body>
+</html>

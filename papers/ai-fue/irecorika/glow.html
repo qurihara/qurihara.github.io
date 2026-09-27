@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>光る笛 — iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+</head>
+<body>
+<script src="lib/fft_peak.js?v=1"></script>
+<script src="lib/irk-common.js?v=1"></script>
+<script src="lib/irk-audio.js?v=1"></script>
+<script src="lib/irk-stage.js?v=1"></script>
+<script>
+/* 光る笛：吹いている笛の真下（または真裏）の帯を光らせる。音の高さのずれも出す。
+ * 透明な PETG の笛を画面に置くと、笛そのものが光って見える。 */
+(function () {
+  "use strict";
+  const S = IRK.load();
+  const NAME_STYLES = ["sharp", "flat", "doremi", "none"];
+  const NAME_LABEL = { sharp: "C#表記", flat: "D♭表記", doremi: "ドレミ", none: "表示なし" };
+  const COLOR_MODES = ["rainbow", "white", "warm"];
+  const COLOR_LABEL = { rainbow: "虹色", white: "白", warm: "暖色" };
+  const st = { names: S.showNames, trail: true, tuner: true, color: "rainbow", particles: [], cur: null, history: [] };
+
+  const stage = IRKStage.create({
+    title: "光る笛",
+    desc: "吹いている笛の真下の帯を光らせます。透明な笛を画面に置くと、笛そのものが光って見えます。"
+      + "笛を裏面に置く場合は、吹いている穴の真裏が光ります。中央には音名と、音の高さのずれ（セント）を出します。",
+    pads: {
+      left: [{ id: "tuner", label: "ずれ表示", sub: "セント", toggle: true }, { id: "names", label: "音名", sub: NAME_LABEL[st.names] },
+             { id: "trail", label: "残像", toggle: true }, { id: "clear", label: "履歴を消す" }],
+      right: [{ id: "color", label: "色", sub: COLOR_LABEL[st.color] }, { id: "burst", label: "花火", sub: "押している間" },
+              { id: "big", label: "大きな文字", toggle: true }, { id: "hist", label: "吹いた順", toggle: true }],
+    },
+    onStart: async () => {
+      const ok = await det.start();
+      if (!ok) stage.setCenter("<div class='mid warn'>マイクを使えません。許可してください。</div>");
+    },
+    onPad(id, down) {
+      if (id === "names" && down) {
+        st.names = NAME_STYLES[(NAME_STYLES.indexOf(st.names) + 1) % NAME_STYLES.length];
+        IRK.update({ showNames: st.names }); stage.settings.showNames = st.names;
+        stage.setPad("names", "音名", NAME_LABEL[st.names]);
+      }
+      if (id === "color" && down) {
+        st.color = COLOR_MODES[(COLOR_MODES.indexOf(st.color) + 1) % COLOR_MODES.length];
+        stage.setPad("color", "色", COLOR_LABEL[st.color]);
+      }
+      if (id === "tuner") st.tuner = down;
+      if (id === "trail") st.trail = down;
+      if (id === "clear" && down) st.history = [];
+      if (id === "burst") st.burst = down;
+      if (id === "big") st.big = down;
+      if (id === "hist") st.showHist = down;
+    },
+    draw(g, geo, now) {
+      // 残像：吹いた笛から光の粒が立ちのぼる
+      if (st.trail && st.cur) {
+        const l = geo.lanes[st.cur.slot];
+        for (let k = 0; k < 2 + Math.round(4 * st.strength); k++) {
+          st.particles.push({ x: l.x + (Math.random() - 0.5) * (l.x1 - l.x0), y: geo.height * (0.5 + Math.random() * 0.5),
+                              vx: (Math.random() - 0.5) * 0.6, vy: -1 - Math.random() * 2.5, life: 1, col: colorOf(st.cur.slot) });
+        }
+      }
+      if (st.burst) {
+        for (let k = 0; k < 6; k++) {
+          const l = geo.lanes[Math.floor(Math.random() * 12)];
+          st.particles.push({ x: l.x, y: geo.height, vx: (Math.random() - 0.5) * 3, vy: -3 - Math.random() * 5, life: 1, col: colorOf(l.slot) });
+        }
+      }
+      g.save();
+      g.globalCompositeOperation = "lighter";
+      st.particles = st.particles.filter(p => p.life > 0.02);
+      for (const p of st.particles) {
+        p.x += p.vx; p.y += p.vy; p.vy *= 0.99; p.life *= 0.965;
+        g.globalAlpha = p.life;
+        g.fillStyle = p.col;
+        g.beginPath(); g.arc(p.x, p.y, 2 + 3 * p.life, 0, Math.PI * 2); g.fill();
+      }
+      g.restore();
+    },
+  });
+  stage.setPadOn("tuner", true); stage.setPadOn("trail", true);
+
+  function colorOf(slot) {
+    if (st.color === "white") return "rgba(255,255,255,1)";
+    if (st.color === "warm") return "hsl(" + (10 + slot * 4) + ",95%,60%)";
+    return IRK.slotColor(slot, 1);
+  }
+
+  const det = IRKAudio.Detector({
+    onNote(ev) {
+      st.cur = ev;
+      stage.clearHold();
+      stage.hold(ev.slot, 1, colorOf(ev.slot));
+      st.history.push(ev.slot);
+      if (st.history.length > 16) st.history.shift();
+    },
+    onOff(ev) {
+      if (st.cur && st.cur.slot === ev.slot) st.cur = null;
+      stage.hold(ev.slot, 0);
+      stage.flash(ev.slot, 0.8);
+    },
+    onFrame(fr) {
+      st.strength = fr.strength;
+      if (st.cur) stage.hold(st.cur.slot, 0.55 + 0.45 * fr.strength, colorOf(st.cur.slot));
+      render(fr);
+    },
+  });
+  stage.attachDetector(det);
+
+  let lastHtml = "";
+  function render(fr) {
+    let html = "";
+    const nameStyle = st.names === "none" ? "sharp" : st.names;
+    if (fr.cur) {
+      const cents = IRK.freqToSlot(fr.freq, S.centsOffset);
+      const c = cents ? cents.cents : 0;
+      html += "<div class='big' style='font-size:" + (st.big ? 110 : 56) + "px;color:" + colorOf(fr.cur.slot) + "'>"
+        + IRK.noteName(fr.cur.midi, nameStyle) + "</div>";
+      if (st.tuner) {
+        const pos = 50 + Math.max(-50, Math.min(50, c));
+        html += "<div style='width:200px;height:10px;background:#1a1e29;border-radius:5px;position:relative;margin:6px auto'>"
+          + "<i style='position:absolute;left:50%;top:-3px;width:2px;height:16px;background:#888'></i>"
+          + "<i style='position:absolute;left:" + pos + "%;top:-4px;width:8px;height:18px;margin-left:-4px;border-radius:3px;background:" + (Math.abs(c) < 15 ? "#6cf0c2" : "#ffb35c") + "'></i></div>"
+          + "<div class='small'>" + (c > 0 ? "+" : "") + c + " セント　" + Math.round(fr.freq) + " Hz</div>";
+      }
+    } else {
+      html += "<div class='small'>笛を吹いてください</div>";
+    }
+    if (st.showHist && st.history.length) {
+      html += "<div class='mid' style='margin-top:10px'>" + st.history.map(s => "<span style='color:" + colorOf(s) + "'>" + IRK.noteName(IRK.slotToMidi(s), nameStyle) + "</span>").join(" ") + "</div>";
+    }
+    if (html !== lastHtml) { stage.setCenter(html); lastHtml = html; }
+  }
+})();
+</script>
+</body>
+</html>

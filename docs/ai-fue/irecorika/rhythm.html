@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>リズム — iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+</head>
+<body>
+<script src="lib/fft_peak.js?v=1"></script>
+<script src="lib/irk-common.js?v=1"></script>
+<script src="lib/irk-audio.js?v=1"></script>
+<script src="lib/irk-stage.js?v=1"></script>
+<script>
+/* リズム：指で打楽器を鳴らしながら笛を吹く。スマートフォンを振るとシェイカーが鳴る。
+ * 叩いたリズムを1〜2小節のループとして録り、繰り返させて、その上で吹くこともできる。 */
+(function () {
+  "use strict";
+  const st = { shake: true, shakeTh: 14, lastShake: 0, metro: false, bars: 1, loop: [], rec: "off", recStart: 0,
+               quant: true, fluteDrums: false, bpm: 100 };
+  const PAD_DRUM = { kick: "kick", snare: "snare", hat: "hat", clap: "clap", tomL: "tomL", tomH: "tomH", crash: "crash", cowbell: "cowbell" };
+  const FLUTE_DRUMS = ["kick", "kick", "tomL", "tomL", "snare", "snare", "tomH", "tomH", "clap", "cowbell", "hat", "crash"];
+
+  const panel = "<fieldset><legend>リズム</legend><div class='row'>"
+    + "<label><input type='checkbox' id='shake' checked> 振るとシェイカー</label>"
+    + "<label>振りの強さのしきい値 <input type='range' id='shakeTh' min='6' max='30' value='14'></label>"
+    + "<label><input type='checkbox' id='fluteDrums'> 笛を吹くと打楽器が鳴る（低い笛ほど低い太鼓）</label>"
+    + "</div></fieldset>"
+    + "<fieldset><legend>ループ</legend><div class='row'>"
+    + "<label>速さ <input type='range' id='bpm' min='60' max='180' value='100'> <span id='bpmv'>100</span></label>"
+    + "<label>長さ <select id='bars'><option value='1'>1小節</option><option value='2'>2小節</option></select></label>"
+    + "<label><input type='checkbox' id='metro'> メトロノーム</label>"
+    + "<label><input type='checkbox' id='quant' checked> 16分音符に揃える</label>"
+    + "</div><div class='row'><button class='btn' id='recBtn'>ループを録る（演奏に戻ると1小節数えてから録音）</button>"
+    + "<button class='btn' id='loopClear'>ループを消す</button><span class='note' id='loopInfo'></span></div></fieldset>";
+
+  const stage = IRKStage.create({
+    title: "リズム",
+    desc: "左右の操作面を叩くと打楽器が鳴ります。スマートフォンを振るとシェイカーが鳴ります。叩いたリズムをループにして繰り返させ、その上で笛を吹けます。",
+    panel,
+    pads: {
+      left: [{ id: "kick", label: "バスドラム" }, { id: "snare", label: "スネア" }, { id: "tomL", label: "タム低" }, { id: "crash", label: "シンバル" }],
+      right: [{ id: "hat", label: "ハイハット" }, { id: "clap", label: "クラップ" }, { id: "tomH", label: "タム高" }, { id: "cowbell", label: "カウベル" }],
+    },
+    onStart: async () => {
+      await det.start();
+      IRK.motion.start(onMotion);
+    },
+    onResume() {
+      if (st.rec === "armed") { st.rec = "count"; clock.start(0); }
+      else if ((st.loop.length || st.metro) && !clock.running()) clock.start(0);
+    },
+    onPause() { clock.stop(); },
+    onPad(id, down) {
+      if (!down || !PAD_DRUM[id]) return;
+      hit(PAD_DRUM[id], 0.9);
+    },
+  });
+  const $ = id => document.getElementById(id);
+  $("shake").onchange = () => st.shake = $("shake").checked;
+  $("shakeTh").oninput = () => st.shakeTh = parseInt($("shakeTh").value, 10);
+  $("fluteDrums").onchange = () => st.fluteDrums = $("fluteDrums").checked;
+  $("bpm").oninput = () => { st.bpm = parseInt($("bpm").value, 10); clock.setBpm(st.bpm); $("bpmv").textContent = st.bpm; };
+  $("bars").onchange = () => st.bars = parseInt($("bars").value, 10);
+  $("metro").onchange = () => st.metro = $("metro").checked;
+  $("quant").onchange = () => st.quant = $("quant").checked;
+  $("recBtn").onclick = () => { st.rec = "armed"; st.loop = []; info("演奏に戻ると、1小節数えてから " + st.bars + " 小節を録ります。"); };
+  $("loopClear").onclick = () => { st.loop = []; st.rec = "off"; info("ループを消しました。"); };
+  function info(t) { $("loopInfo").textContent = t; }
+
+  const clock = IRKAudio.Clock(onStep);
+  clock.setBpm(st.bpm);
+  const loopSteps = () => 16 * st.bars;
+
+  /* 叩いた音を鳴らし、録音中ならループに書き込む */
+  function hit(name, vel) {
+    IRKAudio.drum(name, 0, vel);
+    if (st.rec === "rec") {
+      const ac = IRKAudio.ctx();
+      const pos = (ac.currentTime - st.recStart) / clock.stepSec();
+      let stp = st.quant ? Math.round(pos) : pos;
+      stp = ((stp % loopSteps()) + loopSteps()) % loopSteps();
+      st.loop.push({ step: stp, name, vel });
+    }
+  }
+  function onStep(step, when) {
+    const bar = 16;
+    if (st.rec === "count") {
+      if (step % 4 === 0) IRKAudio.drum("rim", when, step === 0 ? 0.9 : 0.6);
+      if (step === bar - 1) {
+        st.rec = "rec"; st.recStart = when + clock.stepSec(); st.recStep0 = step + 1;
+        setTimeout(() => stage.setCenter("<div class='big' style='color:#ff6b6b'>● 録音中</div>"), 0);
+      } else if (step % 4 === 0) setTimeout(() => stage.setCenter("<div class='big'>" + (4 - step / 4) + "</div>"), Math.max(0, (when - IRKAudio.ctx().currentTime) * 1000));
+      return;
+    }
+    const base = st.rec === "rec" || st.rec === "play" ? st.recStep0 || 0 : 0;
+    const ls = ((step - base) % loopSteps() + loopSteps()) % loopSteps();
+    if (st.rec === "rec" && step - base >= loopSteps()) {
+      st.rec = "play";
+      setTimeout(() => { stage.setCenter("<div class='mid'>ループを再生中（" + st.loop.length + "打）</div>"); info("ループは " + st.loop.length + " 打です。"); }, 0);
+    }
+    if (st.metro && ls % 4 === 0) IRKAudio.drum("rim", when, ls === 0 ? 0.6 : 0.3);
+    if (st.rec === "play") {
+      for (const ev of st.loop) {
+        const d = ev.step - ls;
+        if (d >= 0 && d < 1) IRKAudio.drum(ev.name, when + d * clock.stepSec(), ev.vel * 0.85);
+      }
+    }
+  }
+
+  function onMotion(m) {
+    if (!st.shake) return;
+    const now = performance.now();
+    if (m.shake > st.shakeTh && now - st.lastShake > 90) {
+      st.lastShake = now;
+      hit("shaker", Math.min(1, 0.4 + (m.shake - st.shakeTh) / 20));
+    }
+  }
+
+  const det = IRKAudio.Detector({
+    onNote(ev) {
+      stage.clearHold(); stage.hold(ev.slot, 1);
+      if (st.fluteDrums) hit(FLUTE_DRUMS[ev.slot], 0.8);
+    },
+    onOff(ev) { if (!ev.changed) { stage.hold(ev.slot, 0); stage.flash(ev.slot, 0.6); } },
+  });
+  stage.attachDetector(det);
+  stage.setCenter("<div class='small'>叩いて、振って、吹いてください</div>");
+})();
+</script>
+</body>
+</html>

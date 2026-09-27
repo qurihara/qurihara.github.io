@@ -1,0 +1,98 @@
+/* iRecorika 共通の見た目 */
+:root {
+  --bg: #07080c;
+  --fg: #eef0f6;
+  --dim: #8a90a2;
+  --line: #2a2f3d;
+  --accent: #6cf0c2;
+  --warn: #ffb35c;
+  --pad: #161a24;
+  --pad-on: #2f7d68;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; height: 100%; background: var(--bg); color: var(--fg);
+  font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+body.irk-app { overflow: hidden; overscroll-behavior: none; touch-action: none; user-select: none; -webkit-user-select: none; }
+a { color: var(--accent); }
+button, select, input { font: inherit; }
+
+#irk-stage { position: fixed; inset: 0; }
+#irk-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.irk-zone { position: absolute; top: 0; bottom: 0; display: flex; flex-direction: column; padding: 4px; gap: 4px; }
+.irk-zone-head { height: 40px; flex: none; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--dim); overflow: hidden; }
+.irk-pads { flex: 1; display: grid; gap: 4px; min-height: 0; }
+.irk-pad {
+  position: relative; border-radius: 12px; background: var(--pad); border: 1px solid var(--line);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  font-size: 15px; line-height: 1.2; padding: 2px; overflow: hidden; touch-action: none;
+  transition: background 0.06s;
+}
+.irk-pad .sub { font-size: 11px; color: var(--dim); margin-top: 2px; }
+.irk-pad.on { background: var(--pad-on); border-color: var(--accent); }
+.irk-pad.lit { box-shadow: inset 0 0 0 2px var(--accent); }
+.irk-pad.empty { background: transparent; border-style: dashed; opacity: 0.35; }
+.irk-menu-btn {
+  width: 40px; height: 40px; border-radius: 20px; border: 1px solid var(--line); background: #1c2130; color: var(--fg);
+  font-size: 20px; flex: none; padding: 0;
+}
+.irk-meter { flex: 1; height: 8px; background: #1a1e29; border-radius: 4px; overflow: hidden; min-width: 30px; }
+.irk-meter > i { display: block; height: 100%; width: 0; background: var(--accent); }
+#irk-center { position: absolute; top: 0; bottom: 0; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+#irk-center .big { font-size: 44px; font-weight: 700; text-shadow: 0 0 12px rgba(0,0,0,0.8); }
+#irk-center .mid { font-size: 20px; text-shadow: 0 0 8px rgba(0,0,0,0.8); }
+#irk-center .small { font-size: 13px; color: var(--dim); }
+
+#irk-panel {
+  position: fixed; inset: 0; background: rgba(7, 8, 12, 0.96); overflow-y: auto; z-index: 20;
+  padding: 16px max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left));
+  touch-action: pan-y; user-select: text;
+}
+#irk-panel.hidden { display: none; }
+#irk-panel h1 { font-size: 22px; margin: 0 0 4px; }
+#irk-panel .ver { font-size: 12px; color: var(--dim); }
+#irk-panel p { margin: 6px 0; line-height: 1.6; }
+#irk-panel .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; }
+#irk-panel label { display: inline-flex; align-items: center; gap: 6px; }
+#irk-panel fieldset { border: 1px solid var(--line); border-radius: 10px; margin: 12px 0; padding: 8px 12px; }
+#irk-panel legend { color: var(--dim); font-size: 13px; }
+.btn {
+  display: inline-block; border: 1px solid var(--line); background: #1c2130; color: var(--fg); border-radius: 10px;
+  padding: 10px 16px; text-decoration: none; cursor: pointer;
+}
+.btn.primary { background: #1f6f58; border-color: var(--accent); font-weight: 700; }
+.btn.small { padding: 6px 10px; font-size: 14px; }
+.note { color: var(--dim); font-size: 13px; }
+.warn { color: var(--warn); }
+select, input[type=number], input[type=text], input[type=url] {
+  background: #141824; color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px;
+}
+input[type=range] { width: 180px; }
+
+#irk-rotate {
+  position: fixed; inset: 0; z-index: 30; background: var(--bg); display: none; align-items: center; justify-content: center;
+  text-align: center; padding: 24px; flex-direction: column; gap: 12px;
+}
+body.portrait #irk-rotate { display: flex; }
+body.portrait.allow-portrait #irk-rotate { display: none; }
+
+/* 文書のページ（トップと持ち方の検討） */
+body.irk-doc { overflow-y: auto; }
+.doc { max-width: 920px; margin: 0 auto; padding: 20px 16px 60px; line-height: 1.75; }
+.doc h1 { font-size: 26px; margin: 8px 0; }
+.doc h2 { font-size: 20px; margin: 28px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+.doc h3 { font-size: 17px; margin: 18px 0 6px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.card {
+  display: block; border: 1px solid var(--line); background: #10131b; border-radius: 12px; padding: 12px 14px;
+  text-decoration: none; color: var(--fg);
+}
+.card:hover { border-color: var(--accent); }
+.card b { font-size: 17px; display: block; margin-bottom: 4px; }
+.card .t { color: var(--dim); font-size: 13px; line-height: 1.6; }
+.card .tag { display: inline-block; font-size: 11px; border: 1px solid var(--line); border-radius: 6px; padding: 0 6px; margin: 6px 4px 0 0; color: var(--dim); }
+table.grid { border-collapse: collapse; width: 100%; font-size: 14px; }
+table.grid th, table.grid td { border: 1px solid var(--line); padding: 6px 8px; vertical-align: top; }
+table.grid th { background: #141824; }

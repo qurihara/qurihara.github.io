@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>持ち方の検討 — iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+<style>
+  .figs { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+  .fig { border: 1px solid var(--line); border-radius: 10px; padding: 8px; background: #10131b; text-align: center; font-size: 13px; }
+  .fig svg { width: 100%; height: auto; }
+  .fig b { display: block; font-size: 15px; margin-bottom: 4px; }
+  td.good { color: var(--accent); }
+  td.bad { color: var(--warn); }
+</style>
+</head>
+<body class="irk-doc">
+<div class="doc">
+  <h1>持ち方の検討</h1>
+  <div class="note">iRecorika <span id="ver"></span>　<a href="index.html">一覧へ戻る</a>　<a href="setup.html">持ち方と位置合わせ</a></div>
+
+  <h2>前提</h2>
+  <p>スマートフォンを横にして、ハーモニカのように長辺を口に当てる。照合笛の12本はスマートフォンの長辺に沿って並び、
+  1本の笛の本体（約66 mm）がスマートフォンの短辺（73.2 mm）とほぼ同じ長さになる。
+  手は、ハーモニカと同じく<b>親指2本が下側、残りの8本が上側</b>に来る。</p>
+  <table class="grid">
+    <tr><th>項目</th><th>値</th><th>出典</th></tr>
+    <tr><td>照合笛 v9 の板</td><td>笛が並ぶ方向 82.7 mm × 笛の長軸方向 80.2 mm × 厚さ 4.0 mm</td><td>fue/matching_flutes.py</td></tr>
+    <tr><td>笛の間隔</td><td>6.7 mm（笛の幅 7 mm、隣と 0.3 mm 重なる）</td><td>同上</td></tr>
+    <tr><td>Pixel 7 の外形</td><td>155.6 × 73.2 × 8.7 mm</td><td>仕様値（実機では未計測）</td></tr>
+    <tr><td>Pixel 7 の画面</td><td>約 146.7 × 66.0 mm（915 × 412 CSS画素、1画素 0.1603 mm）</td><td>416 ppi・画素比 2.625 からの計算値（未計測）</td></tr>
+    <tr><td>板が画面の長辺に占める割合</td><td>約 56 %。板を中央に置くと、左右に約 32 mm ずつ空く</td><td>上の値からの計算</td></tr>
+  </table>
+
+  <h2>4通りの持ち方</h2>
+  <p>「笛の板を画面の上に置くか、裏面に置くか」と「画面を上に向けるか、下に向けるか」の組み合わせで4通りある。
+  図は口の側から見た断面で、左が口、上が空の方向である。</p>
+  <div class="figs" id="figs"></div>
+
+  <table class="grid" style="margin-top:12px">
+    <tr><th></th><th>A. 画面の上・画面が上</th><th>B. 画面の上・画面が下</th><th>C. 裏面・画面が上</th><th>D. 裏面・画面が下</th></tr>
+    <tr><th>画面に触れる指</th><td class="good">上側の8本（片側4本）</td><td class="bad">親指2本</td><td class="good">上側の8本</td><td class="bad">親指2本</td></tr>
+    <tr><th>触れられる範囲</th><td>板の左右（中央に置けば約32 mmずつ）</td><td>板の左右</td><td class="good">画面の全面</td><td>画面の全面（親指の届く範囲）</td></tr>
+    <tr><th>演奏者から画面が見えるか</th><td>見下ろせば見える。板越しに笛の下が見える</td><td class="bad">見えない</td><td class="good">よく見える</td><td class="bad">見えない</td></tr>
+    <tr><th>吹いている笛を光らせる</th><td class="good">笛そのものが光る（透明 PETG を通る）</td><td>光るが床の方を向く</td><td>笛の真裏が光る（笛自体は光らない）</td><td class="bad">光は床の方を向き、笛は反対側</td></tr>
+    <tr><th>観客から見える光</th><td class="good">よく見える</td><td>下から見る人にだけ見える</td><td>画面の光として見える</td><td class="bad">見えない</td></tr>
+    <tr><th>笛の窓の向き</th><td>空の方</td><td>床の方</td><td>床の方</td><td>空の方</td></tr>
+    <tr><th>息の湿りによる誤動作</th><td class="bad">吹き込み口の下の画面が湿ると、誤って触れたと判定されうる（アプリは板の範囲の接触を無視する）</td><td class="bad">同左</td><td class="good">画面に息がかからない</td><td class="good">同左</td></tr>
+    <tr><th>向いているアプリ</th><td>光る笛・練習・星あつめ・和音笛・伴奏・リズム（見せる演奏）</td><td>重ね音・傾きと揺れ・ルーパー（操作が少ないもの）</td><td>練習・動画と一緒に・記録帳・伴奏・リズム</td><td>重ね音・傾きと揺れ（画面を見ない演奏）</td></tr>
+  </table>
+
+  <h2>論点</h2>
+  <h3>1. 指の数と操作の設計</h3>
+  <p>画面が上向きなら8本の指が画面に乗るので、片側4つ、合わせて8つの操作面を置ける。和音の種類を組み合わせで選ぶ（和音笛）、
+  8種類の打楽器を叩く（リズム）といった、指の数を活かす設計ができる。画面が下向きだと親指の2本だけなので、片側2つに絞る。
+  どのアプリも、片側4つの操作を大事な順に並べ、親指の持ち方では先頭の2つだけを出すようにした。</p>
+  <p>片側4つをどう並べるかは、指先が画面の上でどう並ぶかによる。ハーモニカの持ち方では指先が短辺に沿って縦に並ぶと考え、
+  既定を「縦に4段」にした。実際の持ち方で確かめて、「持ち方と位置合わせ」で「横に4列」「2×2」に変えられる。<b>未確認である。</b></p>
+
+  <h3>2. 光らせる効果</h3>
+  <p>A の持ち方では、透明な PETG の笛の真下が画面なので、吹いている笛そのものを光らせられる。音と光が同じ位置で起きるので、
+  観客には「どの穴が鳴っているか」が見え、演奏者には「次にどの穴を吹くか」が見える（練習・星あつめ）。
+  PETG の笛は床が 0.5 mm で、壁と空洞で光が散るので、どの程度明るく、どの程度隣の笛へ漏れるかは<b>実物で確かめる必要がある</b>。</p>
+
+  <h3>3. 息の湿り</h3>
+  <p>A と B では吹き込み口が画面の縁の上に来る。吐く息で画面が湿ると、静電容量式のタッチパネルが接触と誤認することがある。
+  そこで、どのアプリも板の範囲への接触は無視し、操作面は板の外側だけに置いた。それでも湿りが板の外へ広がる場合は、
+  板の吹き込み口の側に庇（ひさし）を付けるか、C の持ち方にする。<b>未確認である。</b></p>
+
+  <h3>4. マイクとスピーカーの位置</h3>
+  <p>Pixel 7 のマイクとスピーカーは短辺の側（横に持つと左右の端）にある。そこは手で握る位置なので、手のひらで塞ぐと
+  笛の音が弱くなり、伴奏の音もこもる。「実機の診断」で、持ったまま笛の音の強さと回り込みを測れる。</p>
+
+  <h3>5. スピーカーの音の回り込み</h3>
+  <p>伴奏や打楽器の音がマイクに入ると、笛の検出を乱す。検出は笛の音域（1600〜3250 Hz）の山だけを見るので、
+  スマートフォンから出す音をすべて、この音域を抜く経路（1350 Hz より下と 3350 Hz より上だけを通す）に通すことにした。これを「保護」と呼ぶ。
+  笛と同じ高さの音を鳴らす必要があるとき（まねっこの手本、練習の手本、ルーパーの再生）は保護を通さず、手本の間はマイクの判定を止める。
+  ルーパーと動画の音は止められないので、気になるときはイヤホンを使う。</p>
+
+  <h3>6. 画面の向きの固定</h3>
+  <p>画面を下に向けたり水平に近づけたりすると、自動回転で画面の上下が入れ替わることがある。各アプリは「始める」を押したときに
+  全画面にして横向き（landscape-primary）に固定する。固定できない端末では、クイック設定で自動回転を止める。</p>
+
+  <h2>おすすめ</h2>
+  <p>最初は <b>A（画面の上・画面が上）</b> で試すのがよい。8本の指が使え、光る効果も確かめられ、4通りの中でいちばん多くのアプリが活きる。
+  息の湿りで誤動作する場合は C に切り替える。B と D は、画面を見ずに息と少しの操作だけで演奏する使い方（重ね音・傾きと揺れ）に絞る。</p>
+</div>
+<script src="lib/irk-common.js?v=1"></script>
+<script>
+(function () {
+  document.getElementById("ver").textContent = IRK.VERSION;
+  // 断面図：左が口、上が空。スマートフォン（灰）、画面の面（緑の線）、笛の板（水色）、指（8本は上、親指は下）
+  const cases = [
+    { k: "A", t: "画面の上・画面が上", plateTop: true, screenTop: true },
+    { k: "B", t: "画面の上・画面が下", plateTop: false, screenTop: false },
+    { k: "C", t: "裏面・画面が上", plateTop: false, screenTop: true },
+    { k: "D", t: "裏面・画面が下", plateTop: true, screenTop: false },
+  ];
+  const figs = document.getElementById("figs");
+  for (const c of cases) {
+    const phoneY = 60, phoneH = 16;
+    const screenY = c.screenTop ? phoneY : phoneY + phoneH;
+    const plateY = c.plateTop ? phoneY - 8 : phoneY + phoneH;
+    const touchTop = c.screenTop;
+    const svg = `<svg viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">
+      <text x="6" y="72" fill="#8a90a2" font-size="10">口</text>
+      <rect x="22" y="${phoneY}" width="160" height="${phoneH}" rx="3" fill="#3a4052"/>
+      <line x1="24" y1="${screenY}" x2="180" y2="${screenY}" stroke="#6cf0c2" stroke-width="3"/>
+      <rect x="24" y="${plateY}" width="146" height="8" rx="2" fill="rgba(140,200,255,0.55)" stroke="#8cc8ff"/>
+      <text x="100" y="${c.plateTop ? plateY - 4 : plateY + 18}" fill="#8cc8ff" font-size="9" text-anchor="middle">笛の板</text>
+      <text x="100" y="18" fill="${touchTop ? "#6cf0c2" : "#8a90a2"}" font-size="10" text-anchor="middle">上側の8本の指${touchTop ? "（画面に触れる）" : ""}</text>
+      <text x="100" y="122" fill="${!touchTop ? "#6cf0c2" : "#8a90a2"}" font-size="10" text-anchor="middle">親指2本${!touchTop ? "（画面に触れる）" : ""}</text>
+      <path d="M100 24 L100 ${Math.min(phoneY, plateY) - 12}" stroke="#8a90a2" stroke-width="1"/>
+      <path d="M100 110 L100 ${Math.max(phoneY + phoneH, plateY + 8) + 10}" stroke="#8a90a2" stroke-width="1"/>
+      <text x="186" y="${screenY + 3}" fill="#6cf0c2" font-size="9">画面</text>
+    </svg>`;
+    const d = document.createElement("div");
+    d.className = "fig";
+    d.innerHTML = "<b>" + c.k + ". " + c.t + "</b>" + svg;
+    figs.appendChild(d);
+  }
+})();
+</script>
+</body>
+</html>

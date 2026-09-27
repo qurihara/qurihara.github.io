@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>メロディ錠 — iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+</head>
+<body>
+<script src="lib/fft_peak.js?v=1"></script>
+<script src="lib/irk-common.js?v=1"></script>
+<script src="lib/irk-audio.js?v=1"></script>
+<script src="lib/irk-stage.js?v=1"></script>
+<script>
+/* メロディ錠：決めた旋律を吹くと、暗号化しておいた伝言（または URL）が開く。
+ * 旋律（吹いた笛の番号の列）から PBKDF2 で鍵を作り、伝言を AES-GCM で暗号化して、このブラウザに保存する。
+ * 旋律そのものは保存しないので、保存された内容を見ても旋律は分からない。
+ * 吹くたびに直近の音の列で復号を試み、開けば伝言を出す。暗号笛（CipherFlute）の考え方を、
+ * 手元のスマートフォンの中だけで小さく試すものである。 */
+(function () {
+  "use strict";
+  const KEY = "irecorika.lock.v1";
+  const ITER = 60000;
+  const st = { phase: "listen", reg: [], recent: [], locked: null, hide: false, opened: false };
+  try { st.locked = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (_) {}
+
+  const panel = "<fieldset><legend>錠</legend>"
+    + "<div class='row'><label>開いたときに出す伝言、または URL <input type='text' id='msg' style='width:24em' placeholder='例：机の2段目の引き出し　または https://…'></label></div>"
+    + "<p class='note'>伝言を書いてから、演奏画面で「登録を始める」を押し、合言葉にする旋律を吹いて「登録を終える」を押します。4音以上にしてください。"
+    + "伝言は旋律から作った鍵で暗号化して、このブラウザにだけ保存します。</p>"
+    + "<p class='note' id='lockInfo'></p>"
+    + "<p class='note'>本物の暗号笛（笛の並びそのものを秘密にする仕組み）は <a href='../cipher/'>CipherFlute の復号ページ</a> にあります。</p></fieldset>";
+
+  const stage = IRKStage.create({
+    title: "メロディ錠",
+    desc: "決めた旋律を吹くと、暗号化しておいた伝言が開きます。旋律から鍵を作って伝言を暗号化するので、保存された内容からは旋律も伝言も分かりません。",
+    panel,
+    pads: {
+      left: [{ id: "reg", label: "登録を始める" }, { id: "undo", label: "1音取り消す" }, { id: "hide", label: "入力を隠す", toggle: true }],
+      right: [{ id: "clear", label: "入力を消す" }, { id: "relock", label: "閉じる" }],
+    },
+    onStart: async () => { await det.start(); },
+    onPad(id, down) {
+      if (id === "hide") { st.hide = down; render(); return; }
+      if (!down) return;
+      if (id === "reg") st.phase === "reg" ? finishReg() : beginReg();
+      if (id === "undo") { if (st.phase === "reg") st.reg.pop(); else st.recent.pop(); render(); }
+      if (id === "clear") { st.reg = []; st.recent = []; render(); }
+      if (id === "relock") { st.opened = false; st.recent = []; stage.clearHold(); render(); }
+    },
+    draw(g, geo, now) {
+      if (!st.opened) return;
+      // 開いたときは帯が順に光って流れる
+      for (const l of geo.lanes) {
+        const v = 0.5 + 0.5 * Math.sin(now / 150 - l.slot * 0.6);
+        g.fillStyle = IRK.slotColor(l.slot, 0.35 * v);
+        g.fillRect(l.x0, 0, l.x1 - l.x0, geo.height);
+      }
+    },
+  });
+  const $ = id => document.getElementById(id);
+  function info() {
+    $("lockInfo").textContent = st.locked ? "錠は登録済みです（旋律の長さ " + st.locked.len + " 音、" + new Date(st.locked.at).toLocaleString() + " に登録）。" : "まだ錠は登録されていません。";
+  }
+  info();
+
+  // ---------------------------------------------------------------- 暗号
+  const enc = new TextEncoder(), dec = new TextDecoder();
+  const b64 = u8 => btoa(String.fromCharCode.apply(null, u8));
+  const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  async function keyFrom(seq, salt) {
+    const base = await crypto.subtle.importKey("raw", enc.encode("irecorika-lock:" + seq.join(",")), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: ITER, hash: "SHA-256" }, base,
+      { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+  }
+  async function lock(seq, text) {
+    const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+    const k = await keyFrom(seq, salt);
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, k, enc.encode(text)));
+    return { v: 1, len: seq.length, salt: b64(salt), iv: b64(iv), ct: b64(ct), at: Date.now() };
+  }
+  async function tryOpen(seq) {
+    if (!st.locked || seq.length < st.locked.len) return null;
+    const cand = seq.slice(-st.locked.len);
+    try {
+      const k = await keyFrom(cand, unb64(st.locked.salt));
+      const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(st.locked.iv) }, k, unb64(st.locked.ct));
+      return dec.decode(pt);
+    } catch (_) { return null; }
+  }
+
+  // ---------------------------------------------------------------- 登録と解錠
+  function beginReg() {
+    if (!$("msg").value.trim()) { stage.openMenu(); alert("先に、開いたときに出す伝言を書いてください。"); return; }
+    st.phase = "reg"; st.reg = [];
+    stage.setPad("reg", "登録を終える");
+    render();
+  }
+  async function finishReg() {
+    if (st.reg.length < 4) { alert("旋律は4音以上にしてください（いま " + st.reg.length + " 音）。"); return; }
+    st.locked = await lock(st.reg, $("msg").value.trim());
+    try { localStorage.setItem(KEY, JSON.stringify(st.locked)); } catch (_) {}
+    st.phase = "listen"; st.reg = []; st.recent = [];
+    stage.setPad("reg", "登録を始める");
+    info(); render("登録しました。合言葉の旋律を吹くと開きます。");
+  }
+  async function onNote(slot) {
+    if (st.phase === "reg") { st.reg.push(slot); render(); return; }
+    if (st.opened) return;
+    st.recent.push(slot);
+    if (st.recent.length > 40) st.recent.shift();
+    render();
+    const text = await tryOpen(st.recent);
+    if (text !== null) {
+      st.opened = true;
+      if (navigator.vibrate) navigator.vibrate([60, 60, 120]);
+      const isUrl = /^https?:\/\//i.test(text);
+      const esc = text.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+      stage.setCenter("<div class='big' style='color:#6cf0c2'>開きました</div><div class='mid' style='pointer-events:auto'>"
+        + (isUrl ? "<a href='" + esc + "' target='_blank' rel='noopener'>" + esc + "</a>" : esc) + "</div>");
+    }
+  }
+  function dots(seq) {
+    return seq.map(s => st.hide ? "●" : "<span style='color:" + IRK.slotColor(s, 1) + "'>" + IRK.noteName(IRK.slotToMidi(s), "flat") + "</span>").join(" ");
+  }
+  function render(msg) {
+    if (st.opened) return;
+    if (st.phase === "reg") stage.setCenter("<div class='mid'>● 合言葉を登録中</div><div class='mid'>" + dots(st.reg) + "</div><div class='small'>" + st.reg.length + " 音</div>");
+    else stage.setCenter("<div class='mid'>" + (st.locked ? "🔒 旋律を吹いてください" : "まず錠を登録してください") + "</div>"
+      + "<div class='mid'>" + dots(st.recent.slice(-12)) + "</div>" + (msg ? "<div class='small'>" + msg + "</div>" : ""));
+  }
+
+  const det = IRKAudio.Detector({
+    onNote(ev) { stage.clearHold(); stage.hold(ev.slot, 1); onNote(ev.slot); },
+    onOff(ev) { if (!ev.changed) { stage.hold(ev.slot, 0); stage.flash(ev.slot, 0.6); } },
+  });
+  stage.attachDetector(det);
+  render();
+})();
+</script>
+</body>
+</html>

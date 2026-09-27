@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>練習 — iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+</head>
+<body>
+<script src="lib/fft_peak.js?v=1"></script>
+<script src="lib/irk-common.js?v=1"></script>
+<script src="lib/irk-audio.js?v=1"></script>
+<script src="lib/irk-stage.js?v=1"></script>
+<script src="lib/irk-theory.js?v=1"></script>
+<script>
+/* 練習：次に吹く笛の真下（真裏）に印を出し、吹けたかを判定する。
+ *   ガイド     … 次の音の笛を光らせて、正しく吹けるまで待つ。拍は気にせず、指と息の位置を覚える
+ *   流れる譜面 … 音が帯の上を口の側へ流れてくる。判定線に来たときに吹く。長さと正確さを採点する
+ *   手本を聞く … スマートフォンが旋律を笛と同じ高さで鳴らし、その笛を光らせる（この間はマイクを止める）
+ * 画面を上に向けて笛を画面に置く持ち方なら、吹くべき穴そのものが光る。 */
+(function () {
+  "use strict";
+  const T = IRKTheory;
+  const S = IRK.load();
+  const st = { song: T.SONGS[0], mode: "guide", tempo: 1.0, running: false, idx: 0, notes: [], t0: 0, beatSec: 0.6,
+               demo: false, bass: false, metro: true, blown: null, scores: [], judge: "", combo: 0, hits: 0 };
+
+  const panel = "<fieldset><legend>練習</legend><div class='row'>"
+    + "<label>曲 <select id='song'>" + T.SONGS.map((s, i) => "<option value='" + i + "'>" + s.name + "</option>").join("") + "</select></label>"
+    + "<label>やり方 <select id='mode'><option value='guide'>ガイド（吹けるまで待つ）</option><option value='scroll'>流れる譜面（拍に合わせる）</option></select></label>"
+    + "<label>速さ <select id='tempo'><option value='0.6'>60%</option><option value='0.8'>80%</option><option value='1' selected>100%</option><option value='1.2'>120%</option></select></label>"
+    + "</div><p class='note' id='songInfo'></p></fieldset>";
+
+  const stage = IRKStage.create({
+    title: "練習",
+    desc: "次に吹く笛の真下（笛を裏面に置く場合は真裏）に印を出し、吹けたかを判定します。「ガイド」は吹けるまで待ち、「流れる譜面」は拍に合わせて採点します。"
+      + "「手本を聞く」を押すと、スマートフォンが旋律を鳴らし、その笛を光らせます。",
+    panel,
+    pads: {
+      left: [{ id: "go", label: "始める" }, { id: "demo", label: "手本を聞く" }, { id: "slower", label: "遅く" }, { id: "faster", label: "速く" }],
+      right: [{ id: "restart", label: "頭から" }, { id: "back", label: "1音戻る" }, { id: "bass", label: "低い声部を重ねる", toggle: true }, { id: "metro", label: "拍の音", toggle: true }],
+    },
+    onStart: async () => { await det.start(); },
+    onPause() { stopAll(); },
+    onPad(id, down) {
+      if (id === "bass") { st.bass = down; return; }
+      if (id === "metro") { st.metro = down; return; }
+      if (!down) return;
+      if (id === "go") st.running ? stopAll() : begin();
+      if (id === "demo") st.demo ? stopAll() : demo();
+      if (id === "restart") { stopAll(); begin(); }
+      if (id === "back" && st.mode === "guide") { st.idx = Math.max(0, st.idx - 1); skipRests(); showGuide(); }
+      if (id === "slower") setTempo(Math.max(0.4, st.tempo - 0.1));
+      if (id === "faster") setTempo(Math.min(1.6, st.tempo + 0.1));
+    },
+    draw(g, geo, now) { if (st.running && st.mode === "scroll") drawScroll(g, geo); },
+  });
+  stage.setPadOn("metro", true);
+  const $ = id => document.getElementById(id);
+  $("song").onchange = () => { st.song = T.SONGS[parseInt($("song").value, 10)]; load(); };
+  $("mode").onchange = () => { st.mode = $("mode").value; stopAll(); load(); };
+  $("tempo").onchange = () => setTempo(parseFloat($("tempo").value));
+  function setTempo(t) { st.tempo = Math.round(t * 10) / 10; center(); }
+
+  function load() {
+    const r = T.songNotes(st.song);
+    st.notes = r.notes;
+    st.keyPc = r.keyPc;
+    st.idx = 0;
+    const used = new Set(st.notes.filter(n => n.midi !== null).map(n => IRK.midiToSlot(n.midi)));
+    $("songInfo").textContent = T.FLAT_NAMES[r.keyPc] + " 長調で吹きます。使う笛は " + [...used].sort((a, b) => a - b).map(s => s + "番（" + IRK.noteName(IRK.slotToMidi(s), "flat") + "）").join("・") + " です。";
+    stage.clearMarks(); stage.clearHold();
+    center();
+  }
+  function beatSec() { return 60 / (st.song.bpm * st.tempo); }
+
+  function stopAll() {
+    st.running = false; st.demo = false;
+    clearTimeout(st.timer);
+    if (st.demoVoices) st.demoVoices.forEach(v => v.release());
+    stage.setPad("go", "始める"); stage.setPad("demo", "手本を聞く");
+    stage.clearMarks(); stage.clearHold();
+    center();
+  }
+  function begin() {
+    st.running = true; st.idx = 0; st.scores = []; st.combo = 0; st.hits = 0; st.judge = "";
+    stage.setPad("go", "止める");
+    if (st.mode === "guide") { skipRests(); showGuide(); }
+    else { stage.setCenter("<div class='small' style='position:absolute;top:6px;left:0;right:0'>" + st.song.name + "</div>"); startScroll(); }
+  }
+
+  // ---------------------------------------------------------------- ガイド
+  function skipRests() { while (st.idx < st.notes.length && st.notes[st.idx].midi === null) st.idx++; }
+  function showGuide() {
+    stage.clearMarks();
+    if (st.idx >= st.notes.length) { finish(); return; }
+    const cur = st.notes[st.idx];
+    stage.mark(IRK.midiToSlot(cur.midi), { color: "#ffffff", alpha: 0.55, label: "▲" });
+    // その次の音も薄く出す（同じ笛なら重ねない）
+    let j = st.idx + 1; while (j < st.notes.length && st.notes[j].midi === null) j++;
+    if (j < st.notes.length && st.notes[j].midi !== cur.midi) stage.mark(IRK.midiToSlot(st.notes[j].midi), { color: "#ffffff", alpha: 0.15 });
+    center();
+  }
+  function guideHit(ev) {
+    const cur = st.notes[st.idx];
+    if (!cur) return;
+    if (ev.midi === cur.midi) {
+      st.hits++;
+      st.judge = "○";
+      st.idx++; skipRests();
+      // 同じ音が続くときは、いったん息を切るまで次へ進まない
+      st.needRelease = st.idx < st.notes.length && st.notes[st.idx].midi === ev.midi;
+      showGuide();
+    } else {
+      st.judge = "✕ " + IRK.noteName(ev.midi, "flat") + " を吹いています";
+      center();
+    }
+  }
+
+  // ---------------------------------------------------------------- 流れる譜面
+  function startScroll() {
+    const ac = IRKAudio.ctx();
+    st.beatSec = beatSec();
+    st.t0 = ac.currentTime + st.beatSec * 4;          // 1小節数えてから始める
+    st.acc = st.notes.map(() => ({ on: 0, all: 0 }));
+    for (let b = 0; b < 4; b++) IRKAudio.drum("rim", st.t0 - st.beatSec * (4 - b), b === 0 ? 0.9 : 0.6);
+    scheduleBeats();
+  }
+  function scheduleBeats() {
+    // 拍の音と低い声部を先に予約しておく
+    const ac = IRKAudio.ctx();
+    const total = st.notes.length ? st.notes[st.notes.length - 1].start + st.notes[st.notes.length - 1].beats : 0;
+    for (let b = 0; b < total; b++) {
+      if (st.metro) IRKAudio.drum(b % 4 === 0 ? "rim" : "hat", st.t0 + b * st.beatSec, b % 4 === 0 ? 0.35 : 0.3);
+    }
+    if (st.bass) for (const n of st.notes) if (n.midi !== null) IRKAudio.note(n.midi - 24, { type: "triangle", vel: 0.35, when: st.t0 + n.start * st.beatSec, dur: n.beats * st.beatSec * 0.9 });
+    st.endAt = st.t0 + total * st.beatSec;
+  }
+  function songTime() { return (IRKAudio.ctx().currentTime - st.t0) / st.beatSec; }   // 拍単位
+  function drawScroll(g, geo) {
+    const H = geo.height;
+    const lineY = H * 0.82;             // 判定線（口の側）
+    const pxPerBeat = H * 0.28;
+    const now = songTime();
+    const cur = st.blown ? st.blown.midi : null;
+    // 判定：いま鳴るべき音と吹いている音を比べ、音の長さのうち合っていた割合を記録する
+    st.notes.forEach((n, i) => {
+      if (n.midi === null) return;
+      if (now >= n.start && now < n.start + n.beats) { st.acc[i].all++; if (cur === n.midi) st.acc[i].on++; }
+    });
+    for (const n of st.notes) {
+      if (n.midi === null) continue;
+      const l = geo.lanes[IRK.midiToSlot(n.midi)];
+      const y1 = lineY - (n.start - now) * pxPerBeat;
+      const y0 = y1 - n.beats * pxPerBeat + 3;
+      if (y1 < -10 || y0 > H) continue;
+      const active = now >= n.start && now < n.start + n.beats;
+      g.fillStyle = active ? (cur === n.midi ? "#6cf0c2" : "#ffb35c") : "rgba(255,255,255,0.75)";
+      g.beginPath();
+      g.roundRect ? g.roundRect(l.x0 + 3, y0, l.x1 - l.x0 - 6, y1 - y0, 5) : g.rect(l.x0 + 3, y0, l.x1 - l.x0 - 6, y1 - y0);
+      g.fill();
+    }
+    g.strokeStyle = "#fff"; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(geo.plate.x0, lineY); g.lineTo(geo.plate.x1, lineY); g.stroke();
+    if (IRKAudio.ctx().currentTime > st.endAt + 0.3) finish();
+  }
+
+  // ---------------------------------------------------------------- 手本
+  function demo() {
+    stopAll();
+    st.demo = true;
+    stage.setPad("demo", "手本を止める");
+    const ac = IRKAudio.ctx();
+    const bs = beatSec();
+    const t0 = ac.currentTime + 0.3;
+    st.demoVoices = [];
+    let end = 0;
+    for (const n of st.notes) {
+      end = n.start + n.beats;
+      if (n.midi === null) continue;
+      // 笛と同じ高さなので保護を通さない経路で鳴らし、その間はマイクの判定を止める
+      st.demoVoices.push(IRKAudio.note(n.midi, { type: "triangle", vel: 0.3, when: t0 + n.start * bs, dur: n.beats * bs * 0.85, dest: IRKAudio.bus().rawOut }));
+    }
+    det.mute((end * bs + 1) * 1000);
+    const step = () => {
+      if (!st.demo) return;
+      const t = (ac.currentTime - t0) / bs;
+      stage.clearHold();
+      const n = st.notes.find(x => x.midi !== null && t >= x.start && t < x.start + x.beats * 0.85);
+      if (n) stage.hold(IRK.midiToSlot(n.midi), 1);
+      if (t > end + 0.5) { stopAll(); return; }
+      st.timer = setTimeout(step, 30);
+    };
+    step();
+  }
+
+  function finish() {
+    const wasScroll = st.mode === "scroll";
+    let msg;
+    if (wasScroll) {
+      const items = st.acc.filter((a, i) => st.notes[i].midi !== null && a.all > 0);
+      const rate = items.length ? items.reduce((s, a) => s + a.on / a.all, 0) / items.length : 0;
+      const good = items.filter(a => a.on / a.all > 0.6).length;
+      msg = "正確さ " + Math.round(rate * 100) + "%　（" + good + "/" + items.length + " 音を6割以上の長さで吹けました）";
+    } else {
+      msg = "最後まで吹けました";
+    }
+    st.running = false;
+    stage.setPad("go", "始める");
+    stage.clearMarks();
+    stage.setCenter("<div class='mid'>" + st.song.name + "</div><div class='big' style='font-size:28px'>" + msg + "</div>");
+  }
+  function center() {
+    if (st.running && st.mode === "guide") {
+      const cur = st.notes[st.idx];
+      stage.setCenter("<div class='small'>" + st.song.name + "　" + (st.idx + 1) + "/" + st.notes.length + "</div>"
+        + (cur ? "<div class='big'>" + IRK.noteName(cur.midi, S.showNames === "none" ? "flat" : S.showNames) + "</div>" : "")
+        + "<div class='mid'>" + st.judge + "</div>");
+    } else if (!st.running && !st.demo) {
+      stage.setCenter("<div class='mid'>" + st.song.name + "</div><div class='small'>速さ " + Math.round(st.tempo * 100) + "%　「始める」で開始</div>");
+    }
+  }
+
+  const det = IRKAudio.Detector({
+    onNote(ev) {
+      st.blown = ev;
+      if (!st.demo) { stage.clearHold(); stage.hold(ev.slot, 0.7); }
+      if (st.running && st.mode === "guide") {
+        if (st.needRelease && !ev.legato) st.needRelease = false;
+        if (!st.needRelease) guideHit(ev);
+      }
+    },
+    onOff(ev) {
+      if (ev.changed) return;
+      st.blown = null;
+      st.needRelease = false;
+      if (!st.demo) stage.hold(ev.slot, 0);
+    },
+  });
+  stage.attachDetector(det);
+  load();
+})();
+</script>
+</body>
+</html>

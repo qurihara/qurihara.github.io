@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>和音笛 — iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+</head>
+<body>
+<script src="lib/fft_peak.js?v=1"></script>
+<script src="lib/irk-common.js?v=1"></script>
+<script src="lib/irk-audio.js?v=1"></script>
+<script src="lib/irk-stage.js?v=1"></script>
+<script src="lib/irk-theory.js?v=1"></script>
+<script>
+/* 和音笛：吹いた1音を根音にして、指で和音の種類を選ぶ。スマートフォンが和音を鳴らす。
+ * オートハープやオムニコードに近い楽器になる。何も押さなければ長三和音（メジャー）。
+ * 「m」と「7」を同時に押せば m7 のように、押した組み合わせで和音が決まる。 */
+(function () {
+  "use strict";
+  const T = IRKTheory;
+  const st = { mods: new Set(), root: null, voices: [], bass: null, style: "pad", voice: "pad", hold: false,
+               arpTimer: null, arpIdx: 0, lastKey: "" };
+
+  const panel = "<fieldset><legend>和音の鳴らし方</legend><div class='row'>"
+    + "<label>鳴らし方 <select id='style'><option value='pad'>伸ばす</option><option value='strum'>かき鳴らす（変わるたび）</option>"
+    + "<option value='arp'>分散和音（アルペジオ）</option></select></label>"
+    + "<label>音色 <select id='voice'>" + Object.entries(IRKAudio.VOICES).map(([k, v]) => "<option value='" + k + "'" + (k === "pad" ? " selected" : "") + ">" + v + "</option>").join("") + "</select></label>"
+    + "<label>分散和音の速さ <input type='range' id='arpBpm' min='60' max='200' value='120'></label>"
+    + "</div><p class='note'>吹いている笛の帯の上に、その和音に含まれる音の笛を薄く色づけします。続けて吹くと和音に合う笛が分かります。</p></fieldset>";
+
+  const stage = IRKStage.create({
+    title: "和音笛",
+    desc: "吹いた音を根音にして、スマートフォンが和音を鳴らします。何も押さなければメジャー、左右の操作面を押している間は m・7・sus4 などに変わります。"
+      + "押した組み合わせで和音が決まります（m と 7 で m7、m と ♭5 で dim）。",
+    panel,
+    pads: {
+      left: [{ id: "m", label: "m", sub: "短三和音" }, { id: "7", label: "7", sub: "セブンス" },
+             { id: "b5", label: "♭5", sub: "m と一緒で dim" }, { id: "6", label: "6", sub: "シックス" }],
+      right: [{ id: "sus4", label: "sus4" }, { id: "M7", label: "M7", sub: "メジャーセブンス" },
+              { id: "aug", label: "aug", sub: "増三和音" }, { id: "hold", label: "伸ばす", sub: "吹きやめても", toggle: true }],
+    },
+    onStart: async () => {
+      const ok = await det.start();
+      if (!ok) stage.setCenter("<div class='mid warn'>マイクを使えません。許可してください。</div>");
+    },
+    onPad(id, down) {
+      if (id === "hold") { st.hold = down; if (!down && !det.tracker.current()) release(); return; }
+      if (down) st.mods.add(id); else st.mods.delete(id);
+      if (st.root !== null) play(false);
+    },
+  });
+  const $ = id => document.getElementById(id);
+  $("style").onchange = () => { st.style = $("style").value; if (st.root !== null) play(true); };
+  $("voice").onchange = () => { st.voice = $("voice").value; if (st.root !== null) play(true); };
+
+  /* 押している組み合わせから和音の種類を決める */
+  function quality() {
+    const m = st.mods;
+    if (m.has("sus4")) return m.has("7") ? "7" : "sus4";
+    if (m.has("aug")) return "aug";
+    if (m.has("m") && m.has("b5")) return m.has("7") ? "m7b5" : "dim";
+    if (m.has("m")) return m.has("7") ? "m7" : "m";
+    if (m.has("M7")) return "M7";
+    if (m.has("7")) return "7";
+    if (m.has("6")) return "6";
+    return "";
+  }
+  function stopVoices() {
+    st.voices.forEach(v => v.release());
+    st.voices = [];
+    if (st.bass) { st.bass.release(); st.bass = null; }
+    clearInterval(st.arpTimer); st.arpTimer = null;
+  }
+  function release() { stopVoices(); st.root = null; st.lastKey = ""; stage.clearMarks(); stage.setCenter("<div class='small'>笛を吹いてください</div>"); }
+
+  function play(force) {
+    const q = quality();
+    const pc = st.root % 12;
+    const key = pc + "/" + q;
+    if (key === st.lastKey && !force) return;
+    st.lastKey = key;
+    const notes = IRKAudio.voicing(pc, q, 55);           // G3 付近から上に密集させる（保護の範囲より下）
+    stopVoices();
+    const ac = IRKAudio.ctx();
+    if (st.style === "pad") {
+      st.voices = notes.map(n => IRKAudio.note(n, { type: st.voice, vel: 0.28 }));
+    } else if (st.style === "strum") {
+      st.voices = notes.map((n, i) => IRKAudio.note(n, { type: st.voice === "pad" ? "pluck" : st.voice, vel: 0.35, when: ac.currentTime + i * 0.025 }));
+    } else {
+      const bpm = parseInt($("arpBpm").value, 10);
+      const seq = notes.concat([notes[0] + 12]);
+      st.arpIdx = 0;
+      const tick = () => {
+        const n = seq[st.arpIdx % seq.length];
+        IRKAudio.note(n, { type: st.voice === "pad" ? "pluck" : st.voice, vel: 0.35, dur: 60 / bpm / 2 });
+        st.arpIdx++;
+      };
+      tick();
+      st.arpTimer = setInterval(tick, 60000 / bpm / 2);
+    }
+    st.bass = IRKAudio.note(36 + ((pc - 36) % 12 + 12) % 12, { type: "bass", vel: 0.45 });
+    // 和音に含まれる音の笛に印をつける
+    stage.clearMarks();
+    const pcs = T.chordPcs(pc, q);
+    for (let s = 0; s < 12; s++) {
+      const spc = IRK.slotToMidi(s) % 12;
+      if (pcs.indexOf(spc) >= 0) stage.mark(s, { color: spc === pc ? "#ffffff" : "#6cf0c2", alpha: spc === pc ? 0.25 : 0.18 });
+    }
+    stage.setCenter("<div class='big'>" + T.chordName(pc, q) + "</div><div class='small'>根音 " + IRK.noteName(st.root, "flat") + "</div>");
+  }
+
+  const det = IRKAudio.Detector({
+    onNote(ev) {
+      st.root = ev.midi;
+      stage.clearHold(); stage.hold(ev.slot, 1);
+      play(false);
+    },
+    onOff(ev) {
+      if (ev.changed) return;
+      stage.hold(ev.slot, 0); stage.flash(ev.slot, 0.6);
+      if (!st.hold) release();
+    },
+  });
+  stage.attachDetector(det);
+  stage.setCenter("<div class='small'>笛を吹いてください</div>");
+})();
+</script>
+</body>
+</html>

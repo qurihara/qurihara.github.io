@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>伴奏 — iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+</head>
+<body>
+<script src="lib/fft_peak.js?v=1"></script>
+<script src="lib/irk-common.js?v=1"></script>
+<script src="lib/irk-audio.js?v=1"></script>
+<script src="lib/irk-stage.js?v=1"></script>
+<script src="lib/irk-theory.js?v=1"></script>
+<script>
+/* 伴奏：指でコードを選ぶと、スマートフォンがベース・和音・ドラムの伴奏を鳴らす。その上で笛の旋律を吹く。
+ * 両手が塞がっていても進められるように、「進行に沿う」モードでは決まったコード進行を1小節ずつ自動で進め、
+ * スマートフォンを右へ傾けると次のコードへ、左へ傾けると前のコードへ移る。
+ * 吹いている笛の帯を光らせ、いまのコードの構成音の笛に印をつける。 */
+(function () {
+  "use strict";
+  const T = IRKTheory;
+  const S = IRK.load();
+  const STYLES = {
+    rock: { name: "8ビート", steps: 16, kick: [0, 8, 10], snare: [4, 12], hat: [0, 2, 4, 6, 8, 10, 12, 14], bass: [[0, 0], [4, 0], [8, 0], [10, 0], [12, 0]], chord: [0, 8], chordLen: 8 },
+    waltz: { name: "ワルツ（3拍子）", steps: 12, kick: [0], snare: [], hat: [4, 8], bass: [[0, 0]], chord: [4, 8], chordLen: 3 },
+    bossa: { name: "ボサノバ", steps: 16, kick: [0, 6, 8, 14], rim: [0, 3, 6, 10, 13], snare: [], hat: [0, 2, 4, 6, 8, 10, 12, 14], bass: [[0, 0], [6, 7], [8, 0], [14, 7]], chord: [2, 5, 8, 11, 14], chordLen: 2 },
+    ballad: { name: "バラード（分散和音）", steps: 16, kick: [0], snare: [8], hat: [], bass: [[0, 0], [8, 0]], arp: true },
+    march: { name: "マーチ", steps: 16, kick: [0, 8], snare: [4, 12, 14, 15], hat: [], bass: [[0, 0], [8, 7]], chord: [4, 12], chordLen: 3 },
+    pad: { name: "和音だけ（ドラムなし）", steps: 16, kick: [], snare: [], hat: [], bass: [[0, 0]], chord: [0], chordLen: 16 },
+  };
+  const st = { key: 8, style: "rock", chord: T.degreeChord("I", 8), playing: false, mode: "free", prog: 0, progIdx: 0,
+               breath: false, strength: 0, tilt: false, tiltArmed: true, gamma: 0, blown: null, bar: 0 };
+
+  const panel = "<fieldset><legend>伴奏</legend><div class='row'>"
+    + "<label>調 <select id='key'>" + T.KEYS.map(k => "<option value='" + k.pc + "'>" + k.name + "</option>").join("") + "</select></label>"
+    + "<label>リズム <select id='style'>" + Object.entries(STYLES).map(([k, v]) => "<option value='" + k + "'>" + v.name + "</option>").join("") + "</select></label>"
+    + "<label>速さ <input type='range' id='bpm' min='50' max='180' value='96'> <span id='bpmv'>96</span></label>"
+    + "</div><div class='row'>"
+    + "<label>進め方 <select id='mode'><option value='free'>指でコードを選ぶ</option><option value='prog'>進行に沿って自動で進む</option><option value='auto'>吹いた音に合わせて自動で選ぶ</option></select></label>"
+    + "<label>進行 <select id='prog'>" + T.PROGRESSIONS.map((p, i) => "<option value='" + i + "'>" + p.name + "</option>").join("") + "</select></label>"
+    + "</div><div class='row'>"
+    + "<label><input type='checkbox' id='breath'> 息の強さで伴奏の音量を変える（吹いていないと小さくなる）</label>"
+    + "<label><input type='checkbox' id='tilt'> 傾けてコードを進める（右で次、左で前）</label>"
+    + "</div><p class='note'>照合笛の12本（G#6〜G7）で長音階が1オクターブ収まるのは A♭ 長調だけなので、既定は A♭ 長調です。</p></fieldset>";
+
+  const FREE_PADS = {
+    left: [{ id: "I", label: "I" }, { id: "IV", label: "IV" }, { id: "ii", label: "ii" }, { id: "iii", label: "iii" }],
+    right: [{ id: "V", label: "V" }, { id: "vi", label: "vi" }, { id: "V7", label: "V7" }, { id: "go", label: "止める", toggle: false }],
+  };
+  const PROG_PADS = {
+    left: [{ id: "prev", label: "前のコード" }, { id: "go", label: "止める" }, { id: "restart", label: "頭から" }, { id: "fill", label: "フィルイン" }],
+    right: [{ id: "next", label: "次のコード" }, { id: "hold", label: "繰り返す", sub: "押している間", }, { id: "slower", label: "遅く" }, { id: "faster", label: "速く" }],
+  };
+
+  const AUTO_PADS = {
+    left: [{ id: "go", label: "止める" }, { id: "lock", label: "コードを固定", sub: "押している間" }, { id: "slower", label: "遅く" }, { id: "faster", label: "速く" }],
+    right: [{ id: "minor", label: "短調寄り", toggle: true }, { id: "fill", label: "フィルイン" }, { id: "I", label: "I に戻す" }, { id: "V", label: "V にする" }],
+  };
+
+  /* 吹いた音に合う和音を選ぶ。いまの和音に含まれていればそのまま。含まれていなければ、
+   * その音を含む調の中の和音から、よく使う順（I・IV・V・vi・ii・iii）に選ぶ。
+   * 「短調寄り」では vi・ii・iii を先に試す。 */
+  function autoChord(midi) {
+    const pc = ((midi % 12) + 12) % 12;
+    if (T.chordPcs(st.chord.rootPc, st.chord.quality).indexOf(pc) >= 0) return null;
+    const order = st.minorish ? ["vi", "ii", "iii", "IV", "V", "I"] : ["I", "IV", "V", "vi", "ii", "iii"];
+    for (const d of order) {
+      const c = T.degreeChord(d, st.key);
+      if (T.chordPcs(c.rootPc, c.quality).indexOf(pc) >= 0) return c;
+    }
+    return null;
+  }
+
+  const stage = IRKStage.create({
+    title: "伴奏",
+    desc: "コードを選ぶと、スマートフォンがベース・和音・ドラムの伴奏を鳴らします。その上で笛の旋律を吹いてください。"
+      + "「進行に沿って自動で進む」にすると、有名なコード進行を1小節ずつ進めます。傾けてコードを進めることもできます。",
+    panel,
+    pads: FREE_PADS,
+    onStart: async () => {
+      await det.start();
+      startMotion();
+    },
+    onPause() { stop(); },
+    onPad(id, down) {
+      if (id === "minor") { st.minorish = down; return; }
+      if (id === "lock") { st.lockChord = down; return; }
+      if (!down) { if (id === "hold") st.holdBar = false; return; }
+      if (T.DEGREES[id]) { setChord(T.degreeChord(id, st.key)); if (!st.playing) start(); return; }
+      if (id === "go") { st.playing ? stop() : start(); return; }
+      if (id === "next") { step(1); if (!st.playing) start(); }
+      if (id === "prev") step(-1);
+      if (id === "restart") { st.progIdx = 0; st.bar = 0; applyProg(); if (!st.playing) start(); }
+      if (id === "hold") st.holdBar = true;
+      if (id === "fill") st.fill = true;
+      if (id === "faster") setBpm(clock.bpm() + 6);
+      if (id === "slower") setBpm(clock.bpm() - 6);
+    },
+  });
+  const $ = id => document.getElementById(id);
+  $("key").value = "8";
+  $("key").onchange = () => { st.key = parseInt($("key").value, 10); st.chord = T.degreeChord(st.chord.degree || "I", st.key); marks(); };
+  $("style").onchange = () => { st.style = $("style").value; };
+  $("bpm").oninput = () => setBpm(parseInt($("bpm").value, 10));
+  $("mode").onchange = () => { st.mode = $("mode").value; stage.setPads(st.mode === "prog" ? PROG_PADS : st.mode === "auto" ? AUTO_PADS : FREE_PADS); if (st.mode === "prog") { st.progIdx = 0; applyProg(); } };
+  $("prog").onchange = () => { st.prog = parseInt($("prog").value, 10); st.progIdx = 0; applyProg(); };
+  $("breath").onchange = () => { st.breath = $("breath").checked; };
+  $("tilt").onchange = () => { st.tilt = $("tilt").checked; startMotion(); };
+
+  function setBpm(b) { clock.setBpm(b); $("bpm").value = String(clock.bpm()); $("bpmv").textContent = String(clock.bpm()); }
+  function step(d) {
+    const seq = T.PROGRESSIONS[st.prog].seq;
+    st.progIdx = (st.progIdx + d + seq.length) % seq.length;
+    applyProg();
+  }
+  function applyProg() { setChord(T.degreeChord(T.PROGRESSIONS[st.prog].seq[st.progIdx], st.key)); }
+  function setChord(c) { st.chord = c; marks(); }
+
+  function marks() {
+    stage.clearMarks();
+    const pcs = T.chordPcs(st.chord.rootPc, st.chord.quality);
+    for (let s = 0; s < 12; s++) {
+      const pc = IRK.slotToMidi(s) % 12;
+      if (pcs.indexOf(pc) >= 0) stage.mark(s, { color: pc === st.chord.rootPc ? "#ffffff" : "#6cf0c2", alpha: pc === st.chord.rootPc ? 0.28 : 0.2 });
+      else if (T.inScale(IRK.slotToMidi(s), st.key)) stage.mark(s, { color: "#6cf0c2", alpha: 0.05 });
+    }
+    center();
+  }
+  function center() {
+    let html = "<div class='big'>" + T.chordName(st.chord.rootPc, st.chord.quality) + "</div>";
+    if (st.mode === "prog") {
+      const seq = T.PROGRESSIONS[st.prog].seq;
+      const nx = T.degreeChord(seq[(st.progIdx + 1) % seq.length], st.key);
+      html += "<div class='small'>" + T.PROGRESSIONS[st.prog].name + "　" + (st.progIdx + 1) + "/" + seq.length + "　次は " + T.chordName(nx.rootPc, nx.quality) + "</div>";
+    }
+    html += "<div class='small'>" + (st.playing ? "♩=" + clock.bpm() : "コードを押すと始まります") + "</div>";
+    stage.setCenter(html);
+  }
+
+  // ---------------------------------------------------------------- 伴奏の再生
+  const clock = IRKAudio.Clock(onStep);
+  setBpm(96);
+  function start() { if (st.playing) return; st.playing = true; st.bar = 0; clock.start(0); stage.setPad("go", "止める"); center(); }
+  function stop() { st.playing = false; clock.stop(); if (stage.hasPad("go")) stage.setPad("go", "始める"); center(); }
+  let chordVoices = [];
+  function vel(v) {
+    if (!st.breath) return v;
+    return v * (0.15 + 0.85 * st.strength);
+  }
+  function onStep(step, when) {
+    const sty = STYLES[st.style];
+    const s = step % sty.steps;
+    if (s === 0 && step > 0 && st.mode === "prog" && !st.holdBar) {
+      // 小節の頭で次のコードへ
+      const seq = T.PROGRESSIONS[st.prog].seq;
+      st.progIdx = (st.progIdx + 1) % seq.length;
+      const c = T.degreeChord(seq[st.progIdx], st.key);
+      st.chord = c;
+      setTimeout(marks, Math.max(0, (when - IRKAudio.ctx().currentTime) * 1000));
+    }
+    const c = st.chord;
+    const rootBass = 36 + ((c.rootPc - 36) % 12 + 12) % 12;       // C2〜B2
+    const fillNow = st.fill && s >= sty.steps - 4;
+    if (sty.kick.indexOf(s) >= 0) IRKAudio.drum("kick", when, vel(0.9));
+    if (sty.snare.indexOf(s) >= 0) IRKAudio.drum("snare", when, vel(s === 15 || s === 14 ? 0.35 : 0.6));
+    if (sty.hat.indexOf(s) >= 0) IRKAudio.drum("hat", when, vel(s % 4 === 0 ? 0.5 : 0.3));
+    if (sty.rim && sty.rim.indexOf(s) >= 0) IRKAudio.drum("rim", when, vel(0.5));
+    if (fillNow) { IRKAudio.drum(s % 2 ? "tomL" : "tomH", when, vel(0.7)); if (s === sty.steps - 1) st.fill = false; }
+    for (const [bs, iv] of sty.bass) if (bs === s) IRKAudio.note(rootBass + iv, { type: "bass", vel: vel(0.6), when, dur: clock.stepSec() * 3.5 });
+    const notes = IRKAudio.voicing(c.rootPc, c.quality, 55);
+    if (sty.arp) {
+      const seq = notes.concat([notes[1] + 12, notes[0] + 12]);
+      const order = [0, 1, 2, 3, 4, 3, 2, 1];
+      IRKAudio.note(seq[order[s % order.length] % seq.length], { type: "pluck", vel: vel(0.3), when, dur: clock.stepSec() * 2 });
+    } else if (sty.chord && sty.chord.indexOf(s) >= 0) {
+      for (const n of notes) IRKAudio.note(n, { type: st.style === "pad" ? "pad" : "organ", vel: vel(st.style === "pad" ? 0.2 : 0.16), when, dur: clock.stepSec() * sty.chordLen * 0.9 });
+    }
+    if (s === 0) setTimeout(center, 0);
+  }
+
+  // ---------------------------------------------------------------- 傾き
+  let motionOn = false;
+  function startMotion() {
+    if (motionOn || !st.tilt) return;
+    motionOn = true;
+    IRK.motion.start(m => {
+      if (!st.tilt) return;
+      // 右へ傾ける（右手の側を下げる）と次へ、左へ傾けると前へ。戻すまでは次の判定をしない
+      if (st.tiltArmed && Math.abs(m.roll) > 22) {
+        st.tiltArmed = false;
+        const d = m.roll > 0 ? 1 : -1;
+        if (st.mode === "prog") step(d);
+        else { const order = ["I", "IV", "V", "vi"]; const i = order.indexOf(st.chord.degree); setChord(T.degreeChord(order[((i < 0 ? 0 : i) + (d > 0 ? 1 : 3)) % 4], st.key)); }
+        if (navigator.vibrate) navigator.vibrate(20);
+      }
+      if (Math.abs(m.roll) < 10) st.tiltArmed = true;
+    });
+  }
+
+  const det = IRKAudio.Detector({
+    onNote(ev) {
+      st.blown = ev; stage.clearHold(); stage.hold(ev.slot, 1);
+      if (st.mode === "auto" && !st.lockChord) {
+        const c = autoChord(ev.midi);
+        if (c) setChord(c);
+        if (!st.playing) start();
+      }
+    },
+    onOff(ev) { if (!ev.changed) { stage.hold(ev.slot, 0); stage.flash(ev.slot, 0.6); } },
+    onFrame(fr) { st.strength = fr.cur ? fr.strength : st.strength * 0.97; },
+  });
+  stage.attachDetector(det);
+  marks();
+})();
+</script>
+</body>
+</html>

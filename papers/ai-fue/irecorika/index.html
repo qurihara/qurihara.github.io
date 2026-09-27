@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>iRecorika</title>
+<link rel="stylesheet" href="lib/irk.css?v=1">
+</head>
+<body class="irk-doc">
+<div class="doc">
+  <h1>iRecorika <span class="note" id="ver"></span></h1>
+  <p>スマートフォンに照合笛（12本の笛を並べた透明 PETG の板）を重ね、ハーモニカのように吹きながら、
+  指で画面に触れ、スマートフォンを傾けて演奏する楽器のアプリ集です。笛は G#6 から G7 までの半音階12本です。</p>
+  <p id="now" class="note"></p>
+  <p class="note">パソコンで試すときは、各アプリの URL の末尾に <code>?sim=1</code> を付けると、マイクの代わりに
+  板の上を押すか、キーの 1〜0・-・^ で笛を吹いたことにできます（<a href="#" id="simLink">模擬入力で開く</a>）。</p>
+
+  <h2>準備</h2>
+  <div class="cards">
+    <a class="card" href="setup.html"><b>持ち方と位置合わせ</b><span class="t">笛の板を画面の上に置くか裏面に置くか、画面を上に向けるか下に向けるかを選び、画面の上の12本の帯を実物の板に合わせます。最初にここを開いてください。</span><span class="tag">最初に</span></a>
+    <a class="card" href="study.html"><b>持ち方の検討</b><span class="t">4通りの持ち方を、画面に触れる指の数・光の見え方・息の湿り・マイクの位置で比べた検討です。</span><span class="tag">読み物</span></a>
+    <a class="card" href="diag.html"><b>実機の診断</b><span class="t">マイクで12本が取れるか、刷った笛の音程のずれ、スピーカーの音の回り込み、遅延、センサ、同時に触れる指の数を測ります。</span><span class="tag">測定</span></a>
+  </div>
+
+  <h2>見る</h2>
+  <div class="cards">
+    <a class="card app" href="glow.html"><b>光る笛</b><span class="t">吹いている笛の真下（真裏）の帯を光らせます。透明な笛を画面に置くと笛そのものが光ります。音名と音程のずれも出します。</span><span class="tag">光</span><span class="tag">チューナー</span></a>
+  </div>
+
+  <h2>奏でる</h2>
+  <div class="cards">
+    <a class="card app" href="layer.html"><b>重ね音</b><span class="t">吹いた音をスマートフォンが別の音色で重ねます。指でオクターブを変え、半音上げ、ハモりを足します。息の強さが音量になります。</span><span class="tag">吹いた音に合わせる</span></a>
+    <a class="card app" href="chord.html"><b>和音笛</b><span class="t">吹いた1音を根音にして、指で和音の種類（m・7・sus4 など）を選ぶと、スマートフォンが和音を鳴らします。</span><span class="tag">吹いた音に合わせる</span><span class="tag">コード</span></a>
+    <a class="card app" href="accomp.html"><b>伴奏</b><span class="t">指でコードを選ぶか、有名なコード進行に沿って自動で進めるか、吹いた音からコードを自動で選ぶかして、ベース・和音・ドラムの伴奏を鳴らします。傾けてコードを進めることもできます。</span><span class="tag">コード</span><span class="tag">傾き</span></a>
+    <a class="card app" href="rhythm.html"><b>リズム</b><span class="t">指で8種類の打楽器を叩き、振ってシェイカーを鳴らします。叩いたリズムをループにして、その上で吹けます。</span><span class="tag">打楽器</span><span class="tag">揺れ</span></a>
+    <a class="card app" href="tilt.html"><b>傾きと揺れ</b><span class="t">吹いた音を重ねて鳴らし、左右に傾けて音を曲げ、前後に傾けて音色を変え、振ってトレモロをかけます。傾けて移調することもできます。</span><span class="tag">傾き</span><span class="tag">揺れ</span></a>
+    <a class="card app" href="looper.html"><b>ルーパー</b><span class="t">吹いたフレーズを録って繰り返し、その上に次のフレーズを重ねます。1本の笛で和音やカノンを作れます。</span><span class="tag">録音</span></a>
+  </div>
+
+  <h2>練習する・遊ぶ</h2>
+  <div class="cards">
+    <a class="card app" href="practice.html"><b>練習</b><span class="t">次に吹く笛の真下に印を出し、吹けたかを判定します。吹けるまで待つ「ガイド」と、拍に合わせて採点する「流れる譜面」があります。</span><span class="tag">曲</span><span class="tag">光</span></a>
+    <a class="card app" href="video.html"><b>動画と一緒に</b><span class="t">YouTube や手元の動画を流しながら吹きます。指で再生・5秒戻る・区間の繰り返し・速さの変更ができます。</span><span class="tag">動画</span></a>
+    <a class="card app" href="simon.html"><b>まねっこ・音当て</b><span class="t">スマートフォンが鳴らした音を笛で吹き返すゲームです。だんだん長くなる「まねっこ」と、1音ずつの「音当て」があります。</span><span class="tag">耳</span><span class="tag">ゲーム</span></a>
+    <a class="card app" href="stars.html"><b>星あつめ</b><span class="t">帯を流れてくる星を、線に来たときにその笛を吹いて取ります。穴の位置を体で覚えます。</span><span class="tag">ゲーム</span><span class="tag">光</span></a>
+    <a class="card app" href="score.html"><b>記録帳</b><span class="t">吹いた音の高さと長さを記録し、再生し、文字列や URL にして持ち出します。</span><span class="tag">記録</span></a>
+    <a class="card app" href="lock.html"><b>メロディ錠</b><span class="t">決めた旋律を吹くと、その旋律から作った鍵で暗号化しておいた伝言が開きます。暗号笛の考え方を手元で試せます。</span><span class="tag">暗号</span></a>
+  </div>
+
+  <h2>記録</h2>
+  <p class="note">経緯・タスク管理表・決定事項は <a href="https://scrapbox.io/qurihara/iRecorika">https://scrapbox.io/qurihara/iRecorika</a> にあります。
+  公開先は <a href="https://www.unryu.org/ai-fue/irecorika/">https://www.unryu.org/ai-fue/irecorika/</a> です。</p>
+</div>
+<script src="lib/irk-common.js?v=1"></script>
+<script>
+(function () {
+  document.getElementById("ver").textContent = IRK.VERSION;
+  document.getElementById("now").textContent = "いまの持ち方：" + IRK.describe(IRK.load()) + "（「持ち方と位置合わせ」で変えられます）";
+  const sim = IRK.param("sim") === "1";
+  const link = document.getElementById("simLink");
+  link.textContent = sim ? "模擬入力をやめる" : "模擬入力で開く";
+  link.href = sim ? "index.html" : "index.html?sim=1";
+  if (sim) document.querySelectorAll("a.card.app").forEach(a => a.href += "?sim=1");
+})();
+</script>
+</body>
+</html>
