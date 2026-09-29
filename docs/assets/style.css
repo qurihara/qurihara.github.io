@@ -470,3 +470,9 @@ body {
   flex: 1 1 260px;
   margin: 0;
 }
+
+/* ページ内リンクの飛び先の見出しが、上に固定したヘッダーの下に隠れないようにする。
+   id を持つ見出しだけに効く（2026-09-30 に四半期の案内の目次のために足した）。 */
+.content h2[id], .content h3[id] {
+  scroll-margin-top: calc(var(--header-h) + 12px);
+}
