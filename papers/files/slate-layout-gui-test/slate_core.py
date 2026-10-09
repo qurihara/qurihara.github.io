@@ -90,17 +90,20 @@ def evaluate(layout):
     B = {n: dict(v) for n, v in layout["buttons"].items()}
     if not B: return {"ok": False, "errors": ["ボタンが 1 つも無い"], "warnings": []}
     if len(B) > 14: errors.append("主ボタンは 14 個まで（GP2〜GP15）。いま %d 個" % len(B))
+    LAB = dict(LABEL)
     for n, b in B.items():
         b.setdefault("size", 24.0); b.setdefault("type", "round")
+        if "label" in b: LAB[n] = b["label"]
         if b["type"] == "qwall": b.setdefault("rot", -90.0)
         elif b["type"].startswith("onenail"): b.setdefault("rot", -90.0)
         else: b.setdefault("rot", 0.0)
     slit = layout.get("slit", "lower_arcs"); slit_arc = float(layout.get("slit_arc", 240.0)); slit_pitch = float(layout.get("slit_pitch", 5.0))
-    PICO_CX = float(layout.get("pico_cx", 120.0)); L3_T = float(layout.get("l3", 5.0)); SKIN = float(layout.get("skin", 0.36)); MX = float(layout.get("margin", 7.0))
+    PICO_CX = float(layout.get("pico_cx", 120.0)); PICO_GAP = float(layout.get("pico_gap", 0.0)); L3_T = float(layout.get("l3", 5.0)); SKIN = float(layout.get("skin", 0.36)); MX = float(layout.get("margin", 7.0))
     cgap = float(layout.get("ctrl_gap", 4.0)); cpitch = float(layout.get("ctrl_pitch", 13.0))
     # ---- 正規化（板の左下へ寄せる）----
     DX = 15 - min(b["x"] - b["size"] / 2 for b in B.values()); DY = 14 - min(b["y"] - b["size"] / 2 for b in B.values())
     btn = {n: (b["x"] + DX, b["y"] + DY) for n, b in B.items()}
+    if "pico_cx_raw" in layout: PICO_CX = round(float(layout["pico_cx_raw"]) + DX, 2)   # GUI はボタンと同じ生の座標で Pico の位置を持つ
     def br(n): return B[n]["size"] / 2
     # ---- 幾何の重なり（design_stl_v2.py には無い検査。GUI のために足した）----
     fps = {n: footprint(B[n], *btn[n]) for n in B}
@@ -108,8 +111,8 @@ def evaluate(layout):
     for i in range(len(names)):
         for j in range(i + 1, len(names)):
             g = fps[names[i]].distance(fps[names[j]])
-            if g < 2.0: errors.append("%s と %s の間隔が %.1fmm（2mm 以上にする）" % (LABEL.get(names[i], names[i]), LABEL.get(names[j], names[j]), g))
-            elif g < 4.0: warnings.append("%s と %s の間隔が %.1fmm（実績は 4mm 以上）" % (LABEL.get(names[i], names[i]), LABEL.get(names[j], names[j]), g))
+            if g < 2.0: errors.append("%s と %s の間隔が %.1fmm（2mm 以上にする）" % (LAB.get(names[i], names[i]), LAB.get(names[j], names[j]), g))
+            elif g < 4.0: warnings.append("%s と %s の間隔が %.1fmm（実績は 4mm 以上）" % (LAB.get(names[i], names[i]), LAB.get(names[j], names[j]), g))
     # ---- via の位置 ----
     grp = defaultdict(list)
     for n in B: grp[round(btn[n][0])].append(n)
@@ -140,10 +143,10 @@ def evaluate(layout):
                 arc = float(B[n].get("arc", slit_arc)); key = (slit, B[n]["size"], slit_pitch, arc)
                 if key not in _SLIT_CACHE: _SLIT_CACHE[key] = sp.build(slit, B[n]["size"], SLIT, slit_pitch, arc=arc, fillet=SLIT_FILLET)
                 d = _SLIT_CACHE[key]
-                if d["n_regions"] != 2: errors.append("%s：スリット %s（φ%g・弧 %g°）で領域が %d 個になる" % (LABEL.get(n, n), slit, B[n]["size"], arc, d["n_regions"])); continue
+                if d["n_regions"] != 2: errors.append("%s：スリット %s（φ%g・弧 %g°）で領域が %d 個になる" % (LAB.get(n, n), slit, B[n]["size"], arc, d["n_regions"])); continue
                 xr = (-3.0, 3.0) if len(ns) == 1 else ((-6.0, -1.0) if off < 0 else (1.0, 6.0))
                 spv = sp.pick_via(d["A"], (off, d["sig"][1]), minc, xrange=xr); gpv = sp.pick_via(d["B"], (off, d["gnd"][1]), minc, xrange=(-6.0, 6.0))
-                if spv is None or gpv is None: errors.append("%s：via（半径 %.1f＋壁 %.1f）の入る場所が無い" % (LABEL.get(n, n), VIA_R, WALL)); continue
+                if spv is None or gpv is None: errors.append("%s：via（半径 %.1f＋壁 %.1f）の入る場所が無い" % (LAB.get(n, n), VIA_R, WALL)); continue
                 x, y = btn[n]; sig_via[n] = (x + spv[0], y + spv[1]); gnd_via[n] = (x + gpv[0], y + gpv[1])
                 slit_info[n] = {"rho_full": 2 * d["rho_full"], "rho_lower": 2 * d["rho_lower"], "rest_clear": d["rest_clear"]}
     if errors: return {"ok": False, "errors": errors, "warnings": warnings}
@@ -154,12 +157,30 @@ def evaluate(layout):
     def px_bot(p): return pin1_x + (40 - p) * PITCH
     back_edge = max(y + br(n) for n, (x, y) in btn.items())
     LANE0 = round(back_edge - 5, 1); LANE_STEP = 1.9   # v2.1 以降（COMPACT）：信号レーンをボタンの真下にも通して隙間を詰める
-    PICO_SIG_Y = round(LANE0 + LANE_STEP * 14 + 2, 1); PICO_FAR_Y = PICO_SIG_Y + ROW
+    PICO_SIG_Y = round(LANE0 + LANE_STEP * 14 + 2 + PICO_GAP, 1); PICO_FAR_Y = PICO_SIG_Y + ROW   # pico_gap：Pico をボタン列からさらに奥へ離す量
     def lane_near(gp): return LANE0 + LANE_STEP * (gp - 2)
     cx0 = round(px_top(20) + LAND_R + CTRL_R + cgap, 1)
     ctrl = [(u, g, round(cx0 + cpitch * i, 1), lab) for i, (u, g, lab) in enumerate(CTRL_DEF)]
+    ctrl_size = {u: CTRL_D for u, g, lab in CTRL_DEF}
+    if "ctrl" in layout:   # 制御ボタンを JSON で指定（0〜4 個・位置は Pico の行の上で自由・大きさ φ10〜24）。gp は 21・20・19・18 のどれか
+        ctrl = []; ctrl_size = {}
+        for i, e in enumerate(layout["ctrl"]):
+            x = round(float(e["x_raw"]) + DX, 1) if "x_raw" in e else float(e["x"])
+            ctrl.append((e.get("name", "u%d" % (i + 1)), int(e["gp"]), x, e.get("label", "C%d" % (i + 1)))); ctrl_size[ctrl[-1][0]] = float(e.get("size", CTRL_D))
+        if len(ctrl) > 4: errors.append("制御ボタンは 4 個まで（Pico の奥エッジの GP18〜21）")
+        gps = [g for n, g, x, lab in ctrl]
+        if len(set(gps)) != len(gps) or any(g not in PIN_BOT for g in gps): errors.append("制御ボタンの GP が重複しているか、18〜21 の範囲外")
+        px_lo, px_hi = px_top(1) - LAND_R - 1.0, px_top(20) + LAND_R + 1.0
+        for n, g, x, lab in ctrl:
+            r = ctrl_size[n] / 2
+            if x + r > px_lo and x - r < px_hi: errors.append("制御ボタン %s が Pico の端子の列と重なる（Pico の左右に置く）" % lab)
+        for i in range(len(ctrl)):
+            for j in range(i + 1, len(ctrl)):
+                g = abs(ctrl[i][2] - ctrl[j][2]) - ctrl_size[ctrl[i][0]] / 2 - ctrl_size[ctrl[j][0]] / 2
+                if g < 2.0: errors.append("制御ボタン %s と %s の間隔が %.1fmm（2mm 以上にする）" % (ctrl[i][3], ctrl[j][3], g))
+        if errors: return {"ok": False, "errors": errors, "warnings": warnings}
     ctrl_sig_via = {n: (x, PICO_SIG_Y - 1.5) for n, g, x, lab in ctrl}   # COMPACT：上端レーンとの近接を避けて中央寄り
-    ctrl_gnd_via = {n: (x + 3.0, PICO_SIG_Y + CTRL_R * 0.45) for n, g, x, lab in ctrl}; ctrl_gnd_via = {n: (x + 3.0, PICO_SIG_Y + CTRL_R * 0.45) for n, g, x, lab in ctrl}
+    ctrl_gnd_via = {n: (x + 3.0, PICO_SIG_Y + ctrl_size[n] / 2 * 0.45) for n, g, x, lab in ctrl}; ctrl_gnd_via = {n: (x + 3.0, PICO_SIG_Y + CTRL_R * 0.45) for n, g, x, lab in ctrl}
     # ---- L3 配線 ----
     def hits(ax, ay, bx, by, obst):
         m = W_SIG / 2 + VIA_R + WALL
@@ -202,8 +223,8 @@ def evaluate(layout):
                 if seg_dist(a, b, (vx, vy), (vx, vy)) < W_SIG / 2 + VIA_R + WALL: gvia_hit.append((n, "GNDvia:" + m))
     cross = sorted(set(cross)); gvia_hit = sorted(set(gvia_hit))
     # ---- 板の外形 ----
-    xs0 = [x - br(n) for n, (x, y) in btn.items()] + [btn[n][0] + qwall_ext(B[n])[0] for n in B if B[n]["type"] == "qwall"] + [btn[n][0] - 12.5 for n in B if B[n]["type"].startswith("onenail")] + [px_top(1) - 4]
-    xs1 = [x + br(n) for n, (x, y) in btn.items()] + [btn[n][0] + qwall_ext(B[n])[1] for n in B if B[n]["type"] == "qwall"] + [btn[n][0] + 12.5 for n in B if B[n]["type"].startswith("onenail")] + [x + CTRL_D for n, g, x, l in ctrl] + [px_top(20) + 4]
+    xs0 = [x - br(n) for n, (x, y) in btn.items()] + [btn[n][0] + qwall_ext(B[n])[0] for n in B if B[n]["type"] == "qwall"] + [btn[n][0] - 12.5 for n in B if B[n]["type"].startswith("onenail")] + [px_top(1) - 4] + [x - ctrl_size[n] for n, g, x, l in ctrl]
+    xs1 = [x + br(n) for n, (x, y) in btn.items()] + [btn[n][0] + qwall_ext(B[n])[1] for n in B if B[n]["type"] == "qwall"] + [btn[n][0] + 12.5 for n in B if B[n]["type"].startswith("onenail")] + [x + ctrl_size[n] for n, g, x, l in ctrl] + [px_top(20) + 4]
     ys0 = [y - br(n) for n, (x, y) in btn.items()] + [btn[n][1] + qwall_ext(B[n])[2] for n in B if B[n]["type"] == "qwall"] + [btn[n][1] - 12.5 for n in B if B[n]["type"].startswith("onenail")]
     X0 = round(min(xs0) - MX, 1); X1 = round(max(xs1) + MX, 1); Y0 = round(min(ys0) - 8, 1)
     TIE_UP_Y = round(PICO_FAR_Y + PITCH + LAND_R + 1.6 + 3.0 / 2, 1)   # 結束バンド口（v2.4 以降）の上側の口のぶん板を奥へ広げる
@@ -239,20 +260,20 @@ def evaluate(layout):
     for n, rt in routes.items():
         Ls = plen(rt); Rs = K_EFF * Ls / As; Lg = gdist.get(gkey(gvia_all[n]), float("inf")); Rg = K_EFF * Lg / Ag
         Rlow = Rs + rvs + rvg + Rg + RC_TYP; gp = btn_gpio.get(n, ctrl_gpio.get(n)); phys = GPIO_PIN_TOP.get(gp, PIN_BOT.get(gp))
-        sf.append({"n": n, "label": LABEL.get(n, ctrl_label.get(n, n)), "gp": gp, "pin": phys, "Ls": round(Ls, 1), "Lg": round(Lg, 1),
+        sf.append({"n": n, "label": LAB.get(n, ctrl_label.get(n, n)), "gp": gp, "pin": phys, "Ls": round(Ls, 1), "Lg": round(Lg, 1),
                    "Rsig_k": round((Rs + rvs) / 1e3, 2), "Rgnd_k": round((Rg + rvg) / 1e3, 2), "Rlow_k": round(Rlow / 1e3, 2), "SF": round(RTH / Rlow, 3)})
     sf.sort(key=lambda r: r["gp"]); worst = min(sf, key=lambda r: r["SF"])
-    if cross: errors.append("配線の交差 %d 件：%s" % (len(cross), "・".join("%s と %s" % (LABEL.get(a, a), LABEL.get(b, b)) for a, b, d in cross[:6])))
-    if gvia_hit: errors.append("配線が GND via に接触 %d 件：%s" % (len(gvia_hit), "・".join("%s が %s" % (LABEL.get(a, a), LABEL.get(b.split(':')[1], b)) for a, b in gvia_hit[:6])))
+    if cross: errors.append("配線の交差 %d 件：%s" % (len(cross), "・".join("%s と %s" % (LAB.get(a, a), LAB.get(b, b)) for a, b, d in cross[:6])))
+    if gvia_hit: errors.append("配線が GND via に接触 %d 件：%s" % (len(gvia_hit), "・".join("%s が %s" % (LAB.get(a, a), LAB.get(b.split(':')[1], b)) for a, b in gvia_hit[:6])))
     if worst["SF"] < SF_TGT: errors.append("抵抗の安全率が不足：%s が SF %.2f（目標 %.1f 以上）" % (worst["label"], worst["SF"], SF_TGT))
     elif worst["SF"] < 1.8: warnings.append("安全率の余裕が小さい：%s が SF %.2f" % (worst["label"], worst["SF"]))
     out = {"ok": not errors, "errors": errors, "warnings": warnings,
            "board": {"X0": X0, "X1": X1, "Y0": Y0, "Y1": Y1, "DX": round(DX, 2), "DY": round(DY, 2), "W": round(X1 - X0, 1), "H": round(Y1 - Y0, 1)},
-           "buttons": {n: {"x": btn[n][0], "y": btn[n][1], "size": B[n]["size"], "type": B[n]["type"], "rot": B[n]["rot"], "label": LABEL.get(n, n), "gp": btn_gpio[n], "pin": GPIO_PIN_TOP[btn_gpio[n]],
+           "buttons": {n: {"x": btn[n][0], "y": btn[n][1], "size": B[n]["size"], "type": B[n]["type"], "rot": B[n]["rot"], "label": LAB.get(n, n), "gp": btn_gpio[n], "pin": GPIO_PIN_TOP[btn_gpio[n]],
                            "sig_via": sig_via[n], "gnd_via": gnd_via[n], "qwall": (qwall_rects(B[n], *btn[n]) if B[n]["type"] == "qwall" else None), "slit": slit_info.get(n)} for n in B},
            "routes": {n: [list(p) for p in r] for n, r in routes.items()},
-           "ctrl": [{"n": n, "gp": g, "x": x, "y": PICO_SIG_Y, "label": lab, "sig_via": ctrl_sig_via[n], "gnd_via": ctrl_gnd_via[n]} for n, g, x, lab in ctrl],
-           "pico": {"cx": PICO_CX, "sig_y": PICO_SIG_Y, "far_y": PICO_FAR_Y, "lane0": LANE0, "top": [[px_top(p), PICO_SIG_Y] for p in range(1, 21)], "bot": [[px_bot(p), PICO_FAR_Y] for p in range(21, 41)]},
+           "ctrl": [{"n": n, "gp": g, "x": x, "y": PICO_SIG_Y, "size": ctrl_size[n], "label": lab, "sig_via": ctrl_sig_via[n], "gnd_via": ctrl_gnd_via[n]} for n, g, x, lab in ctrl],
+           "pico": {"cx": PICO_CX, "sig_y": PICO_SIG_Y, "far_y": PICO_FAR_Y, "lane0": LANE0, "gap": PICO_GAP, "x_lo": px_top(1) - LAND_R - 1.0, "x_hi": px_top(20) + LAND_R + 1.0, "top": [[px_top(p), PICO_SIG_Y] for p in range(1, 21)], "bot": [[px_bot(p), PICO_FAR_Y] for p in range(21, 41)]},
            "crossings": cross, "via_hits": gvia_hit, "sf": sf, "worst": worst, "Z": Z}
     return out
 

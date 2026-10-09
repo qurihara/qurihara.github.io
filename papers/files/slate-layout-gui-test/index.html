@@ -73,6 +73,10 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
         <button id="addPalm">PALM（手のひらの DNA）を足す</button>
       </div>
       <div class="row">
+        <button id="addExtra">攻撃や自由な機能のボタンを足す（14 個まで）</button>
+        <button id="addCtrl">制御ボタンを足す（4 個まで）</button>
+      </div>
+      <div class="row">
         <label>全体のスリットの弧</label><input type="number" id="arcAll" min="180" max="305" step="5" value="240"><label>°</label>
         <button id="undo">元に戻す</button>
         <button id="reset">標準モデルに戻す</button>
@@ -95,12 +99,20 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
 // ===================== 状態 =====================
 const LABEL={L:"L",D:"D",R:"R",Up:"UP",c1t:"LK",c1b:"LP",c2t:"MK",c2b:"MP",c3t:"HK",c3b:"HP",c4t:"KK",c4b:"PP",thumb:"THU",palm:"PALM"};
 const STD={L:[28,101],D:[58,101],R:[84,87],Up:[91,43],c1t:[110,70],c1b:[111,100],c2t:[137,82],c2b:[137,113],c3t:[165,81],c3b:[167,112],c4t:[194,76],c4b:[196,107]};
+const CTRL_DEF=[["u1",21,"A2"],["u2",20,"A1"],["u3",19,"ST"],["u4",18,"SEL"]];
 function standard(){const b={};for(const n in STD)b[n]={x:STD[n][0],y:STD[n][1],size:n==="Up"?30:24,type:"round"};
-  return {version:"slate_layout_gui 2026-10-09",base:"v3.1.2",buttons:b,slit:"lower_arcs",slit_arc:240,slit_pitch:5,pico_cx:120,l3:5.0,skin:0.36,margin:7,ctrl_gap:4,ctrl_pitch:13};}
+  const pico=121; // 生の座標（標準では DX=−1 なので板の座標 120 に当たる）
+  const cx0=Math.round((pico+19*2.54/2+0.9+5+4)*10)/10;  // Pico の右端のピンから 4mm 外に 1 個目、以後 13mm 間隔（v3.1.2 と同じ）
+  const ctrl=CTRL_DEF.map(([n,gp,lab],i)=>({name:n,gp,label:lab,x_raw:Math.round((cx0+13*i)*10)/10,size:10}));
+  return {version:"slate_layout_gui 2026-10-10",base:"v3.1.2",buttons:b,ctrl,pico_cx_raw:pico,pico_gap:0,slit:"lower_arcs",slit_arc:240,slit_pitch:5,l3:5.0,skin:0.36,margin:7};}
+const FUNCS=["L3","R3","S1","S2","A1","A2","B1","B2","B3","B4","L1","L2","R1","R2","UP","DOWN","LEFT","RIGHT"];
+const FUNC_JA={L3:"L3（左スティック押し込み）",R3:"R3（右スティック押し込み）",S1:"Select",S2:"Start",A1:"A1（Home）",A2:"A2（Capture）",B1:"B1（LK）",B2:"B2（MK）",B3:"B3（LP）",B4:"B4（MP）",L1:"L1（PP）",L2:"L2（KK）",R1:"R1（HP）",R2:"R2（HK）",UP:"上",DOWN:"下",LEFT:"左",RIGHT:"右"};
+const CTRL_FUNC={A2:"A2",A1:"A1",ST:"S2",SEL:"S1"};
 let lastFitKey=""; let layout=standard(), result=null, lastGood=null, selected=null, history=[], log=[]; const t0=Date.now();
 function now(){return Math.round((Date.now()-t0)/100)/10;}
 function logEv(kind,detail){log.push({t:now(),kind,...detail});}
-function snapshot(){history.push(JSON.stringify(layout.buttons));if(history.length>200)history.shift();}
+function snapshot(){history.push(JSON.stringify({buttons:layout.buttons,ctrl:layout.ctrl,pico_cx_raw:layout.pico_cx_raw,pico_gap:layout.pico_gap}));if(history.length>200)history.shift();}
+function labelOf(n){return (layout.buttons[n]&&layout.buttons[n].label)||LABEL[n]||n;}
 // ===================== Python（Pyodide） =====================
 let py=null, pyReady=false, evalQueued=false, evaluating=false;
 async function initPy(){
@@ -120,7 +132,7 @@ async function runEval(){
   if(!pyReady){draw();return;}
   evaluating=true;
   while(evalQueued){evalQueued=false;
-    const s=JSON.stringify({buttons:layout.buttons,slit:layout.slit,slit_arc:layout.slit_arc,slit_pitch:layout.slit_pitch,pico_cx:layout.pico_cx,l3:layout.l3,skin:layout.skin,margin:layout.margin,ctrl_gap:layout.ctrl_gap,ctrl_pitch:layout.ctrl_pitch});
+    const s=JSON.stringify({buttons:layout.buttons,ctrl:layout.ctrl,pico_cx_raw:layout.pico_cx_raw,pico_gap:layout.pico_gap,slit:layout.slit,slit_arc:layout.slit_arc,slit_pitch:layout.slit_pitch,l3:layout.l3,skin:layout.skin,margin:layout.margin});
     const t=performance.now();
     try{const out=py.runPython("import slate_core; slate_core.evaluate_json("+JSON.stringify(s)+")");result=JSON.parse(out);result._ms=Math.round(performance.now()-t);if(result.board)lastGood=result;logEv("check",{ok:result.ok,errors:(result.errors||[]).length,warnings:(result.warnings||[]).length,worst:result.worst?result.worst.label+" "+result.worst.SF.toFixed(2):null,first_error:(result.errors||[])[0]||null});}
     catch(e){result={ok:false,errors:["計算に失敗："+e+"。ページを読み込み直してください"],warnings:[]};pyReady=false;document.getElementById("pystatus").textContent="計算機が止まりました。ページを読み込み直してください";}
@@ -150,7 +162,8 @@ function draw(){ctx.clearRect(0,0,cv.width,cv.height);const R=(result&&result.bo
   if(R&&R.pico){const p=R.pico;const cx=p.cx-DX;ctx.globalAlpha=stale?0.35:1;ctx.fillStyle="#e3e0d6";ctx.strokeStyle="#9a988f";ctx.lineWidth=S(0.3);ctx.fillRect(X(cx-25.5),Y(p.far_y-DY),S(51),S(p.far_y-p.sig_y));ctx.strokeRect(X(cx-25.5),Y(p.far_y-DY),S(51),S(p.far_y-p.sig_y));
     ctx.fillStyle="#888";ctx.textAlign="center";ctx.fillText("Raspberry Pi Pico",X(cx),Y((p.sig_y+p.far_y)/2-DY)+S(1.2));
     for(const q of p.top.concat(p.bot)){ctx.fillStyle="#aaa";ctx.beginPath();ctx.arc(X(q[0]-DX),Y(q[1]-DY),S(0.9),0,7);ctx.fill();}
-    for(const c of R.ctrl){ctx.fillStyle="rgba(138,136,127,.35)";ctx.strokeStyle="#5f5e5a";ctx.lineWidth=S(0.3);ctx.beginPath();ctx.arc(X(c.x-DX),Y(c.y-DY),S(5),0,7);ctx.fill();ctx.stroke();ctx.fillStyle="#333";ctx.fillText(c.label,X(c.x-DX),Y(c.y-DY)+S(1.1));}
+    if(selected==="pico"){ctx.strokeStyle="#e04a00";ctx.lineWidth=S(0.8);ctx.strokeRect(X(cx-25.5),Y(p.far_y-DY),S(51),S(p.far_y-p.sig_y));}
+    for(const c of R.ctrl){const sel=selected==="ctrl:"+c.n;const r=(c.size||10)/2;ctx.fillStyle="rgba(138,136,127,.35)";ctx.strokeStyle=sel?"#e04a00":"#5f5e5a";ctx.lineWidth=S(sel?0.8:0.3);ctx.beginPath();ctx.arc(X(c.x-DX),Y(c.y-DY),S(r),0,7);ctx.fill();ctx.stroke();ctx.fillStyle="#333";ctx.font=`${S(Math.min(3.2,r*0.6))}px sans-serif`;ctx.textAlign="center";ctx.fillText(c.label,X(c.x-DX),Y(c.y-DY)+S(1.1));}
     ctx.strokeStyle="rgba(24,95,165,.8)";ctx.lineWidth=S(1.2);ctx.lineCap="round";ctx.lineJoin="round";
     for(const n in R.routes){const r=R.routes[n];ctx.beginPath();r.forEach((q,i)=>{const [x,y]=toRaw(q);i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y));});ctx.stroke();}
     for(const n in (R.buttons||{})){if(!layout.buttons[n])continue;const b=R.buttons[n];const sv=toRaw(b.sig_via),gv=toRaw(b.gnd_via);ctx.fillStyle="#185FA5";ctx.beginPath();ctx.arc(X(sv[0]),Y(sv[1]),S(1.1),0,7);ctx.fill();ctx.fillStyle="#3b6d11";ctx.beginPath();ctx.arc(X(gv[0]),Y(gv[1]),S(1.1),0,7);ctx.fill();}
@@ -164,51 +177,84 @@ function draw(){ctx.clearRect(0,0,cv.width,cv.height);const R=(result&&result.bo
     ctx.fillStyle=isBad?"rgba(180,35,24,.35)":"rgba(200,115,26,.55)";ctx.beginPath();ctx.arc(X(b.x),Y(b.y),S(r),0,7);ctx.fill();ctx.stroke();
     if(b.type==="dna"){ctx.setLineDash([S(1.5),S(1)]);ctx.beginPath();ctx.arc(X(b.x),Y(b.y),S(r-2),0,7);ctx.stroke();ctx.setLineDash([]);}
     if(b.type==="round"){ctx.strokeStyle="rgba(255,255,255,.8)";ctx.lineWidth=S(0.8);ctx.beginPath();ctx.moveTo(X(b.x-r+1),Y(b.y));ctx.lineTo(X(b.x+r-1),Y(b.y));ctx.stroke();}
-    ctx.fillStyle="#222";ctx.font=`bold ${S(4)}px sans-serif`;ctx.textAlign="center";ctx.fillText(LABEL[n]||n,X(b.x),Y(b.y)+S(1.4));
+    ctx.fillStyle="#222";ctx.font=`bold ${S(4)}px sans-serif`;ctx.textAlign="center";ctx.fillText(labelOf(n),X(b.x),Y(b.y)+S(1.4));
     if(result&&result.buttons&&result.buttons[n]){ctx.font=`${S(2.6)}px sans-serif`;ctx.fillStyle="#444";ctx.fillText("GP"+result.buttons[n].gp,X(b.x),Y(b.y-r)+S(3.2));}
   }
   if(!pyReady){ctx.fillStyle="rgba(0,0,0,.5)";ctx.font=`${S(4)}px sans-serif`;ctx.textAlign="center";ctx.fillText("配線と安全率は、計算機の読み込みが終わると表示されます",X((bb.x0+bb.x1)/2),Y(bb.y1)+S(8));}
 }
 function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 // ===================== 操作 =====================
-function hit(px,py){let best=null,bd=1e9;for(const n in layout.buttons){const b=layout.buttons[n];const d=Math.hypot(px-b.x,py-b.y);if(d<b.size/2+1&&d<bd){bd=d;best=n;}}return best;}
+function hit(px,py){let best=null,bd=1e9;for(const n in layout.buttons){const b=layout.buttons[n];const d=Math.hypot(px-b.x,py-b.y);if(d<b.size/2+1&&d<bd){bd=d;best=n;}}
+  if(best)return best;const R=lastGood;if(!R)return null;const DX=R.board.DX,DY=R.board.DY;const rowY=R.pico.sig_y-DY;
+  for(const c of layout.ctrl||[]){if(Math.hypot(px-c.x_raw,py-rowY)<c.size/2+1)return "ctrl:"+c.name;}
+  if(Math.abs(px-layout.pico_cx_raw)<25.5&&py>rowY-2&&py<R.pico.far_y-DY+2)return "pico";return null;}
 let drag=null;
 cv.addEventListener("pointerdown",e=>{const r=cv.getBoundingClientRect();const px=(e.clientX-r.left-view.ox)/view.s,py=(view.oy-(e.clientY-r.top))/view.s;const n=hit(px,py);
-  if(n){selected=n;drag={n,dx:layout.buttons[n].x-px,dy:layout.buttons[n].y-py,x0:layout.buttons[n].x,y0:layout.buttons[n].y};snapshot();cv.setPointerCapture(e.pointerId);}else{selected=null;}renderProps();draw();});
+  if(n&&n.startsWith("ctrl:")){const c=layout.ctrl.find(c=>"ctrl:"+c.name===n);selected=n;drag={n,c,dx:c.x_raw-px,x0:c.x_raw};snapshot();cv.setPointerCapture(e.pointerId);}
+  else if(n==="pico"){selected=n;drag={n,dx:layout.pico_cx_raw-px,x0:layout.pico_cx_raw};snapshot();cv.setPointerCapture(e.pointerId);}
+  else if(n){selected=n;drag={n,dx:layout.buttons[n].x-px,dy:layout.buttons[n].y-py,x0:layout.buttons[n].x,y0:layout.buttons[n].y};snapshot();cv.setPointerCapture(e.pointerId);}else{selected=null;}renderProps();draw();});
 cv.addEventListener("pointermove",e=>{if(!drag)return;const r=cv.getBoundingClientRect();const px=(e.clientX-r.left-view.ox)/view.s,py=(view.oy-(e.clientY-r.top))/view.s;
-  layout.buttons[drag.n].x=Math.round((px+drag.dx)*2)/2;layout.buttons[drag.n].y=Math.round((py+drag.dy)*2)/2;draw();});
-cv.addEventListener("pointerup",e=>{if(!drag)return;const b=layout.buttons[drag.n];if(b.x!==drag.x0||b.y!==drag.y0){logEv("move",{btn:LABEL[drag.n],from:[drag.x0,drag.y0],to:[b.x,b.y]});scheduleEval();}else history.pop();drag=null;renderProps();});
-window.addEventListener("keydown",e=>{if(!selected||!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(e.key))return;e.preventDefault();snapshot();const b=layout.buttons[selected];const st=e.shiftKey?5:1;
-  const from=[b.x,b.y];if(e.key==="ArrowLeft")b.x-=st;if(e.key==="ArrowRight")b.x+=st;if(e.key==="ArrowUp")b.y+=st;if(e.key==="ArrowDown")b.y-=st;logEv("nudge",{btn:LABEL[selected],from,to:[b.x,b.y]});renderProps();scheduleEval();});
-function renderProps(){const el=document.getElementById("props");if(!selected){el.innerHTML='<span class="hint">板の上のボタンを押すと選べます。指やマウスで動かせます。矢印キーで 1mm ずつ動きます（Shift で 5mm）。</span>';return;}
+  if(drag.c){drag.c.x_raw=Math.round((px+drag.dx)*2)/2;}else if(drag.n==="pico"){layout.pico_cx_raw=Math.round((px+drag.dx)*2)/2;}else{layout.buttons[drag.n].x=Math.round((px+drag.dx)*2)/2;layout.buttons[drag.n].y=Math.round((py+drag.dy)*2)/2;}draw();});
+cv.addEventListener("pointerup",e=>{if(!drag)return;
+  if(drag.c){if(drag.c.x_raw!==drag.x0){logEv("move_ctrl",{btn:drag.c.label,from:drag.x0,to:drag.c.x_raw});scheduleEval();}else history.pop();}
+  else if(drag.n==="pico"){if(layout.pico_cx_raw!==drag.x0){logEv("move_pico",{from:drag.x0,to:layout.pico_cx_raw});scheduleEval();}else history.pop();}
+  else{const b=layout.buttons[drag.n];if(b.x!==drag.x0||b.y!==drag.y0){logEv("move",{btn:labelOf(drag.n),from:[drag.x0,drag.y0],to:[b.x,b.y]});scheduleEval();}else history.pop();}
+  drag=null;renderProps();});
+window.addEventListener("keydown",e=>{if(!selected||!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(e.key))return;e.preventDefault();snapshot();const st=e.shiftKey?5:1;const dx=e.key==="ArrowLeft"?-st:e.key==="ArrowRight"?st:0,dy=e.key==="ArrowUp"?st:e.key==="ArrowDown"?-st:0;
+  if(selected==="pico"){layout.pico_cx_raw+=dx;logEv("nudge_pico",{to:layout.pico_cx_raw});}
+  else if(selected.startsWith("ctrl:")){const c=layout.ctrl.find(c=>"ctrl:"+c.name===selected);c.x_raw+=dx;logEv("nudge_ctrl",{btn:c.label,to:c.x_raw});}
+  else{const b=layout.buttons[selected];const from=[b.x,b.y];b.x+=dx;b.y+=dy;logEv("nudge",{btn:labelOf(selected),from,to:[b.x,b.y]});}
+  renderProps();scheduleEval();});
+function renderProps(){const el=document.getElementById("props");if(!selected){el.innerHTML='<span class="hint">板の上のボタン、制御ボタン、Pico を押すと選べます。指やマウスで動かせます。矢印キーで 1mm ずつ動きます（Shift で 5mm）。</span>';return;}
+  if(selected==="pico"){el.innerHTML=`<div class="row"><b>Raspberry Pi Pico</b><span class="hint">x ${layout.pico_cx_raw} mm（左右に動かせます）</span></div>
+    <div class="row"><label>ボタン列からの奥行き</label><input type="number" id="pGap" min="0" max="40" step="1" value="${layout.pico_gap||0}"><label>mm 追加</label></div>
+    <div class="hint">Pico の端子の列の上には制御ボタンを置けません。Pico を動かすと配線の長さが変わり、安全率も変わります。</div>`;
+    document.getElementById("pGap").addEventListener("change",e=>{snapshot();layout.pico_gap=+e.target.value;logEv("pico_gap",{to:layout.pico_gap});scheduleEval();});return;}
+  if(selected.startsWith("ctrl:")){const c=layout.ctrl.find(c=>"ctrl:"+c.name===selected);if(!c){selected=null;renderProps();return;}
+    el.innerHTML=`<div class="row"><b>制御ボタン ${c.label}</b><span class="hint">x ${c.x_raw} mm（左右に動かせます）・GP${c.gp}</span></div>
+    <div class="row"><label>大きさ</label><select id="cSize">${[10,14,18,24].map(v=>`<option value="${v}"${c.size==v?" selected":""}>φ${v}</option>`).join("")}</select></div>
+    <div class="row"><label>機能</label><select id="cFunc">${FUNCS.map(f=>`<option value="${f}"${(c.func||CTRL_FUNC[c.label])===f?" selected":""}>${FUNC_JA[f]}</option>`).join("")}</select></div>
+    <div class="row"><button class="danger" id="cDel">この制御ボタンを削除する</button></div>`;
+    document.getElementById("cSize").addEventListener("change",e=>{snapshot();c.size=+e.target.value;logEv("ctrl_size",{btn:c.label,to:c.size});scheduleEval();});
+    document.getElementById("cFunc").addEventListener("change",e=>{snapshot();c.func=e.target.value;logEv("ctrl_func",{btn:c.label,to:c.func});});
+    document.getElementById("cDel").addEventListener("click",()=>{snapshot();layout.ctrl=layout.ctrl.filter(x=>x!==c);logEv("delete_ctrl",{btn:c.label});selected=null;renderProps();scheduleEval();});return;}
   const b=layout.buttons[selected];const t=b.type||"round";
-  el.innerHTML=`<div class="row"><b>${LABEL[selected]||selected}</b><span class="hint">x ${b.x} / y ${b.y} mm</span></div>
+  el.innerHTML=`<div class="row"><b>${labelOf(selected)}</b><span class="hint">x ${b.x} / y ${b.y} mm</span></div>
+  ${selected.startsWith("x")?`<div class="row"><label>機能</label><select id="pFunc">${FUNCS.map(f=>`<option value="${f}"${b.func===f?" selected":""}>${FUNC_JA[f]}</option>`).join("")}</select></div>`:""}
   <div class="row"><label>種類</label><select id="pType"><option value="round"${t==="round"?" selected":""}>丸いタッチパッド</option><option value="qwall"${t==="qwall"?" selected":""}>壁型（手を引いて当てる）</option><option value="onenail"${t==="onenail"?" selected":""}>One-Nail Low（指を折り込んで当てる）</option><option value="onenail_high"${t==="onenail_high"?" selected":""}>One-Nail High</option><option value="dna"${t==="dna"?" selected":""}>DNA（押し込みと横の接触）</option></select></div>
   <div class="row"><label>大きさ</label><select id="pSize"><option value="24"${b.size==24?" selected":""}>φ24</option><option value="30"${b.size==30?" selected":""}>φ30</option></select></div>
   ${t==="round"?`<div class="row"><label>スリットの弧</label><input type="number" id="pArc" min="180" max="305" step="5" value="${b.arc??layout.slit_arc}"><label>°（大きいほど上の休息域が狭い）</label></div>`:""}
   ${t!=="round"?`<div class="row"><label>向き</label><input type="number" id="pRot" step="5" value="${b.rot??(t==="dna"?0:-90)}"><label>°（反時計回りが正。−90 で壁や頭部が手前）</label></div>`:""}
   ${t==="qwall"?`<div class="row"><label>壁の位置</label><select id="pConn"><option value="12"${(b.conn??12)==12?" selected":""}>中心から 12mm（D 字の端）</option><option value="6"${(b.conn??12)==6?" selected":""}>6mm</option><option value="0"${(b.conn??12)==0?" selected":""}>中心を通る</option></select>
   <label>壁の高さ</label><select id="pWh"><option value="20"${(b.wh??20)==20?" selected":""}>20mm</option><option value="13.3"${(b.wh??20)==13.3?" selected":""}>13.3mm（低い）</option></select></div>`:""}
-  ${(selected==="thumb"||selected==="palm")?`<div class="row"><button class="danger" id="pDel">このボタンを削除する</button></div>`:""}`;
+  ${(selected==="thumb"||selected==="palm"||selected.startsWith("x"))?`<div class="row"><button class="danger" id="pDel">このボタンを削除する</button></div>`:""}`;
+  const pf=document.getElementById("pFunc");if(pf)pf.addEventListener("change",e=>{snapshot();b.func=e.target.value;b.label=e.target.value;logEv("func",{btn:selected,to:b.func});renderProps();scheduleEval();});
   const on=(id,f)=>{const x=document.getElementById(id);if(x)x.addEventListener("change",f);};
-  on("pType",e=>{snapshot();const nt=e.target.value;const from=b.type;b.type=nt;if(nt==="round"){delete b.rot;delete b.conn;delete b.wh;}else{b.rot=nt==="dna"?0:-90;if(nt==="qwall"){b.conn=12;b.wh=20;}else{delete b.conn;delete b.wh;}delete b.arc;}logEv("type",{btn:LABEL[selected],from,to:nt});renderProps();scheduleEval();});
-  on("pSize",e=>{snapshot();const from=b.size;b.size=+e.target.value;logEv("size",{btn:LABEL[selected],from,to:b.size});scheduleEval();});
-  on("pArc",e=>{snapshot();b.arc=+e.target.value;logEv("arc",{btn:LABEL[selected],to:b.arc});scheduleEval();});
-  on("pRot",e=>{snapshot();b.rot=+e.target.value;logEv("rot",{btn:LABEL[selected],to:b.rot});scheduleEval();});
-  on("pConn",e=>{snapshot();b.conn=+e.target.value;logEv("conn",{btn:LABEL[selected],to:b.conn});scheduleEval();});
-  on("pWh",e=>{snapshot();b.wh=+e.target.value;logEv("wh",{btn:LABEL[selected],to:b.wh});scheduleEval();});
-  const del=document.getElementById("pDel");if(del)del.addEventListener("click",()=>{snapshot();logEv("delete",{btn:LABEL[selected]});delete layout.buttons[selected];selected=null;renderProps();scheduleEval();});
+  on("pType",e=>{snapshot();const nt=e.target.value;const from=b.type;b.type=nt;if(nt==="round"){delete b.rot;delete b.conn;delete b.wh;}else{b.rot=nt==="dna"?0:-90;if(nt==="qwall"){b.conn=12;b.wh=20;}else{delete b.conn;delete b.wh;}delete b.arc;}logEv("type",{btn:labelOf(selected),from,to:nt});renderProps();scheduleEval();});
+  on("pSize",e=>{snapshot();const from=b.size;b.size=+e.target.value;logEv("size",{btn:labelOf(selected),from,to:b.size});scheduleEval();});
+  on("pArc",e=>{snapshot();b.arc=+e.target.value;logEv("arc",{btn:labelOf(selected),to:b.arc});scheduleEval();});
+  on("pRot",e=>{snapshot();b.rot=+e.target.value;logEv("rot",{btn:labelOf(selected),to:b.rot});scheduleEval();});
+  on("pConn",e=>{snapshot();b.conn=+e.target.value;logEv("conn",{btn:labelOf(selected),to:b.conn});scheduleEval();});
+  on("pWh",e=>{snapshot();b.wh=+e.target.value;logEv("wh",{btn:labelOf(selected),to:b.wh});scheduleEval();});
+  const del=document.getElementById("pDel");if(del)del.addEventListener("click",()=>{snapshot();logEv("delete",{btn:labelOf(selected)});delete layout.buttons[selected];selected=null;renderProps();scheduleEval();});
 }
 document.getElementById("addThumb").addEventListener("click",()=>{if(layout.buttons.thumb)return;snapshot();const d=layout.buttons.D,u=layout.buttons.Up,lk=layout.buttons.c1t;const ty=Math.round(((u?u.y:43)+(lk?lk.y:70))/2*10)/10;const tx=d?d.x:58;const rot=u?Math.round((Math.atan2(u.y-ty,u.x-tx)*180/Math.PI+180)*10)/10:157.8;
   layout.buttons.thumb={x:tx,y:ty,size:24,type:"qwall",rot,conn:0,wh:13.3};logEv("add",{btn:"THU"});selected="thumb";renderProps();scheduleEval();});
 document.getElementById("addPalm").addEventListener("click",()=>{if(layout.buttons.palm)return;snapshot();const mk=layout.buttons.c2t,hk=layout.buttons.c3t,u=layout.buttons.Up;
   layout.buttons.palm={x:Math.round(((mk?mk.x:137)+(hk?hk.x:165))/2*10)/10,y:u?u.y:43,size:30,type:"dna",rot:0};logEv("add",{btn:"PALM"});selected="palm";renderProps();scheduleEval();});
+document.getElementById("addExtra").addEventListener("click",()=>{const n=Object.keys(layout.buttons).length;if(n>=14){document.getElementById("pystatus").textContent="主ボタンは 14 個までです（GP2〜GP15）";return;}snapshot();let k=1;while(layout.buttons["x"+k])k++;
+  const used=new Set(Object.values(layout.buttons).map(b=>b.func).filter(Boolean));const f=["L3","R3","S1","S2","A1","A2"].find(f=>!used.has(f))||"L3";
+  const bs=Object.values(layout.buttons);const mx=Math.max(...bs.map(b=>b.x+b.size/2));const my=bs.reduce((s,b)=>s+b.y,0)/bs.length;   // 右端のボタンの右隣（重ならない場所）に置く
+  layout.buttons["x"+k]={x:Math.round(mx+6+12),y:Math.round(my),size:24,type:"round",func:f,label:f};logEv("add",{btn:"x"+k,func:f});selected="x"+k;renderProps();scheduleEval();});
+document.getElementById("addCtrl").addEventListener("click",()=>{layout.ctrl=layout.ctrl||[];if(layout.ctrl.length>=4){document.getElementById("pystatus").textContent="制御ボタンは 4 個までです（GP18〜GP21）";return;}snapshot();
+  const usedGp=new Set(layout.ctrl.map(c=>c.gp));const def=CTRL_DEF.find(([n,gp])=>!usedGp.has(gp));const maxx=Math.max(layout.pico_cx_raw+19*2.54/2+0.9+5+4,...layout.ctrl.map(c=>c.x_raw+c.size/2+5+2));
+  layout.ctrl.push({name:def[0],gp:def[1],label:def[2],x_raw:Math.round(maxx*10)/10,size:10});logEv("add_ctrl",{btn:def[2]});selected="ctrl:"+def[0];renderProps();scheduleEval();});
 document.getElementById("arcAll").addEventListener("change",e=>{snapshot();layout.slit_arc=+e.target.value;for(const n in layout.buttons)delete layout.buttons[n].arc;logEv("arc_all",{to:layout.slit_arc});renderProps();scheduleEval();});
-document.getElementById("undo").addEventListener("click",()=>{if(!history.length)return;layout.buttons=JSON.parse(history.pop());logEv("undo",{});if(selected&&!layout.buttons[selected])selected=null;renderProps();scheduleEval();});
+document.getElementById("undo").addEventListener("click",()=>{if(!history.length)return;const o=JSON.parse(history.pop());layout.buttons=o.buttons;layout.ctrl=o.ctrl;layout.pico_cx_raw=o.pico_cx_raw;layout.pico_gap=o.pico_gap;logEv("undo",{});selected=null;renderProps();scheduleEval();});
 document.getElementById("reset").addEventListener("click",()=>{snapshot();layout=standard();selected=null;logEv("reset",{});document.getElementById("arcAll").value=240;renderProps();fit();scheduleEval();});
-document.getElementById("export").addEventListener("click",async()=>{logEv("export",{ok:result?result.ok:null});const out={...layout,result_summary:result?{ok:result.ok,errors:result.errors,warnings:result.warnings,board:result.board,worst:result.worst,gpio:Object.fromEntries(Object.entries(result.buttons||{}).map(([n,b])=>[LABEL[n]||n,b.gp]))}:null,elapsed_s:now(),log};
+document.getElementById("export").addEventListener("click",async()=>{logEv("export",{ok:result?result.ok:null});const out={...layout,result_summary:result?{ok:result.ok,errors:result.errors,warnings:result.warnings,board:result.board,worst:result.worst,gpio:Object.fromEntries(Object.entries(result.buttons||{}).map(([n,b])=>[labelOf(n),b.gp]))}:null,elapsed_s:now(),log};
   const s=JSON.stringify(out,null,1);document.getElementById("json").value=s;try{await navigator.clipboard.writeText(s);document.getElementById("pystatus").textContent="JSON をコピーしました。スレッドに貼ってください";}catch(e){document.getElementById("pystatus").textContent="下の欄の JSON を選んでコピーしてください";}});
-document.getElementById("import").addEventListener("click",()=>{try{const o=JSON.parse(document.getElementById("json").value);if(!o.buttons)throw new Error("buttons が無い");snapshot();for(const k of ["buttons","slit","slit_arc","slit_pitch","pico_cx","l3","skin","margin","ctrl_gap","ctrl_pitch"])if(o[k]!==undefined)layout[k]=o[k];logEv("import",{});selected=null;renderProps();fit();scheduleEval();}catch(e){document.getElementById("pystatus").textContent="JSON を読み込めません："+e.message;}});
+document.getElementById("import").addEventListener("click",()=>{try{const o=JSON.parse(document.getElementById("json").value);if(!o.buttons)throw new Error("buttons が無い");snapshot();for(const k of ["buttons","ctrl","pico_cx_raw","pico_gap","slit","slit_arc","slit_pitch","l3","skin","margin"])if(o[k]!==undefined)layout[k]=o[k];if(o.pico_cx!==undefined&&o.pico_cx_raw===undefined)layout.pico_cx_raw=o.pico_cx+1;logEv("import",{});selected=null;renderProps();fit();scheduleEval();}catch(e){document.getElementById("pystatus").textContent="JSON を読み込めません："+e.message;}});
 function renderStatus(){const v=document.getElementById("verdict"),m=document.getElementById("msgs"),bi=document.getElementById("boardinfo");m.innerHTML="";
   if(!result){v.className="verdict wait";v.textContent="計算を待っています";return;}
   v.className="verdict "+(result.ok?"ok":"err");v.textContent=result.ok?"設計できます（交差 0・安全率 1.5 以上）":"このままでは設計できません";
