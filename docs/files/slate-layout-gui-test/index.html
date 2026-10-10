@@ -15,6 +15,7 @@
     v0.5 2026-10-10 自動制約解消（α版）・置いた時点で走査を捨てる
     v0.6 2026-10-10 元に戻す／やり直すを上の帯に・版の表示・スナップ（周りのボタンの上端・下端・中心・左端・右端に吸着。Option/Alt で無効）
     v0.7 2026-10-10 スナップの距離（吸着する範囲 mm）をスライダで変えられる（0 で無効・既定 3・最大 10。書き出す JSON と操作の記録に残す）
+    v0.11 2026-10-10 「設計できます」を「実現できます」に。グリッドの既定を非表示に。板の注記「（手前が下・Pico は奥）」を削除。「全体のスリットの弧」の説明を添えた
     v0.10 2026-10-10 吸着する距離の既定を 1mm に。配線層（L3）の厚みを変えられる（抵抗が下がり安全率が上がる。既定 5.0mm・2〜8mm）。板の総厚を表示
     v0.9 2026-10-10 mm のグリッド（板の左端と手前の端を 0 とする。10mm ごとに目盛り・5mm の細線。上の帯で表示と非表示、間隔 5/10mm）。選んだボタンに板の端からの距離を表示
     v0.8 2026-10-10 端への吸着を足した：相手の端に「接する」（隙間はスライダ・既定 4mm）と、相手の端に「そろえる」（大きさが違うときに意味がある）。同じ大きさの丸では端をそろえることと中心をそろえることが同じになり、端に吸着していないように見えていた
@@ -66,7 +67,7 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
   <h1>slate レイアウト設計 <span class="ver" id="ver"></span></h1>
   <button class="hbtn" id="undo" title="元に戻す（Cmd/Ctrl+Z）">↶ 元に戻す</button>
   <button class="hbtn" id="redo" title="やり直す（Shift+Cmd/Ctrl+Z）">↷ やり直す</button>
-  <label class="hchk"><input type="checkbox" id="gridOn" checked> グリッド</label>
+  <label class="hchk"><input type="checkbox" id="gridOn"> グリッド</label>
   <select id="gridPitch" class="hsel"><option value="10" selected>10 mm</option><option value="5">5 mm</option></select>
   <span class="timer" id="timer">00:00</span>
   <span class="spacer"></span>
@@ -80,7 +81,7 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
       <div class="verdict wait" id="verdict">計算を待っています</div>
       <ul class="msgs" id="msgs"></ul>
       <div class="hint" id="boardinfo"></div>
-      <div class="row" id="resolveRow" hidden><button id="resolve">周りのボタンを動かして設計できる形にする（α版）</button><button id="resolveStop" hidden>止める</button></div>
+      <div class="row" id="resolveRow" hidden><button id="resolve">周りのボタンを動かして実現できる形にする（α版）</button><button id="resolveStop" hidden>止める</button></div>
       <div class="hint" id="resolveInfo"></div>
     </section>
     <section>
@@ -108,7 +109,9 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
       </div>
       <div class="hint">配線層を厚くすると配線の抵抗が下がり、安全率が上がります。そのぶん板が厚くなります。</div>
       <div class="row">
-        <label>全体のスリットの弧</label><input type="number" id="arcAll" min="180" max="305" step="5" value="240"><label>°</label>
+        <label>丸いボタンのスリットの弧の角度（全ボタン）</label><input type="number" id="arcAll" min="180" max="305" step="5" value="240"><label>°</label>
+      </div>
+      <div class="hint">丸いボタンは、幅 1mm のスリットで信号側と GND 側に分かれています。下半分に同心の弧の形で GND 側が入り込んでいて（弧の形のスリット）、その弧が中心から見て何度の範囲まで広がるかがこの角度です。残りの上側（360 − 角度）は信号側だけの「休息域」で、指を置いて休めても入力になりません。240° で休息域は上の 120°、305° で 55° です。ボタンごとに変えるときは、そのボタンを選んで「スリットの弧」を変えます。
 
         <button id="reset">標準モデルに戻す</button>
       </div>
@@ -128,7 +131,7 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 <script>
 // ===================== 状態 =====================
-const VERSION="v0.10";
+const VERSION="v0.11";
 const LABEL={L:"L",D:"D",R:"R",Up:"UP",c1t:"LK",c1b:"LP",c2t:"MK",c2b:"MP",c3t:"HK",c3b:"HP",c4t:"KK",c4b:"PP",thumb:"THU",palm:"PALM"};
 const STD={L:[28,101],D:[58,101],R:[84,87],Up:[91,43],c1t:[110,70],c1b:[111,100],c2t:[137,82],c2b:[137,113],c3t:[165,81],c3b:[167,112],c4t:[194,76],c4b:[196,107]};
 const CTRL_DEF=[["u1",21,"A2"],["u2",20,"A1"],["u3",19,"ST"],["u4",18,"SEL"]];
@@ -196,7 +199,7 @@ function boardRaw(){ // 板の外形（生の座標）。計算結果があれ�
 function X(x){return (view.ox+x*view.s)*devicePixelRatio;}function Y(y){return (view.oy-y*view.s)*devicePixelRatio;}function S(l){return l*view.s*devicePixelRatio;}
 function draw(){ctx.clearRect(0,0,cv.width,cv.height);const R=(result&&result.board)?result:lastGood;const stale=!(result&&result.board);const DX=R?R.board.DX:0,DY=R?R.board.DY:0;const toRaw=(p)=>[p[0]-DX,p[1]-DY];
   const bb=boardRaw();ctx.fillStyle="#efece2";ctx.strokeStyle="#b4b2a9";ctx.lineWidth=S(0.5);roundRect(X(bb.x0),Y(bb.y1),S(bb.x1-bb.x0),S(bb.y1-bb.y0),S(8));ctx.fill();ctx.stroke();
-  ctx.fillStyle="#777";ctx.font=`${S(3.2)}px sans-serif`;ctx.textAlign="left";ctx.fillText(`板 ${(bb.x1-bb.x0).toFixed(0)} × ${(bb.y1-bb.y0).toFixed(0)} mm（手前が下・Pico は奥）`,X(bb.x0)+S(3),Y(bb.y0)-S(3));
+  ctx.fillStyle="#777";ctx.font=`${S(3.2)}px sans-serif`;ctx.textAlign="left";ctx.fillText(`板 ${(bb.x1-bb.x0).toFixed(0)} × ${(bb.y1-bb.y0).toFixed(0)} mm`,X(bb.x0)+S(3),Y(bb.y0)-S(3));
   if(GRID_ON){ctx.save();const major=GRID_PITCH,minor=GRID_PITCH/2;const W=bb.x1-bb.x0,H=bb.y1-bb.y0;
     ctx.lineWidth=S(0.12);ctx.strokeStyle="rgba(60,60,60,.22)";for(let m=minor;m<W;m+=major){ctx.beginPath();ctx.moveTo(X(bb.x0+m),Y(bb.y0));ctx.lineTo(X(bb.x0+m),Y(bb.y1));ctx.stroke();}for(let m=minor;m<H;m+=major){ctx.beginPath();ctx.moveTo(X(bb.x0),Y(bb.y0+m));ctx.lineTo(X(bb.x1),Y(bb.y0+m));ctx.stroke();}
     ctx.lineWidth=S(0.2);ctx.strokeStyle="rgba(60,60,60,.4)";ctx.fillStyle="#555";ctx.font=`${S(2.6)}px sans-serif`;const lab=(m)=>(m%(major*(view.s<2.2?5:(major===5?4:2)))===0);
@@ -205,7 +208,7 @@ function draw(){ctx.clearRect(0,0,cv.width,cv.height);const R=(result&&result.bo
     ctx.textAlign="left";ctx.fillStyle="#777";ctx.fillText("mm（板の左端と手前の端が 0）",X(bb.x0),Y(bb.y0)+S(7));ctx.restore();}
   if(scanState){const st=scanState;if(st.kind==="xy"){for(const [k,code] of st.cells){const [x,y]=k.split(",").map(Number);ctx.fillStyle=SCAN_COLOR[code]||SCAN_COLOR.E;ctx.fillRect(X(x-CELL/2),Y(y+CELL/2),S(CELL),S(CELL));}}
     else{const rowY=st.rowY;const w=(st.target==="pico")?51:((layout.ctrl||[]).find(c=>"ctrl:"+c.name===st.target)||{size:10}).size;for(const [k,code] of st.cells){const x=Number(k.split(",")[0]);ctx.fillStyle=SCAN_COLOR[code]||SCAN_COLOR.E;ctx.fillRect(X(x-CELL/2),Y(rowY+w/2+1),S(CELL),S(w+2));}}
-    ctx.fillStyle="#555";ctx.font=`${S(3)}px sans-serif`;ctx.textAlign="right";const left=st.queue.length;ctx.fillText(`動かせる範囲：緑＝設計できる・赤＝配線が交差・橙＝安全率の不足・灰＝重なる${left?`（計算中 残り ${left} 点）`:`（${(st.done/1000).toFixed(1)} 秒で ${st.n} 点）`}`,X(bb.x1)-S(2),Y(bb.y1)+S(4.5));}
+    ctx.fillStyle="#555";ctx.font=`${S(3)}px sans-serif`;ctx.textAlign="right";const left=st.queue.length;ctx.fillText(`動かせる範囲：緑＝実現できる・赤＝配線が交差・橙＝安全率の不足・灰＝重なる${left?`（計算中 残り ${left} 点）`:`（${(st.done/1000).toFixed(1)} 秒で ${st.n} 点）`}`,X(bb.x1)-S(2),Y(bb.y1)+S(4.5));}
   if(R&&R.pico){const p=R.pico;const cx=p.cx-DX;ctx.globalAlpha=(stale?0.35:1)*((drag&&drag.moved&&drag.n==="pico")?0.35:1);ctx.fillStyle="#e3e0d6";ctx.strokeStyle="#9a988f";ctx.lineWidth=S(0.3);ctx.fillRect(X(cx-25.5),Y(p.far_y-DY),S(51),S(p.far_y-p.sig_y));ctx.strokeRect(X(cx-25.5),Y(p.far_y-DY),S(51),S(p.far_y-p.sig_y));
     ctx.fillStyle="#888";ctx.textAlign="center";ctx.fillText("Raspberry Pi Pico",X(cx),Y((p.sig_y+p.far_y)/2-DY)+S(1.2));
     for(const q of p.top.concat(p.bot)){ctx.fillStyle="#aaa";ctx.beginPath();ctx.arc(X(q[0]-DX),Y(q[1]-DY),S(0.9),0,7);ctx.fill();}
@@ -266,7 +269,7 @@ cv.addEventListener("pointermove",e=>{if(!drag)return;const r=cv.getBoundingClie
   if(!e.altKey&&SNAP_MM>0){const sn=snapTo(drag,gx,gy);gx=sn.x;gy=sn.y;drag.snap=sn.lines;}
   drag.gx=gx;drag.gy=gy;drag.moved=true;draw();});
 // 吸着：動かしているものの中心・上端・下端・左端・右端が、他のボタンの同じ線に SNAP_MM 以内で近づいたら、その線に合わせる。x と y は別々に判定する
-let GRID_ON=true, GRID_PITCH=10;
+let GRID_ON=false, GRID_PITCH=10;
 let SNAP_MM=1;   // 吸着する距離（mm）。スライダで変える。0 で無効（既定 1・栗原さんの指示 2026-10-10）
 let SNAP_GAP=4;  // 相手の端に「接する」ときに空ける隙間（mm）。スライダで変える
 function snapTo(d,gx,gy){const R=lastGood;const lines=[];let bx=gx,by=gy;
@@ -368,7 +371,7 @@ async function runResolve(){if(resolving||!pyReady)return;const fixed=[];if(sele
   }
   const dt=((performance.now()-t0)/1000).toFixed(1);const ok=!!(last&&last.ok);
   const summary=resolveMoves.length?sumMoves():"動かしたボタンはありません";
-  info.textContent=ok?`設計できる形になりました（${steps} 手・評価 ${evals} 回・${dt} 秒）。${summary}。気に入らなければ「元に戻す」で戻せます`:(resolveStopFlag?`止めました（${steps} 手）。${summary}`:(steps>=RESOLVE_MAX_STEPS||evals>=RESOLVE_MAX_EVALS?`上限（${RESOLVE_MAX_STEPS} 手または評価 ${RESOLVE_MAX_EVALS} 回）に達しました。${summary}。「元に戻す」で戻せます`:`これ以上は改善できませんでした（${steps} 手）。${summary}。置いたボタンを別の場所に動かしてください`));
+  info.textContent=ok?`実現できる形になりました（${steps} 手・評価 ${evals} 回・${dt} 秒）。${summary}。気に入らなければ「元に戻す」で戻せます`:(resolveStopFlag?`止めました（${steps} 手）。${summary}`:(steps>=RESOLVE_MAX_STEPS||evals>=RESOLVE_MAX_EVALS?`上限（${RESOLVE_MAX_STEPS} 手または評価 ${RESOLVE_MAX_EVALS} 回）に達しました。${summary}。「元に戻す」で戻せます`:`これ以上は改善できませんでした（${steps} 手）。${summary}。置いたボタンを別の場所に動かしてください`));
   logEv("resolve_end",{ok,steps,evals,moves:resolveMoves});resolving=false;document.getElementById("resolve").disabled=false;document.getElementById("resolveStop").hidden=true;renderProps();scheduleEval();}
 function dirName(dx,dy){const h=dx>0?"右":dx<0?"左":"",v=dy>0?"奥":dy<0?"手前":"";return (h+v)||"そのまま";}
 function sumMoves(){const agg={};for(const m of resolveMoves){const a=agg[m.n]||(agg[m.n]={dx:0,dy:0});a.dx+=m.dx;a.dy+=m.dy;}
@@ -404,7 +407,7 @@ document.getElementById("export").addEventListener("click",async()=>{logEv("expo
 document.getElementById("import").addEventListener("click",()=>{try{const o=JSON.parse(document.getElementById("json").value);if(!o.buttons)throw new Error("buttons が無い");snapshot();for(const k of ["buttons","ctrl","pico_cx_raw","pico_gap","slit","slit_arc","slit_pitch","l3","skin","margin"])if(o[k]!==undefined)layout[k]=o[k];if(o.pico_cx!==undefined&&o.pico_cx_raw===undefined)layout.pico_cx_raw=o.pico_cx+1;document.getElementById("l3").value=layout.l3;document.getElementById("arcAll").value=layout.slit_arc;logEv("import",{});selected=null;renderProps();fit();scheduleEval();}catch(e){document.getElementById("pystatus").textContent="JSON を読み込めません："+e.message;}});
 function renderStatus(){const v=document.getElementById("verdict"),m=document.getElementById("msgs"),bi=document.getElementById("boardinfo");m.innerHTML="";
   if(!result){v.className="verdict wait";v.textContent="計算を待っています";return;}
-  v.className="verdict "+(result.ok?"ok":"err");v.textContent=result.ok?"設計できます（交差 0・安全率 1.5 以上）":"このままでは設計できません";
+  v.className="verdict "+(result.ok?"ok":"err");v.textContent=result.ok?"実現できます（交差 0・安全率 1.5 以上）":"このままでは実現できません";
   document.getElementById("resolveRow").hidden=!!result.ok||resolving;
   for(const e of result.errors||[]){const li=document.createElement("li");li.className="err";li.textContent=e;m.appendChild(li);}
   for(const w of result.warnings||[]){const li=document.createElement("li");li.className="warn";li.textContent=w;m.appendChild(li);}
