@@ -159,18 +159,18 @@ function X(x){return (view.ox+x*view.s)*devicePixelRatio;}function Y(y){return (
 function draw(){ctx.clearRect(0,0,cv.width,cv.height);const R=(result&&result.board)?result:lastGood;const stale=!(result&&result.board);const DX=R?R.board.DX:0,DY=R?R.board.DY:0;const toRaw=(p)=>[p[0]-DX,p[1]-DY];
   const bb=boardRaw();ctx.fillStyle="#efece2";ctx.strokeStyle="#b4b2a9";ctx.lineWidth=S(0.5);roundRect(X(bb.x0),Y(bb.y1),S(bb.x1-bb.x0),S(bb.y1-bb.y0),S(8));ctx.fill();ctx.stroke();
   ctx.fillStyle="#777";ctx.font=`${S(3.2)}px sans-serif`;ctx.textAlign="left";ctx.fillText(`板 ${(bb.x1-bb.x0).toFixed(0)} × ${(bb.y1-bb.y0).toFixed(0)} mm（手前が下・Pico は奥）`,X(bb.x0)+S(3),Y(bb.y0)-S(3));
-  if(R&&R.pico){const p=R.pico;const cx=p.cx-DX;ctx.globalAlpha=stale?0.35:1;ctx.fillStyle="#e3e0d6";ctx.strokeStyle="#9a988f";ctx.lineWidth=S(0.3);ctx.fillRect(X(cx-25.5),Y(p.far_y-DY),S(51),S(p.far_y-p.sig_y));ctx.strokeRect(X(cx-25.5),Y(p.far_y-DY),S(51),S(p.far_y-p.sig_y));
+  if(R&&R.pico){const p=R.pico;const cx=p.cx-DX;ctx.globalAlpha=(stale?0.35:1)*((drag&&drag.moved&&drag.n==="pico")?0.35:1);ctx.fillStyle="#e3e0d6";ctx.strokeStyle="#9a988f";ctx.lineWidth=S(0.3);ctx.fillRect(X(cx-25.5),Y(p.far_y-DY),S(51),S(p.far_y-p.sig_y));ctx.strokeRect(X(cx-25.5),Y(p.far_y-DY),S(51),S(p.far_y-p.sig_y));
     ctx.fillStyle="#888";ctx.textAlign="center";ctx.fillText("Raspberry Pi Pico",X(cx),Y((p.sig_y+p.far_y)/2-DY)+S(1.2));
     for(const q of p.top.concat(p.bot)){ctx.fillStyle="#aaa";ctx.beginPath();ctx.arc(X(q[0]-DX),Y(q[1]-DY),S(0.9),0,7);ctx.fill();}
     if(selected==="pico"){ctx.strokeStyle="#e04a00";ctx.lineWidth=S(0.8);ctx.strokeRect(X(cx-25.5),Y(p.far_y-DY),S(51),S(p.far_y-p.sig_y));}
-    for(const c of R.ctrl){const sel=selected==="ctrl:"+c.n;const r=(c.size||10)/2;ctx.fillStyle="rgba(138,136,127,.35)";ctx.strokeStyle=sel?"#e04a00":"#5f5e5a";ctx.lineWidth=S(sel?0.8:0.3);ctx.beginPath();ctx.arc(X(c.x-DX),Y(c.y-DY),S(r),0,7);ctx.fill();ctx.stroke();ctx.fillStyle="#333";ctx.font=`${S(Math.min(3.2,r*0.6))}px sans-serif`;ctx.textAlign="center";ctx.fillText(c.label,X(c.x-DX),Y(c.y-DY)+S(1.1));}
+    for(const c of R.ctrl){const sel=selected==="ctrl:"+c.n;const r=(c.size||10)/2;ctx.globalAlpha=(stale?0.35:1)*((drag&&drag.moved&&drag.c&&drag.c.name===c.n)?0.35:1);ctx.fillStyle="rgba(138,136,127,.35)";ctx.strokeStyle=sel?"#e04a00":"#5f5e5a";ctx.lineWidth=S(sel?0.8:0.3);ctx.beginPath();ctx.arc(X(c.x-DX),Y(c.y-DY),S(r),0,7);ctx.fill();ctx.stroke();ctx.fillStyle="#333";ctx.font=`${S(Math.min(3.2,r*0.6))}px sans-serif`;ctx.textAlign="center";ctx.fillText(c.label,X(c.x-DX),Y(c.y-DY)+S(1.1));}
     ctx.strokeStyle="rgba(24,95,165,.8)";ctx.lineWidth=S(1.2);ctx.lineCap="round";ctx.lineJoin="round";
     for(const n in R.routes){const r=R.routes[n];ctx.beginPath();r.forEach((q,i)=>{const [x,y]=toRaw(q);i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y));});ctx.stroke();}
     for(const n in (R.buttons||{})){if(!layout.buttons[n])continue;const b=R.buttons[n];const sv=toRaw(b.sig_via),gv=toRaw(b.gnd_via);ctx.fillStyle="#185FA5";ctx.beginPath();ctx.arc(X(sv[0]),Y(sv[1]),S(1.1),0,7);ctx.fill();ctx.fillStyle="#3b6d11";ctx.beginPath();ctx.arc(X(gv[0]),Y(gv[1]),S(1.1),0,7);ctx.fill();}
     ctx.globalAlpha=1;
   }
   const bad=quickOverlaps();const crossSet=new Set();if(result&&result.crossings)for(const c of result.crossings){crossSet.add(c[0]);crossSet.add(c[1]);}
-  for(const n in layout.buttons){const b=layout.buttons[n];const r=b.size/2;const isSel=n===selected;const isBad=bad.has(n)||crossSet.has(n);
+  for(const n in layout.buttons){const b=layout.buttons[n];const r=b.size/2;const isSel=n===selected;const isBad=bad.has(n)||crossSet.has(n);ctx.globalAlpha=(drag&&drag.moved&&drag.n===n)?0.35:1;
     ctx.lineWidth=S(isSel?1.0:0.5);ctx.strokeStyle=isBad?"#b42318":(isSel?"#e04a00":"#7a4a12");
     if(b.type==="qwall"){const rects=result&&result.buttons&&result.buttons[n]&&result.buttons[n].qwall;if(rects){for(const [k,rc] of rects.entries()){ctx.fillStyle=k?"rgba(200,115,26,.9)":"rgba(200,115,26,.35)";ctx.beginPath();rc.forEach((q,i)=>{const [x,y]=toRaw(q);i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y));});ctx.closePath();ctx.fill();ctx.stroke();}}}
     if(b.type&&b.type.startsWith("onenail")){const a=(b.rot??-90)*Math.PI/180,h=12.5;ctx.fillStyle="rgba(200,115,26,.35)";ctx.beginPath();[[-h,-h],[h,-h],[h,h],[-h,h]].forEach(([px,py],i)=>{const x=b.x+px*Math.cos(a)-py*Math.sin(a),y=b.y+px*Math.sin(a)+py*Math.cos(a);i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y));});ctx.closePath();ctx.fill();ctx.stroke();}
@@ -179,7 +179,17 @@ function draw(){ctx.clearRect(0,0,cv.width,cv.height);const R=(result&&result.bo
     if(b.type==="round"){ctx.strokeStyle="rgba(255,255,255,.8)";ctx.lineWidth=S(0.8);ctx.beginPath();ctx.moveTo(X(b.x-r+1),Y(b.y));ctx.lineTo(X(b.x+r-1),Y(b.y));ctx.stroke();}
     ctx.fillStyle="#222";ctx.font=`bold ${S(4)}px sans-serif`;ctx.textAlign="center";ctx.fillText(labelOf(n),X(b.x),Y(b.y)+S(1.4));
     if(result&&result.buttons&&result.buttons[n]){ctx.font=`${S(2.6)}px sans-serif`;ctx.fillStyle="#444";ctx.fillText("GP"+result.buttons[n].gp,X(b.x),Y(b.y-r)+S(3.2));}
+    ctx.globalAlpha=1;
   }
+  if(drag&&drag.moved){ctx.save();ctx.globalAlpha=0.55;ctx.setLineDash([S(1.2),S(0.8)]);ctx.lineWidth=S(0.8);
+    if(drag.c){const R=lastGood;const rowY=R?R.pico.sig_y-R.board.DY:0;const r=drag.c.size/2;const bad=(layout.ctrl||[]).some(o=>o!==drag.c&&Math.abs(o.x_raw-drag.gx)<o.size/2+r+2)||(R&&(drag.gx+r>R.pico.x_lo-R.board.DX&&drag.gx-r<R.pico.x_hi-R.board.DX));
+      ctx.fillStyle=bad?"rgba(180,35,24,.6)":"rgba(138,136,127,.7)";ctx.strokeStyle=bad?"#b42318":"#e04a00";ctx.beginPath();ctx.arc(X(drag.gx),Y(rowY),S(r),0,7);ctx.fill();ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle="#222";ctx.font=`${S(3)}px sans-serif`;ctx.textAlign="center";ctx.fillText(`${drag.c.label}  x ${drag.gx}`,X(drag.gx),Y(rowY+r+2));}
+    else if(drag.n==="pico"){const R=lastGood;if(R){const DY=R.board.DY;ctx.fillStyle="rgba(227,224,214,.8)";ctx.strokeStyle="#e04a00";ctx.fillRect(X(drag.gx-25.5),Y(R.pico.far_y-DY),S(51),S(R.pico.far_y-R.pico.sig_y));ctx.strokeRect(X(drag.gx-25.5),Y(R.pico.far_y-DY),S(51),S(R.pico.far_y-R.pico.sig_y));ctx.globalAlpha=1;ctx.fillStyle="#222";ctx.font=`${S(3)}px sans-serif`;ctx.textAlign="center";ctx.fillText(`Pico  x ${drag.gx}`,X(drag.gx),Y(R.pico.far_y-DY+3));}}
+    else{const b=layout.buttons[drag.n];const r=b.size/2;const bad=Object.entries(layout.buttons).some(([m,o])=>m!==drag.n&&Math.hypot(o.x-drag.gx,o.y-drag.gy)<o.size/2+r+2);
+      ctx.fillStyle=bad?"rgba(180,35,24,.6)":"rgba(200,115,26,.75)";ctx.strokeStyle=bad?"#b42318":"#e04a00";ctx.beginPath();ctx.arc(X(drag.gx),Y(drag.gy),S(r),0,7);ctx.fill();ctx.stroke();
+      ctx.globalAlpha=1;ctx.fillStyle="#222";ctx.font=`bold ${S(4)}px sans-serif`;ctx.textAlign="center";ctx.fillText(labelOf(drag.n),X(drag.gx),Y(drag.gy)+S(1.4));
+      ctx.font=`${S(3)}px sans-serif`;ctx.fillText(`${drag.gx}, ${drag.gy}（${drag.gx-drag.x0>=0?"+":""}${drag.gx-drag.x0}, ${drag.gy-drag.y0>=0?"+":""}${drag.gy-drag.y0}）`,X(drag.gx),Y(drag.gy-r-1.5));}
+    ctx.restore();}
   if(!pyReady){ctx.fillStyle="rgba(0,0,0,.5)";ctx.font=`${S(4)}px sans-serif`;ctx.textAlign="center";ctx.fillText("配線と安全率は、計算機の読み込みが終わると表示されます",X((bb.x0+bb.x1)/2),Y(bb.y1)+S(8));}
 }
 function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
@@ -190,16 +200,17 @@ function hit(px,py){let best=null,bd=1e9;for(const n in layout.buttons){const b=
   if(Math.abs(px-layout.pico_cx_raw)<25.5&&py>rowY-2&&py<R.pico.far_y-DY+2)return "pico";return null;}
 let drag=null;
 cv.addEventListener("pointerdown",e=>{const r=cv.getBoundingClientRect();const px=(e.clientX-r.left-view.ox)/view.s,py=(view.oy-(e.clientY-r.top))/view.s;const n=hit(px,py);
-  if(n&&n.startsWith("ctrl:")){const c=layout.ctrl.find(c=>"ctrl:"+c.name===n);selected=n;drag={n,c,dx:c.x_raw-px,x0:c.x_raw};snapshot();cv.setPointerCapture(e.pointerId);}
-  else if(n==="pico"){selected=n;drag={n,dx:layout.pico_cx_raw-px,x0:layout.pico_cx_raw};snapshot();cv.setPointerCapture(e.pointerId);}
-  else if(n){selected=n;drag={n,dx:layout.buttons[n].x-px,dy:layout.buttons[n].y-py,x0:layout.buttons[n].x,y0:layout.buttons[n].y};snapshot();cv.setPointerCapture(e.pointerId);}else{selected=null;}renderProps();draw();});
+  if(n&&n.startsWith("ctrl:")){const c=layout.ctrl.find(c=>"ctrl:"+c.name===n);selected=n;drag={n,c,dx:c.x_raw-px,x0:c.x_raw};snapshot();try{cv.setPointerCapture(e.pointerId);}catch(_){}}
+  else if(n==="pico"){selected=n;drag={n,dx:layout.pico_cx_raw-px,x0:layout.pico_cx_raw};snapshot();try{cv.setPointerCapture(e.pointerId);}catch(_){}}
+  else if(n){selected=n;drag={n,dx:layout.buttons[n].x-px,dy:layout.buttons[n].y-py,x0:layout.buttons[n].x,y0:layout.buttons[n].y};snapshot();try{cv.setPointerCapture(e.pointerId);}catch(_){}}else{selected=null;}renderProps();draw();});
 cv.addEventListener("pointermove",e=>{if(!drag)return;const r=cv.getBoundingClientRect();const px=(e.clientX-r.left-view.ox)/view.s,py=(view.oy-(e.clientY-r.top))/view.s;
-  if(drag.c){drag.c.x_raw=Math.round((px+drag.dx)*2)/2;}else if(drag.n==="pico"){layout.pico_cx_raw=Math.round((px+drag.dx)*2)/2;}else{layout.buttons[drag.n].x=Math.round((px+drag.dx)*2)/2;layout.buttons[drag.n].y=Math.round((py+drag.dy)*2)/2;}draw();});
+  drag.gx=Math.round((px+drag.dx)*2)/2;drag.gy=Math.round((py+(drag.dy||0))*2)/2;drag.moved=true;draw();});
 cv.addEventListener("pointerup",e=>{if(!drag)return;
-  if(drag.c){if(drag.c.x_raw!==drag.x0){logEv("move_ctrl",{btn:drag.c.label,from:drag.x0,to:drag.c.x_raw});scheduleEval();}else history.pop();}
-  else if(drag.n==="pico"){if(layout.pico_cx_raw!==drag.x0){logEv("move_pico",{from:drag.x0,to:layout.pico_cx_raw});scheduleEval();}else history.pop();}
-  else{const b=layout.buttons[drag.n];if(b.x!==drag.x0||b.y!==drag.y0){logEv("move",{btn:labelOf(drag.n),from:[drag.x0,drag.y0],to:[b.x,b.y]});scheduleEval();}else history.pop();}
-  drag=null;renderProps();});
+  if(drag.c){if(drag.moved&&drag.gx!==drag.x0){drag.c.x_raw=drag.gx;logEv("move_ctrl",{btn:drag.c.label,from:drag.x0,to:drag.c.x_raw});scheduleEval();}else history.pop();}
+  else if(drag.n==="pico"){if(drag.moved&&drag.gx!==drag.x0){layout.pico_cx_raw=drag.gx;logEv("move_pico",{from:drag.x0,to:layout.pico_cx_raw});scheduleEval();}else history.pop();}
+  else{const b=layout.buttons[drag.n];if(drag.moved&&(drag.gx!==drag.x0||drag.gy!==drag.y0)){b.x=drag.gx;b.y=drag.gy;logEv("move",{btn:labelOf(drag.n),from:[drag.x0,drag.y0],to:[b.x,b.y]});scheduleEval();}else history.pop();}
+  drag=null;renderProps();draw();});
+cv.addEventListener("pointercancel",()=>{if(drag){history.pop();drag=null;draw();}});
 window.addEventListener("keydown",e=>{if(!selected||!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(e.key))return;e.preventDefault();snapshot();const st=e.shiftKey?5:1;const dx=e.key==="ArrowLeft"?-st:e.key==="ArrowRight"?st:0,dy=e.key==="ArrowUp"?st:e.key==="ArrowDown"?-st:0;
   if(selected==="pico"){layout.pico_cx_raw+=dx;logEv("nudge_pico",{to:layout.pico_cx_raw});}
   else if(selected.startsWith("ctrl:")){const c=layout.ctrl.find(c=>"ctrl:"+c.name===selected);c.x_raw+=dx;logEv("nudge_ctrl",{btn:c.label,to:c.x_raw});}
