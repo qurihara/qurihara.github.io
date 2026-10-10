@@ -15,6 +15,7 @@
     v0.5 2026-10-10 自動制約解消（α版）・置いた時点で走査を捨てる
     v0.6 2026-10-10 元に戻す／やり直すを上の帯に・版の表示・スナップ（周りのボタンの上端・下端・中心・左端・右端に吸着。Option/Alt で無効）
     v0.7 2026-10-10 スナップの距離（吸着する範囲 mm）をスライダで変えられる（0 で無効・既定 3・最大 10。書き出す JSON と操作の記録に残す）
+    v0.8 2026-10-10 端への吸着を足した：相手の端に「接する」（隙間はスライダ・既定 4mm）と、相手の端に「そろえる」（大きさが違うときに意味がある）。同じ大きさの丸では端をそろえることと中心をそろえることが同じになり、端に吸着していないように見えていた
   1 枚の HTML で動く。配線・交差・抵抗の安全率の計算は、ブラウザの中の Python（Pyodide）で slate_core.py を実行して行う。
   slate_core.py は design_stl_v2.py の計算を写したもので、同じ入力に同じ結果を返すことを gui/verify_core.py で確かめてある。
   このページと同じ場所に slate_core.py と slit_patterns.py を置く。Pyodide と numpy・shapely は CDN から読み込む（初回 10〜20 秒）。
@@ -95,6 +96,9 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
         <label>吸着する距離</label><input type="range" id="snapMm" min="0" max="10" step="0.5" value="3" style="width:140px"><span id="snapMmVal" class="hint">3 mm</span>
       </div>
       <div class="row">
+        <label>接するときの隙間</label><input type="range" id="snapGap" min="0" max="10" step="0.5" value="4" style="width:140px"><span id="snapGapVal" class="hint">4 mm</span>
+      </div>
+      <div class="row">
         <label>全体のスリットの弧</label><input type="number" id="arcAll" min="180" max="305" step="5" value="240"><label>°</label>
 
         <button id="reset">標準モデルに戻す</button>
@@ -115,7 +119,7 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 <script>
 // ===================== 状態 =====================
-const VERSION="v0.7";
+const VERSION="v0.8";
 const LABEL={L:"L",D:"D",R:"R",Up:"UP",c1t:"LK",c1b:"LP",c2t:"MK",c2b:"MP",c3t:"HK",c3b:"HP",c4t:"KK",c4b:"PP",thumb:"THU",palm:"PALM"};
 const STD={L:[28,101],D:[58,101],R:[84,87],Up:[91,43],c1t:[110,70],c1b:[111,100],c2t:[137,82],c2b:[137,113],c3t:[165,81],c3b:[167,112],c4t:[194,76],c4b:[196,107]};
 const CTRL_DEF=[["u1",21,"A2"],["u2",20,"A1"],["u3",19,"ST"],["u4",18,"SEL"]];
@@ -248,15 +252,18 @@ cv.addEventListener("pointermove",e=>{if(!drag)return;const r=cv.getBoundingClie
   drag.gx=gx;drag.gy=gy;drag.moved=true;draw();});
 // 吸着：動かしているものの中心・上端・下端・左端・右端が、他のボタンの同じ線に SNAP_MM 以内で近づいたら、その線に合わせる。x と y は別々に判定する
 let SNAP_MM=3;   // 吸着する距離（mm）。スライダで変える。0 で無効
+let SNAP_GAP=4;  // 相手の端に「接する」ときに空ける隙間（mm）。スライダで変える
 function snapTo(d,gx,gy){const R=lastGood;const lines=[];let bx=gx,by=gy;
   const r=d.c?d.c.size/2:(d.n==="pico"?25.5:layout.buttons[d.n].size/2);
   const others=[];for(const [m,o] of Object.entries(layout.buttons)){if(d.n===m)continue;others.push({x:o.x,y:o.y,r:o.size/2,lab:labelOf(m)});}
   if(R){const rowY=R.pico.sig_y-R.board.DY;for(const c of layout.ctrl||[]){if(d.c===c)continue;others.push({x:c.x_raw,y:rowY,r:c.size/2,lab:c.label});}}
-  // x：中心どうし・左端どうし・右端どうし
-  let best=null;for(const o of others){for(const [off,kind] of [[0,"中心"],[o.r-r,"左端"],[-(o.r-r),"右端"]]){const tx=o.x+off;const dd=Math.abs(gx-tx);if(dd<=SNAP_MM&&(!best||dd<best.d))best={d:dd,x:tx,o,kind,off};}}
-  if(best){bx=best.x;const lx=best.kind==="中心"?best.o.x:(best.kind==="左端"?best.o.x-best.o.r:best.o.x+best.o.r);lines.push({axis:"x",at:lx,lab:`${best.o.lab} の${best.kind}`});}
-  if(!d.c&&d.n!=="pico"){best=null;for(const o of others){for(const [off,kind] of [[0,"中心"],[o.r-r,"上端"],[-(o.r-r),"下端"]]){const ty=o.y+off;const dd=Math.abs(gy-ty);if(dd<=SNAP_MM&&(!best||dd<best.d))best={d:dd,y:ty,o,kind,off};}}
-    if(best){by=best.y;const ly=best.kind==="中心"?best.o.y:(best.kind==="上端"?best.o.y+best.o.r:best.o.y-best.o.r);lines.push({axis:"y",at:ly,lab:`${best.o.lab} の${best.kind}`});}}
+  // 候補：中心をそろえる／相手の端に接する（隙間 SNAP_GAP）／相手の端にそろえる。[動かすものの中心の目標, 線を描く位置, 説明]
+  function cands(o,axis){const oc=axis==="x"?o.x:o.y;const R=o.r;const g=SNAP_GAP;const [lo,hi]=axis==="x"?["左端","右端"]:["下端","上端"];
+    return [[oc,oc,`${o.lab} の中心`],[oc+R+g+r,oc+R,`${o.lab} の${hi}に接する（隙間 ${g}mm）`],[oc-R-g-r,oc-R,`${o.lab} の${lo}に接する（隙間 ${g}mm）`],[oc+R-r,oc+R,`${o.lab} の${hi}にそろえる`],[oc-R+r,oc-R,`${o.lab} の${lo}にそろえる`]];}
+  let best=null;for(const o of others){for(const [t,at,lab] of cands(o,"x")){const dd=Math.abs(gx-t);if(dd<=SNAP_MM&&(!best||dd<best.d))best={d:dd,t,at,lab};}}
+  if(best){bx=best.t;lines.push({axis:"x",at:best.at,lab:best.lab});}
+  if(!d.c&&d.n!=="pico"){best=null;for(const o of others){for(const [t,at,lab] of cands(o,"y")){const dd=Math.abs(gy-t);if(dd<=SNAP_MM&&(!best||dd<best.d))best={d:dd,t,at,lab};}}
+    if(best){by=best.t;lines.push({axis:"y",at:best.at,lab:best.lab});}}
   return {x:bx,y:by,lines};}
 cv.addEventListener("pointerup",e=>{if(!drag)return;
   // 置いた位置でレイアウトが変わるので、それまでの走査は捨て、評価のあとで計算し直す（評価の末尾で startScan が走る）
@@ -316,6 +323,8 @@ document.getElementById("addCtrl").addEventListener("click",()=>{layout.ctrl=lay
   layout.ctrl.push({name:def[0],gp:def[1],label:def[2],x_raw:Math.round(maxx*10)/10,size:10});logEv("add_ctrl",{btn:def[2]});selected="ctrl:"+def[0];renderProps();scheduleEval();});
 document.getElementById("snapMm").addEventListener("input",e=>{SNAP_MM=+e.target.value;document.getElementById("snapMmVal").textContent=(SNAP_MM?SNAP_MM+" mm":"無効");});
 document.getElementById("snapMm").addEventListener("change",e=>{logEv("snap_mm",{to:SNAP_MM});});
+document.getElementById("snapGap").addEventListener("input",e=>{SNAP_GAP=+e.target.value;document.getElementById("snapGapVal").textContent=SNAP_GAP+" mm";});
+document.getElementById("snapGap").addEventListener("change",e=>{logEv("snap_gap",{to:SNAP_GAP});});
 document.getElementById("arcAll").addEventListener("change",e=>{snapshot();layout.slit_arc=+e.target.value;for(const n in layout.buttons)delete layout.buttons[n].arc;logEv("arc_all",{to:layout.slit_arc});renderProps();scheduleEval();});
 document.getElementById("undo").addEventListener("click",doUndo);document.getElementById("redo").addEventListener("click",doRedo);
 window.addEventListener("keydown",e=>{const mod=e.metaKey||e.ctrlKey;if(!mod)return;if(e.key==="z"||e.key==="Z"){e.preventDefault();if(e.shiftKey)doRedo();else doUndo();}else if(e.key==="y"||e.key==="Y"){e.preventDefault();doRedo();}});
@@ -370,7 +379,7 @@ function runScanChunk(){const st=scanState;if(!st||!pyReady)return;if(evaluating
     if(scanState!==st)return;for(const [x,y,code] of out)st.cells.set(x+","+y,code);}
   catch(e){console.error(e);scanState=null;return;}
   draw();setTimeout(runScanChunk,0);}
-document.getElementById("export").addEventListener("click",async()=>{logEv("export",{ok:result?result.ok:null});const out={...layout,snap_mm:SNAP_MM,result_summary:result?{ok:result.ok,errors:result.errors,warnings:result.warnings,board:result.board,worst:result.worst,gpio:Object.fromEntries(Object.entries(result.buttons||{}).map(([n,b])=>[labelOf(n),b.gp]))}:null,elapsed_s:now(),log};
+document.getElementById("export").addEventListener("click",async()=>{logEv("export",{ok:result?result.ok:null});const out={...layout,snap_mm:SNAP_MM,snap_gap:SNAP_GAP,result_summary:result?{ok:result.ok,errors:result.errors,warnings:result.warnings,board:result.board,worst:result.worst,gpio:Object.fromEntries(Object.entries(result.buttons||{}).map(([n,b])=>[labelOf(n),b.gp]))}:null,elapsed_s:now(),log};
   const s=JSON.stringify(out,null,1);document.getElementById("json").value=s;try{await navigator.clipboard.writeText(s);document.getElementById("pystatus").textContent="JSON をコピーしました。スレッドに貼ってください";}catch(e){document.getElementById("pystatus").textContent="下の欄の JSON を選んでコピーしてください";}});
 document.getElementById("import").addEventListener("click",()=>{try{const o=JSON.parse(document.getElementById("json").value);if(!o.buttons)throw new Error("buttons が無い");snapshot();for(const k of ["buttons","ctrl","pico_cx_raw","pico_gap","slit","slit_arc","slit_pitch","l3","skin","margin"])if(o[k]!==undefined)layout[k]=o[k];if(o.pico_cx!==undefined&&o.pico_cx_raw===undefined)layout.pico_cx_raw=o.pico_cx+1;logEv("import",{});selected=null;renderProps();fit();scheduleEval();}catch(e){document.getElementById("pystatus").textContent="JSON を読み込めません："+e.message;}});
 function renderStatus(){const v=document.getElementById("verdict"),m=document.getElementById("msgs"),bi=document.getElementById("boardinfo");m.innerHTML="";
