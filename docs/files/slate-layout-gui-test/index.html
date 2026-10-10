@@ -14,6 +14,7 @@
     v0.4 2026-10-10 動かせる範囲の走査・元に戻す／やり直す・中核の高速化
     v0.5 2026-10-10 自動制約解消（α版）・置いた時点で走査を捨てる
     v0.6 2026-10-10 元に戻す／やり直すを上の帯に・版の表示・スナップ（周りのボタンの上端・下端・中心・左端・右端に吸着。Option/Alt で無効）
+    v0.7 2026-10-10 スナップの距離（吸着する範囲 mm）をスライダで変えられる（0 で無効・既定 3・最大 10。書き出す JSON と操作の記録に残す）
   1 枚の HTML で動く。配線・交差・抵抗の安全率の計算は、ブラウザの中の Python（Pyodide）で slate_core.py を実行して行う。
   slate_core.py は design_stl_v2.py の計算を写したもので、同じ入力に同じ結果を返すことを gui/verify_core.py で確かめてある。
   このページと同じ場所に slate_core.py と slit_patterns.py を置く。Pyodide と numpy・shapely は CDN から読み込む（初回 10〜20 秒）。
@@ -91,6 +92,9 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
         <button id="addCtrl">制御ボタンを足す（4 個まで）</button>
       </div>
       <div class="row">
+        <label>吸着する距離</label><input type="range" id="snapMm" min="0" max="10" step="0.5" value="3" style="width:140px"><span id="snapMmVal" class="hint">3 mm</span>
+      </div>
+      <div class="row">
         <label>全体のスリットの弧</label><input type="number" id="arcAll" min="180" max="305" step="5" value="240"><label>°</label>
 
         <button id="reset">標準モデルに戻す</button>
@@ -111,7 +115,7 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 <script>
 // ===================== 状態 =====================
-const VERSION="v0.6";
+const VERSION="v0.7";
 const LABEL={L:"L",D:"D",R:"R",Up:"UP",c1t:"LK",c1b:"LP",c2t:"MK",c2b:"MP",c3t:"HK",c3b:"HP",c4t:"KK",c4b:"PP",thumb:"THU",palm:"PALM"};
 const STD={L:[28,101],D:[58,101],R:[84,87],Up:[91,43],c1t:[110,70],c1b:[111,100],c2t:[137,82],c2b:[137,113],c3t:[165,81],c3b:[167,112],c4t:[194,76],c4b:[196,107]};
 const CTRL_DEF=[["u1",21,"A2"],["u2",20,"A1"],["u3",19,"ST"],["u4",18,"SEL"]];
@@ -240,10 +244,10 @@ cv.addEventListener("pointerdown",e=>{const r=cv.getBoundingClientRect();const p
   renderProps();draw();});
 cv.addEventListener("pointermove",e=>{if(!drag)return;const r=cv.getBoundingClientRect();const px=(e.clientX-r.left-view.ox)/view.s,py=(view.oy-(e.clientY-r.top))/view.s;
   let gx=Math.round((px+drag.dx)*2)/2,gy=Math.round((py+(drag.dy||0))*2)/2;drag.snap=null;
-  if(!e.altKey){const sn=snapTo(drag,gx,gy);gx=sn.x;gy=sn.y;drag.snap=sn.lines;}
+  if(!e.altKey&&SNAP_MM>0){const sn=snapTo(drag,gx,gy);gx=sn.x;gy=sn.y;drag.snap=sn.lines;}
   drag.gx=gx;drag.gy=gy;drag.moved=true;draw();});
 // 吸着：動かしているものの中心・上端・下端・左端・右端が、他のボタンの同じ線に SNAP_MM 以内で近づいたら、その線に合わせる。x と y は別々に判定する
-const SNAP_MM=3;
+let SNAP_MM=3;   // 吸着する距離（mm）。スライダで変える。0 で無効
 function snapTo(d,gx,gy){const R=lastGood;const lines=[];let bx=gx,by=gy;
   const r=d.c?d.c.size/2:(d.n==="pico"?25.5:layout.buttons[d.n].size/2);
   const others=[];for(const [m,o] of Object.entries(layout.buttons)){if(d.n===m)continue;others.push({x:o.x,y:o.y,r:o.size/2,lab:labelOf(m)});}
@@ -266,7 +270,7 @@ window.addEventListener("keydown",e=>{if(!selected||!["ArrowLeft","ArrowRight","
   else if(selected.startsWith("ctrl:")){const c=layout.ctrl.find(c=>"ctrl:"+c.name===selected);c.x_raw+=dx;logEv("nudge_ctrl",{btn:c.label,to:c.x_raw});}
   else{const b=layout.buttons[selected];const from=[b.x,b.y];b.x+=dx;b.y+=dy;logEv("nudge",{btn:labelOf(selected),from,to:[b.x,b.y]});}
   renderProps();scheduleEval();});
-function renderProps(){const el=document.getElementById("props");if(!selected){el.innerHTML='<span class="hint">板の上のボタン、制御ボタン、Pico を押すと選べます。指やマウスで動かせます。矢印キーで 1mm ずつ動きます（Shift で 5mm）。動かすと周りのボタンの中心や端に吸着します（Option/Alt を押しながらで無効）。</span>';return;}
+function renderProps(){const el=document.getElementById("props");if(!selected){el.innerHTML='<span class="hint">板の上のボタン、制御ボタン、Pico を押すと選べます。指やマウスで動かせます。矢印キーで 1mm ずつ動きます（Shift で 5mm）。動かすと周りのボタンの中心や端に吸着します（距離は下のスライダ。Option/Alt を押しながらで無効）。</span>';return;}
   if(selected==="pico"){el.innerHTML=`<div class="row"><b>Raspberry Pi Pico</b><span class="hint">x ${layout.pico_cx_raw} mm（左右に動かせます）</span></div>
     <div class="row"><label>ボタン列からの奥行き</label><input type="number" id="pGap" min="0" max="40" step="1" value="${layout.pico_gap||0}"><label>mm 追加</label></div>
     <div class="hint">Pico の端子の列の上には制御ボタンを置けません。Pico を動かすと配線の長さが変わり、安全率も変わります。</div>`;
@@ -310,6 +314,8 @@ document.getElementById("addExtra").addEventListener("click",()=>{const n=Object
 document.getElementById("addCtrl").addEventListener("click",()=>{layout.ctrl=layout.ctrl||[];if(layout.ctrl.length>=4){document.getElementById("pystatus").textContent="制御ボタンは 4 個までです（GP18〜GP21）";return;}snapshot();
   const usedGp=new Set(layout.ctrl.map(c=>c.gp));const def=CTRL_DEF.find(([n,gp])=>!usedGp.has(gp));const maxx=Math.max(layout.pico_cx_raw+19*2.54/2+0.9+5+4,...layout.ctrl.map(c=>c.x_raw+c.size/2+5+2));
   layout.ctrl.push({name:def[0],gp:def[1],label:def[2],x_raw:Math.round(maxx*10)/10,size:10});logEv("add_ctrl",{btn:def[2]});selected="ctrl:"+def[0];renderProps();scheduleEval();});
+document.getElementById("snapMm").addEventListener("input",e=>{SNAP_MM=+e.target.value;document.getElementById("snapMmVal").textContent=(SNAP_MM?SNAP_MM+" mm":"無効");});
+document.getElementById("snapMm").addEventListener("change",e=>{logEv("snap_mm",{to:SNAP_MM});});
 document.getElementById("arcAll").addEventListener("change",e=>{snapshot();layout.slit_arc=+e.target.value;for(const n in layout.buttons)delete layout.buttons[n].arc;logEv("arc_all",{to:layout.slit_arc});renderProps();scheduleEval();});
 document.getElementById("undo").addEventListener("click",doUndo);document.getElementById("redo").addEventListener("click",doRedo);
 window.addEventListener("keydown",e=>{const mod=e.metaKey||e.ctrlKey;if(!mod)return;if(e.key==="z"||e.key==="Z"){e.preventDefault();if(e.shiftKey)doRedo();else doUndo();}else if(e.key==="y"||e.key==="Y"){e.preventDefault();doRedo();}});
@@ -364,7 +370,7 @@ function runScanChunk(){const st=scanState;if(!st||!pyReady)return;if(evaluating
     if(scanState!==st)return;for(const [x,y,code] of out)st.cells.set(x+","+y,code);}
   catch(e){console.error(e);scanState=null;return;}
   draw();setTimeout(runScanChunk,0);}
-document.getElementById("export").addEventListener("click",async()=>{logEv("export",{ok:result?result.ok:null});const out={...layout,result_summary:result?{ok:result.ok,errors:result.errors,warnings:result.warnings,board:result.board,worst:result.worst,gpio:Object.fromEntries(Object.entries(result.buttons||{}).map(([n,b])=>[labelOf(n),b.gp]))}:null,elapsed_s:now(),log};
+document.getElementById("export").addEventListener("click",async()=>{logEv("export",{ok:result?result.ok:null});const out={...layout,snap_mm:SNAP_MM,result_summary:result?{ok:result.ok,errors:result.errors,warnings:result.warnings,board:result.board,worst:result.worst,gpio:Object.fromEntries(Object.entries(result.buttons||{}).map(([n,b])=>[labelOf(n),b.gp]))}:null,elapsed_s:now(),log};
   const s=JSON.stringify(out,null,1);document.getElementById("json").value=s;try{await navigator.clipboard.writeText(s);document.getElementById("pystatus").textContent="JSON をコピーしました。スレッドに貼ってください";}catch(e){document.getElementById("pystatus").textContent="下の欄の JSON を選んでコピーしてください";}});
 document.getElementById("import").addEventListener("click",()=>{try{const o=JSON.parse(document.getElementById("json").value);if(!o.buttons)throw new Error("buttons が無い");snapshot();for(const k of ["buttons","ctrl","pico_cx_raw","pico_gap","slit","slit_arc","slit_pitch","l3","skin","margin"])if(o[k]!==undefined)layout[k]=o[k];if(o.pico_cx!==undefined&&o.pico_cx_raw===undefined)layout.pico_cx_raw=o.pico_cx+1;logEv("import",{});selected=null;renderProps();fit();scheduleEval();}catch(e){document.getElementById("pystatus").textContent="JSON を読み込めません："+e.message;}});
 function renderStatus(){const v=document.getElementById("verdict"),m=document.getElementById("msgs"),bi=document.getElementById("boardinfo");m.innerHTML="";
