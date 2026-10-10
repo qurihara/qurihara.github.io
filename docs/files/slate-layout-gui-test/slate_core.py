@@ -89,7 +89,7 @@ def footprint(b, x, y):
     return Point(x, y).buffer(r, resolution=24)
 
 def evaluate(layout):
-    errors = []; warnings = []
+    errors = []; warnings = []; viol = []
     B = {n: dict(v) for n, v in layout["buttons"].items()}
     if not B: return {"ok": False, "errors": ["ボタンが 1 つも無い"], "warnings": []}
     if len(B) > 14: errors.append("主ボタンは 14 個まで（GP2〜GP15）。いま %d 個" % len(B))
@@ -118,7 +118,7 @@ def evaluate(layout):
             else:
                 from shapely.geometry import Point as _Pt
                 g = (fps[ni] if fps[ni] is not None else _Pt(*btn[ni]).buffer(br(ni), resolution=24)).distance(fps[nj] if fps[nj] is not None else _Pt(*btn[nj]).buffer(br(nj), resolution=24))
-            if g < 2.0: errors.append("%s と %s の間隔が %.1fmm（2mm 以上にする）" % (LAB.get(names[i], names[i]), LAB.get(names[j], names[j]), g))
+            if g < 2.0: errors.append("%s と %s の間隔が %.1fmm（2mm 以上にする）" % (LAB.get(names[i], names[i]), LAB.get(names[j], names[j]), g)); viol.append({"type": "overlap", "a": ni, "b": nj, "gap": round(g, 2)})
             elif g < 4.0: warnings.append("%s と %s の間隔が %.1fmm（実績は 4mm 以上）" % (LAB.get(names[i], names[i]), LAB.get(names[j], names[j]), g))
     # ---- via の位置 ----
     grp = defaultdict(list)
@@ -158,7 +158,7 @@ def evaluate(layout):
                 if spv is None or gpv is None: errors.append("%s：via（半径 %.1f＋壁 %.1f）の入る場所が無い" % (LAB.get(n, n), VIA_R, WALL)); continue
                 x, y = btn[n]; sig_via[n] = (x + spv[0], y + spv[1]); gnd_via[n] = (x + gpv[0], y + gpv[1])
                 slit_info[n] = {"rho_full": 2 * d["rho_full"], "rho_lower": 2 * d["rho_lower"], "rest_clear": d["rest_clear"]}
-    if errors: return {"ok": False, "errors": errors, "warnings": warnings}
+    if errors: return {"ok": False, "errors": errors, "warnings": warnings, "violations": viol}
     # ---- GPIO と Pico ----
     near = sorted(B, key=lambda n: (btn[n][0], btn[n][1])); btn_gpio = {n: 2 + i for i, n in enumerate(near)}
     pin1_x = PICO_CX - (20 - 1) * PITCH / 2
@@ -182,12 +182,12 @@ def evaluate(layout):
         px_lo, px_hi = px_top(1) - LAND_R - 1.0, px_top(20) + LAND_R + 1.0
         for n, g, x, lab in ctrl:
             r = ctrl_size[n] / 2
-            if x + r > px_lo and x - r < px_hi: errors.append("制御ボタン %s が Pico の端子の列と重なる（Pico の左右に置く）" % lab)
+            if x + r > px_lo and x - r < px_hi: errors.append("制御ボタン %s が Pico の端子の列と重なる（Pico の左右に置く）" % lab); viol.append({"type": "ctrl_pico", "a": "ctrl:" + n, "depth": round(min(x + r - px_lo, px_hi - (x - r)), 2)})
         for i in range(len(ctrl)):
             for j in range(i + 1, len(ctrl)):
                 g = abs(ctrl[i][2] - ctrl[j][2]) - ctrl_size[ctrl[i][0]] / 2 - ctrl_size[ctrl[j][0]] / 2
-                if g < 2.0: errors.append("制御ボタン %s と %s の間隔が %.1fmm（2mm 以上にする）" % (ctrl[i][3], ctrl[j][3], g))
-        if errors: return {"ok": False, "errors": errors, "warnings": warnings}
+                if g < 2.0: errors.append("制御ボタン %s と %s の間隔が %.1fmm（2mm 以上にする）" % (ctrl[i][3], ctrl[j][3], g)); viol.append({"type": "overlap", "a": "ctrl:" + ctrl[i][0], "b": "ctrl:" + ctrl[j][0], "gap": round(g, 2)})
+        if errors: return {"ok": False, "errors": errors, "warnings": warnings, "violations": viol}
     ctrl_sig_via = {n: (x, PICO_SIG_Y - 1.5) for n, g, x, lab in ctrl}   # COMPACT：上端レーンとの近接を避けて中央寄り
     ctrl_gnd_via = {n: (x + 3.0, PICO_SIG_Y + ctrl_size[n] / 2 * 0.45) for n, g, x, lab in ctrl}; ctrl_gnd_via = {n: (x + 3.0, PICO_SIG_Y + CTRL_R * 0.45) for n, g, x, lab in ctrl}
     # ---- L3 配線 ----
@@ -272,11 +272,11 @@ def evaluate(layout):
         sf.append({"n": n, "label": LAB.get(n, ctrl_label.get(n, n)), "gp": gp, "pin": phys, "Ls": round(Ls, 1), "Lg": round(Lg, 1),
                    "Rsig_k": round((Rs + rvs) / 1e3, 2), "Rgnd_k": round((Rg + rvg) / 1e3, 2), "Rlow_k": round(Rlow / 1e3, 2), "SF": round(RTH / Rlow, 3)})
     sf.sort(key=lambda r: r["gp"]); worst = min(sf, key=lambda r: r["SF"])
-    if cross: errors.append("配線の交差 %d 件：%s" % (len(cross), "・".join("%s と %s" % (LAB.get(a, a), LAB.get(b, b)) for a, b, d in cross[:6])))
-    if gvia_hit: errors.append("配線が GND via に接触 %d 件：%s" % (len(gvia_hit), "・".join("%s が %s" % (LAB.get(a, a), LAB.get(b.split(':')[1], b)) for a, b in gvia_hit[:6])))
-    if worst["SF"] < SF_TGT: errors.append("抵抗の安全率が不足：%s が SF %.2f（目標 %.1f 以上）" % (worst["label"], worst["SF"], SF_TGT))
+    if cross: errors.append("配線の交差 %d 件：%s" % (len(cross), "・".join("%s と %s" % (LAB.get(a, a), LAB.get(b, b)) for a, b, d in cross[:6]))); viol += [{"type": "cross", "a": a, "b": b, "d": d} for a, b, d in cross]
+    if gvia_hit: errors.append("配線が GND via に接触 %d 件：%s" % (len(gvia_hit), "・".join("%s が %s" % (LAB.get(a, a), LAB.get(b.split(':')[1], b)) for a, b in gvia_hit[:6]))); viol += [{"type": "via_hit", "a": a, "b": b.split(":")[1]} for a, b in gvia_hit]
+    if worst["SF"] < SF_TGT: errors.append("抵抗の安全率が不足：%s が SF %.2f（目標 %.1f 以上）" % (worst["label"], worst["SF"], SF_TGT)); viol.append({"type": "sf", "a": worst["n"], "SF": worst["SF"]})
     elif worst["SF"] < 1.8: warnings.append("安全率の余裕が小さい：%s が SF %.2f" % (worst["label"], worst["SF"]))
-    out = {"ok": not errors, "errors": errors, "warnings": warnings,
+    out = {"ok": not errors, "errors": errors, "warnings": warnings, "violations": viol,
            "board": {"X0": X0, "X1": X1, "Y0": Y0, "Y1": Y1, "DX": round(DX, 2), "DY": round(DY, 2), "W": round(X1 - X0, 1), "H": round(Y1 - Y0, 1)},
            "buttons": {n: {"x": btn[n][0], "y": btn[n][1], "size": B[n]["size"], "type": B[n]["type"], "rot": B[n]["rot"], "label": LAB.get(n, n), "gp": btn_gpio[n], "pin": GPIO_PIN_TOP[btn_gpio[n]],
                            "sig_via": sig_via[n], "gnd_via": gnd_via[n], "qwall": (qwall_rects(B[n], *btn[n]) if B[n]["type"] == "qwall" else None), "slit": slit_info.get(n)} for n in B},
@@ -317,6 +317,61 @@ def scan_json(s):
     import json
     o = json.loads(s)
     return json.dumps(scan(o["layout"], o["target"], o["points"]))
+
+
+# ===================== 自動制約解消（α版・2026-10-10）=====================
+#  利用者が置いたもの（fixed）は動かさず、違反に関わるボタン（主ボタンは 8 方向 5mm・10mm、制御ボタンは左右 5mm・10mm）を 1 つ動かした案を
+#  すべて評価し、罰則が最も減る 1 手を返す。罰則＝重なりの深さ・交差の数・via への接触の数・安全率の不足分・元の位置からの移動量の合計。
+#  収束しないことがあるので、呼ぶ側が手数と評価回数の上限を持つ。
+def penalty(r, L, L0):
+    p = 0.0
+    for v in r.get("violations", []):
+        t = v["type"]
+        if t == "overlap": p += 10 + max(0.0, 2.0 - v["gap"]) * 2
+        elif t == "ctrl_pico": p += 10 + v["depth"]
+        elif t == "cross": p += 8
+        elif t == "via_hit": p += 8
+        elif t == "sf": p += 20 * (SF_TGT - v["SF"])
+        else: p += 10
+    disp = sum(math.hypot(L["buttons"][n]["x"] - L0["buttons"][n]["x"], L["buttons"][n]["y"] - L0["buttons"][n]["y"]) for n in L["buttons"] if n in L0["buttons"])
+    c0 = {e["name"]: e for e in L0.get("ctrl", [])}
+    disp += sum(abs(e.get("x_raw", 0) - c0[e["name"]].get("x_raw", 0)) for e in L.get("ctrl", []) if e["name"] in c0)
+    return p + 0.05 * disp
+
+def resolve_step(layout, fixed, layout0=None, steps=(5.0, 10.0)):
+    """1 手だけ進める。戻り値 dict(ok, done, move=(対象, dx, dy), penalty, errors, layout)。done=True は、設計できる状態になった（ok）か、どの 1 手でも罰則が減らない（ok=False）。"""
+    import copy
+    L0 = layout0 if layout0 is not None else layout
+    r = evaluate(layout)
+    if r["ok"]: return {"ok": True, "done": True, "move": None, "penalty": 0.0, "errors": [], "layout": layout, "evals": 1}
+    p0 = penalty(r, layout, L0); fixed = set(fixed or [])
+    cand = set()
+    for v in r.get("violations", []):
+        for k in ("a", "b"):
+            if k in v and v[k] not in fixed: cand.add(v[k])
+    if not cand: cand = {n for n in layout["buttons"] if n not in fixed} | {"ctrl:" + e["name"] for e in layout.get("ctrl", []) if "ctrl:" + e["name"] not in fixed}
+    best = None; nev = 1
+    for n in sorted(cand):
+        moves = [(dx, dy) for st in steps for dx, dy in ((st, 0), (-st, 0), (0, st), (0, -st), (st, st), (st, -st), (-st, st), (-st, -st))] if not n.startswith("ctrl:") else [(dx, 0) for st in steps for dx in (st, -st)]
+        for dx, dy in moves:
+            L2 = copy.deepcopy(layout)
+            if n.startswith("ctrl:"):
+                for e in L2.get("ctrl", []):
+                    if e["name"] == n[5:]: e["x_raw"] = e.get("x_raw", 0) + dx
+            else: L2["buttons"][n]["x"] += dx; L2["buttons"][n]["y"] += dy
+            r2 = evaluate(L2); nev += 1; p2 = penalty(r2, L2, L0)
+            if best is None or p2 < best[0]: best = (p2, n, dx, dy, L2, r2)
+    if best is None or best[0] >= p0 - 1e-9: return {"ok": False, "done": True, "move": None, "penalty": p0, "errors": r["errors"], "layout": layout, "evals": nev}
+    p2, n, dx, dy, L2, r2 = best
+    return {"ok": r2["ok"], "done": r2["ok"], "move": [n, dx, dy], "penalty": p2, "errors": r2["errors"], "layout": L2, "evals": nev}
+
+def resolve_step_json(s):
+    import json
+    o = json.loads(s)
+    try: return json.dumps(resolve_step(o["layout"], o.get("fixed", []), o.get("layout0")), ensure_ascii=False)
+    except Exception as e:
+        import traceback
+        return json.dumps({"ok": False, "done": True, "move": None, "errors": ["自動制約解消の途中で例外：%s" % e], "trace": traceback.format_exc()}, ensure_ascii=False)
 
 def evaluate_json(s):
     import json

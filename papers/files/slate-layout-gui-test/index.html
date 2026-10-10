@@ -15,6 +15,7 @@
 <style>
 :root{--bg:#f4f3ee;--panel:#ffffff;--fg:#222;--muted:#6b6a63;--line:#d9d6cc;--board:#efece2;--pad:#c8731a;--pad2:#3b6d11;--sig:#185FA5;--ctrl:#8a887f;--ok:#2a7d3a;--warn:#b7791f;--err:#b42318;--sel:#e04a00}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--fg);font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif;font-size:14px;line-height:1.55}
 header{display:flex;align-items:center;gap:16px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
@@ -61,6 +62,8 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
       <div class="verdict wait" id="verdict">計算を待っています</div>
       <ul class="msgs" id="msgs"></ul>
       <div class="hint" id="boardinfo"></div>
+      <div class="row" id="resolveRow" hidden><button id="resolve">周りのボタンを動かして設計できる形にする（α版）</button><button id="resolveStop" hidden>止める</button></div>
+      <div class="hint" id="resolveInfo"></div>
     </section>
     <section>
       <h2>選んだボタン</h2>
@@ -114,7 +117,7 @@ function now(){return Math.round((Date.now()-t0)/100)/10;}
 function logEv(kind,detail){log.push({t:now(),kind,...detail});}
 function stateJSON(){return JSON.stringify({buttons:layout.buttons,ctrl:layout.ctrl,pico_cx_raw:layout.pico_cx_raw,pico_gap:layout.pico_gap,slit_arc:layout.slit_arc});}
 function applyState(o){layout.buttons=o.buttons;layout.ctrl=o.ctrl;layout.pico_cx_raw=o.pico_cx_raw;layout.pico_gap=o.pico_gap;if(o.slit_arc!==undefined){layout.slit_arc=o.slit_arc;document.getElementById("arcAll").value=o.slit_arc;}}
-function snapshot(){history.push(stateJSON());if(history.length>300)history.shift();future.length=0;cancelScan();updateUndoButtons();}
+function snapshot(){history.push(stateJSON());if(history.length>300)history.shift();future.length=0;cancelScan();if(!resolving)resolveMoves=[];updateUndoButtons();}
 function updateUndoButtons(){const u=document.getElementById("undo"),r=document.getElementById("redo");if(u)u.disabled=!history.length;if(r)r.disabled=!future.length;}
 function doUndo(){if(!history.length)return;future.push(stateJSON());applyState(JSON.parse(history.pop()));cancelScan();logEv("undo",{});selected=null;renderProps();updateUndoButtons();scheduleEval();}
 function doRedo(){if(!future.length)return;history.push(stateJSON());applyState(JSON.parse(future.pop()));cancelScan();logEv("redo",{});selected=null;renderProps();updateUndoButtons();scheduleEval();}
@@ -191,6 +194,10 @@ function draw(){ctx.clearRect(0,0,cv.width,cv.height);const R=(result&&result.bo
     if(result&&result.buttons&&result.buttons[n]){ctx.font=`${S(2.6)}px sans-serif`;ctx.fillStyle="#444";ctx.fillText("GP"+result.buttons[n].gp,X(b.x),Y(b.y-r)+S(3.2));}
     ctx.globalAlpha=1;
   }
+  if(resolveMoves.length){ctx.save();ctx.strokeStyle="#e04a00";ctx.fillStyle="#e04a00";ctx.lineWidth=S(0.7);const agg={};for(const m of resolveMoves){const a=agg[m.n]||(agg[m.n]={dx:0,dy:0});a.dx+=m.dx;a.dy+=m.dy;}
+    for(const [n,a] of Object.entries(agg)){let x1,y1;if(n.startsWith("ctrl:")){const c=(layout.ctrl||[]).find(c=>"ctrl:"+c.name===n);if(!c||!lastGood)continue;x1=c.x_raw;y1=lastGood.pico.sig_y-lastGood.board.DY;}else{const b=layout.buttons[n];if(!b)continue;x1=b.x;y1=b.y;}
+      const x0=x1-a.dx,y0=y1-a.dy;ctx.beginPath();ctx.moveTo(X(x0),Y(y0));ctx.lineTo(X(x1),Y(y1));ctx.stroke();const ang=Math.atan2(Y(y1)-Y(y0),X(x1)-X(x0));ctx.beginPath();ctx.moveTo(X(x1),Y(y1));ctx.lineTo(X(x1)-S(3)*Math.cos(ang-0.5),Y(y1)-S(3)*Math.sin(ang-0.5));ctx.lineTo(X(x1)-S(3)*Math.cos(ang+0.5),Y(y1)-S(3)*Math.sin(ang+0.5));ctx.closePath();ctx.fill();}
+    ctx.restore();}
   if(drag&&drag.moved){ctx.save();ctx.globalAlpha=0.55;ctx.setLineDash([S(1.2),S(0.8)]);ctx.lineWidth=S(0.8);
     if(drag.c){const R=lastGood;const rowY=R?R.pico.sig_y-R.board.DY:0;const r=drag.c.size/2;const bad=(layout.ctrl||[]).some(o=>o!==drag.c&&Math.abs(o.x_raw-drag.gx)<o.size/2+r+2)||(R&&(drag.gx+r>R.pico.x_lo-R.board.DX&&drag.gx-r<R.pico.x_hi-R.board.DX));
       ctx.fillStyle=bad?"rgba(180,35,24,.6)":"rgba(138,136,127,.7)";ctx.strokeStyle=bad?"#b42318":"#e04a00";ctx.beginPath();ctx.arc(X(drag.gx),Y(rowY),S(r),0,7);ctx.fill();ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle="#222";ctx.font=`${S(3)}px sans-serif`;ctx.textAlign="center";ctx.fillText(`${drag.c.label}  x ${drag.gx}`,X(drag.gx),Y(rowY+r+2));}
@@ -278,6 +285,32 @@ document.getElementById("arcAll").addEventListener("change",e=>{snapshot();layou
 document.getElementById("undo").addEventListener("click",doUndo);document.getElementById("redo").addEventListener("click",doRedo);
 window.addEventListener("keydown",e=>{const mod=e.metaKey||e.ctrlKey;if(!mod)return;if(e.key==="z"||e.key==="Z"){e.preventDefault();if(e.shiftKey)doRedo();else doUndo();}else if(e.key==="y"||e.key==="Y"){e.preventDefault();doRedo();}});
 document.getElementById("reset").addEventListener("click",()=>{snapshot();layout=standard();selected=null;logEv("reset",{});document.getElementById("arcAll").value=240;renderProps();fit();scheduleEval();});
+// ===================== 自動制約解消（α版）：1 手ずつ Python に進めさせ、矢印を描きながら、上限で止める =====================
+const RESOLVE_MAX_STEPS=30, RESOLVE_MAX_EVALS=900;   // 収束しないことがあるので、手数と評価回数の両方に上限を置く
+let resolving=false, resolveMoves=[], resolveStopFlag=false;
+async function runResolve(){if(resolving||!pyReady)return;const fixed=[];if(selected&&selected!=="pico")fixed.push(selected);if(selected==="pico")fixed.push("pico");
+  snapshot();cancelScan();resolving=true;resolveStopFlag=false;resolveMoves=[];const L0=JSON.parse(stateJSON());let steps=0,evals=0;const info=document.getElementById("resolveInfo");
+  document.getElementById("resolve").disabled=true;document.getElementById("resolveStop").hidden=false;logEv("resolve_start",{fixed});
+  const t0=performance.now();let last=null;
+  while(steps<RESOLVE_MAX_STEPS&&evals<RESOLVE_MAX_EVALS&&!resolveStopFlag){
+    const L={buttons:layout.buttons,ctrl:layout.ctrl,pico_cx_raw:layout.pico_cx_raw,pico_gap:layout.pico_gap,slit:layout.slit,slit_arc:layout.slit_arc,slit_pitch:layout.slit_pitch,l3:layout.l3,skin:layout.skin,margin:layout.margin};
+    const L0s={buttons:L0.buttons,ctrl:L0.ctrl,pico_cx_raw:L0.pico_cx_raw,pico_gap:L0.pico_gap};
+    let o;try{o=JSON.parse(py.runPython("import slate_core; slate_core.resolve_step_json("+JSON.stringify(JSON.stringify({layout:L,fixed,layout0:L0s}))+")"));}catch(e){console.error(e);info.textContent="計算に失敗："+e;break;}
+    evals+=o.evals||0;last=o;
+    if(o.move){const [n,dx,dy]=o.move;steps++;if(n.startsWith("ctrl:")){const c=layout.ctrl.find(c=>"ctrl:"+c.name===n);if(c)c.x_raw+=dx;}else{layout.buttons[n].x+=dx;layout.buttons[n].y+=dy;}
+      resolveMoves.push({n,dx,dy});info.textContent=`${steps} 手目：${n.startsWith("ctrl:")?(layout.ctrl.find(c=>"ctrl:"+c.name===n)||{label:n}).label:labelOf(n)} を ${dirName(dx,dy)} ${Math.hypot(dx,dy).toFixed(0)}mm（評価 ${evals} 回・罰則 ${(o.penalty||0).toFixed(1)}）`;draw();}
+    if(o.done)break;
+    await new Promise(r=>setTimeout(r,0));
+  }
+  const dt=((performance.now()-t0)/1000).toFixed(1);const ok=!!(last&&last.ok);
+  const summary=resolveMoves.length?sumMoves():"動かしたボタンはありません";
+  info.textContent=ok?`設計できる形になりました（${steps} 手・評価 ${evals} 回・${dt} 秒）。${summary}。気に入らなければ「元に戻す」で戻せます`:(resolveStopFlag?`止めました（${steps} 手）。${summary}`:(steps>=RESOLVE_MAX_STEPS||evals>=RESOLVE_MAX_EVALS?`上限（${RESOLVE_MAX_STEPS} 手または評価 ${RESOLVE_MAX_EVALS} 回）に達しました。${summary}。「元に戻す」で戻せます`:`これ以上は改善できませんでした（${steps} 手）。${summary}。置いたボタンを別の場所に動かしてください`));
+  logEv("resolve_end",{ok,steps,evals,moves:resolveMoves});resolving=false;document.getElementById("resolve").disabled=false;document.getElementById("resolveStop").hidden=true;renderProps();scheduleEval();}
+function dirName(dx,dy){const h=dx>0?"右":dx<0?"左":"",v=dy>0?"奥":dy<0?"手前":"";return (h+v)||"そのまま";}
+function sumMoves(){const agg={};for(const m of resolveMoves){const a=agg[m.n]||(agg[m.n]={dx:0,dy:0});a.dx+=m.dx;a.dy+=m.dy;}
+  return "動かしたもの："+Object.entries(agg).map(([n,a])=>`${n.startsWith("ctrl:")?((layout.ctrl||[]).find(c=>"ctrl:"+c.name===n)||{label:n}).label:labelOf(n)} を ${dirName(a.dx,a.dy)} ${Math.hypot(a.dx,a.dy).toFixed(0)}mm`).join("、");}
+document.getElementById("resolve").addEventListener("click",runResolve);
+document.getElementById("resolveStop").addEventListener("click",()=>{resolveStopFlag=true;});
 // ===================== 動かせる範囲の走査（押した瞬間に始め、待機中にも選んだものについて計算しておく） =====================
 //  5mm の格子の各点に対象を置いたときの判定を、中核の計算（本番と同じ検査）で求める。幾何の重なりは JavaScript で先に判定して除く。
 //  近い点から順に計算し、12 点ごとに描き足す。レイアウトが変わると捨てる（配線は全ボタンの位置で決まるため）。
@@ -308,6 +341,7 @@ document.getElementById("import").addEventListener("click",()=>{try{const o=JSON
 function renderStatus(){const v=document.getElementById("verdict"),m=document.getElementById("msgs"),bi=document.getElementById("boardinfo");m.innerHTML="";
   if(!result){v.className="verdict wait";v.textContent="計算を待っています";return;}
   v.className="verdict "+(result.ok?"ok":"err");v.textContent=result.ok?"設計できます（交差 0・安全率 1.5 以上）":"このままでは設計できません";
+  document.getElementById("resolveRow").hidden=!!result.ok||resolving;
   for(const e of result.errors||[]){const li=document.createElement("li");li.className="err";li.textContent=e;m.appendChild(li);}
   for(const w of result.warnings||[]){const li=document.createElement("li");li.className="warn";li.textContent=w;m.appendChild(li);}
   bi.textContent=result.board?`板 ${result.board.W} × ${result.board.H} mm・最悪の安全率 ${result.worst?result.worst.label+" "+result.worst.SF.toFixed(2):"—"}・計算 ${result._ms} ms`:"";
