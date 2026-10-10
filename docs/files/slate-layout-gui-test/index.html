@@ -15,6 +15,7 @@
     v0.5 2026-10-10 自動制約解消（α版）・置いた時点で走査を捨てる
     v0.6 2026-10-10 元に戻す／やり直すを上の帯に・版の表示・スナップ（周りのボタンの上端・下端・中心・左端・右端に吸着。Option/Alt で無効）
     v0.7 2026-10-10 スナップの距離（吸着する範囲 mm）をスライダで変えられる（0 で無効・既定 3・最大 10。書き出す JSON と操作の記録に残す）
+    v0.12 2026-10-10 ファームウェア（uf2）のダウンロード。ブラウザの中で fw/ の公式の uf2 に割当を焼き込む（fw_build.py・protobuf）。設計の識別子（design_id）を JSON と uf2 の名前に入れる
     v0.11 2026-10-10 「設計できます」を「実現できます」に。グリッドの既定を非表示に。板の注記「（手前が下・Pico は奥）」を削除。「全体のスリットの弧」の説明を添えた
     v0.10 2026-10-10 吸着する距離の既定を 1mm に。配線層（L3）の厚みを変えられる（抵抗が下がり安全率が上がる。既定 5.0mm・2〜8mm）。板の総厚を表示
     v0.9 2026-10-10 mm のグリッド（板の左端と手前の端を 0 とする。10mm ごとに目盛り・5mm の細線。上の帯で表示と非表示、間隔 5/10mm）。選んだボタンに板の端からの距離を表示
@@ -121,6 +122,12 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
       <table id="sftable"><thead><tr><th>ボタン</th><th>GP</th><th>信号 mm</th><th>GND mm</th><th>往復 kΩ</th><th>SF</th></tr></thead><tbody></tbody></table>
     </section>
     <section>
+      <h2>ファームウェア（Raspberry Pi Pico に書き込む uf2）</h2>
+      <div class="row"><button id="fwX">XInput 版をダウンロード</button><button id="fwS">Switch 版をダウンロード</button></div>
+      <div class="hint" id="fwInfo">いまの設計の GPIO の割当を焼き込んだ uf2 を、このページの中で作ります（初回は 2.4MB の公式ファームを読み込むので数秒かかります）。Pico の BOOTSEL を押しながら接続し、現れたドライブに uf2 を複製すると書き込めます。uf2 の名前の識別子は、書き出す JSON の design_id と同じです。設計を変えると識別子が変わるので、対で扱ってください。</div>
+      <div id="fwTable"></div>
+    </section>
+    <section>
       <h2>書き出しと読み込み</h2>
       <div class="row"><button class="primary" id="export">書き出す（JSON をコピー）</button><button id="import">貼り付けた JSON を読み込む</button></div>
       <textarea id="json" placeholder="「書き出す」を押すと、ここに設計の JSON が出ます。これを Discord のスレッドに貼ってください。"></textarea>
@@ -131,7 +138,7 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 <script>
 // ===================== 状態 =====================
-const VERSION="v0.11";
+const VERSION="v0.12";
 const LABEL={L:"L",D:"D",R:"R",Up:"UP",c1t:"LK",c1b:"LP",c2t:"MK",c2b:"MP",c3t:"HK",c3b:"HP",c4t:"KK",c4b:"PP",thumb:"THU",palm:"PALM"};
 const STD={L:[28,101],D:[58,101],R:[84,87],Up:[91,43],c1t:[110,70],c1b:[111,100],c2t:[137,82],c2b:[137,113],c3t:[165,81],c3b:[167,112],c4t:[194,76],c4b:[196,107]};
 const CTRL_DEF=[["u1",21,"A2"],["u2",20,"A1"],["u3",19,"ST"],["u4",18,"SEL"]];
@@ -139,7 +146,7 @@ function standard(){const b={};for(const n in STD)b[n]={x:STD[n][0],y:STD[n][1],
   const pico=121; // 生の座標（標準では DX=−1 なので板の座標 120 に当たる）
   const cx0=Math.round((pico+19*2.54/2+0.9+5+4)*10)/10;  // Pico の右端のピンから 4mm 外に 1 個目、以後 13mm 間隔（v3.1.2 と同じ）
   const ctrl=CTRL_DEF.map(([n,gp,lab],i)=>({name:n,gp,label:lab,x_raw:Math.round((cx0+13*i)*10)/10,size:10}));
-  return {version:"slate_layout_gui "+VERSION,base:"v3.1.2",buttons:b,ctrl,pico_cx_raw:pico,pico_gap:0,slit:"lower_arcs",slit_arc:240,slit_pitch:5,l3:5.0,skin:0.36,margin:7};}
+  return {version:"slate_layout_gui "+VERSION,base:"v3.1.2",design_id:"standard",buttons:b,ctrl,pico_cx_raw:pico,pico_gap:0,slit:"lower_arcs",slit_arc:240,slit_pitch:5,l3:5.0,skin:0.36,margin:7};}
 const FUNCS=["L3","R3","S1","S2","A1","A2","B1","B2","B3","B4","L1","L2","R1","R2","UP","DOWN","LEFT","RIGHT"];
 const FUNC_JA={L3:"L3（左スティック押し込み）",R3:"R3（右スティック押し込み）",S1:"Select",S2:"Start",A1:"A1（Home）",A2:"A2（Capture）",B1:"B1（LK）",B2:"B2（MK）",B3:"B3（LP）",B4:"B4（MP）",L1:"L1（PP）",L2:"L2（KK）",R1:"R1（HP）",R2:"R2（HK）",UP:"上",DOWN:"下",LEFT:"左",RIGHT:"右"};
 const CTRL_FUNC={A2:"A2",A1:"A1",ST:"S2",SEL:"S1"};
@@ -148,7 +155,8 @@ function now(){return Math.round((Date.now()-t0)/100)/10;}
 function logEv(kind,detail){log.push({t:now(),kind,...detail});}
 function stateJSON(){return JSON.stringify({buttons:layout.buttons,ctrl:layout.ctrl,pico_cx_raw:layout.pico_cx_raw,pico_gap:layout.pico_gap,slit_arc:layout.slit_arc,l3:layout.l3});}
 function applyState(o){layout.buttons=o.buttons;layout.ctrl=o.ctrl;layout.pico_cx_raw=o.pico_cx_raw;layout.pico_gap=o.pico_gap;if(o.slit_arc!==undefined){layout.slit_arc=o.slit_arc;document.getElementById("arcAll").value=o.slit_arc;}if(o.l3!==undefined){layout.l3=o.l3;document.getElementById("l3").value=o.l3;}}
-function snapshot(){history.push(stateJSON());if(history.length>300)history.shift();future.length=0;cancelScan();if(!resolving)resolveMoves=[];updateUndoButtons();}
+function newDesignId(){const d=new Date();const z=n=>String(n).padStart(2,"0");layout.design_id=`${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}`;}
+function snapshot(){newDesignId();history.push(stateJSON());if(history.length>300)history.shift();future.length=0;cancelScan();if(!resolving)resolveMoves=[];updateUndoButtons();}
 function updateUndoButtons(){const u=document.getElementById("undo"),r=document.getElementById("redo");if(u)u.disabled=!history.length;if(r)r.disabled=!future.length;}
 function doUndo(){if(!history.length)return;future.push(stateJSON());applyState(JSON.parse(history.pop()));cancelScan();logEv("undo",{});selected=null;renderProps();updateUndoButtons();scheduleEval();}
 function doRedo(){if(!future.length)return;history.push(stateJSON());applyState(JSON.parse(future.pop()));cancelScan();logEv("redo",{});selected=null;renderProps();updateUndoButtons();scheduleEval();}
@@ -402,6 +410,27 @@ function runScanChunk(){const st=scanState;if(!st||!pyReady)return;if(evaluating
     if(scanState!==st)return;for(const [x,y,code] of out)st.cells.set(x+","+y,code);}
   catch(e){console.error(e);scanState=null;return;}
   draw();setTimeout(runScanChunk,0);}
+// ===================== ファームウェア：fw_build.py をブラウザの中で動かし、uf2 を作って保存する =====================
+let fwReady=false, fwBusy=false;
+async function ensureFw(){if(fwReady)return;const info=document.getElementById("fwInfo");info.textContent="protobuf と公式ファームを読み込んでいます…";
+  await py.loadPackage("protobuf");
+  const files=["fw_build.py","fw/config_pb2.py","fw/enums_pb2.py","fw/nanopb_pb2.py"];try{py.FS.mkdir("fw");}catch(_){}
+  for(const f of files){const t=await fetch(f+"?t="+Date.now(),{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error(f+" を読み込めない");return r.text();});py.FS.writeFile(f,t);}
+  const bin=new Uint8Array(await fetch("fw/GP2040-CE_0.7.12_Pico.uf2").then(r=>{if(!r.ok)throw new Error("公式ファームを読み込めない");return r.arrayBuffer();}));py.FS.writeFile("fw/GP2040-CE_0.7.12_Pico.uf2",bin);
+  await py.runPythonAsync("import sys; sys.path.insert(0,'.'); import fw_build"); fwReady=true;}
+async function downloadFw(mode){if(fwBusy||!pyReady)return;if(!result||!result.ok){document.getElementById("fwInfo").textContent="いまの設計は実現できない状態です。実現できる状態にしてからダウンロードしてください";return;}
+  fwBusy=true;const info=document.getElementById("fwInfo");
+  try{await ensureFw();info.textContent="uf2 を作っています…";
+    const L={buttons:layout.buttons,ctrl:layout.ctrl,design_id:layout.design_id};
+    const o=JSON.parse(py.runPython("import fw_build; fw_build.build_uf2_json("+JSON.stringify(JSON.stringify(L))+", 'fw/GP2040-CE_0.7.12_Pico.uf2', "+mode+")"));
+    const bytes=py.FS.readFile(o.path);const name=`controller_slate-layout-${layout.design_id||"standard"}_Pico${mode?"_switch":""}.uf2`;
+    const url=URL.createObjectURL(new Blob([bytes],{type:"application/octet-stream"}));const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+    info.textContent=`${name}（${(o.size/1024).toFixed(0)} KB）を保存しました。読み戻しの検証：${o.message}。識別子 ${layout.design_id||"standard"}`;
+    document.getElementById("fwTable").innerHTML=`<table><thead><tr><th>GP</th><th>ボタン</th><th>機能</th></tr></thead><tbody>${o.table.map(r=>`<tr><td>GP${r.gp}</td><td>${r.label}</td><td>${r.func}</td></tr>`).join("")}</tbody></table>`;
+    logEv("firmware",{mode:mode?"switch":"xinput",design_id:layout.design_id,verified:o.verified});
+  }catch(e){console.error(e);info.textContent="ファームウェアを作れませんでした："+e;}
+  fwBusy=false;}
+document.getElementById("fwX").addEventListener("click",()=>downloadFw(0));document.getElementById("fwS").addEventListener("click",()=>downloadFw(1));
 document.getElementById("export").addEventListener("click",async()=>{logEv("export",{ok:result?result.ok:null});const out={...layout,snap_mm:SNAP_MM,snap_gap:SNAP_GAP,result_summary:result?{ok:result.ok,errors:result.errors,warnings:result.warnings,board:result.board,worst:result.worst,gpio:Object.fromEntries(Object.entries(result.buttons||{}).map(([n,b])=>[labelOf(n),b.gp]))}:null,elapsed_s:now(),log};
   const s=JSON.stringify(out,null,1);document.getElementById("json").value=s;try{await navigator.clipboard.writeText(s);document.getElementById("pystatus").textContent="JSON をコピーしました。スレッドに貼ってください";}catch(e){document.getElementById("pystatus").textContent="下の欄の JSON を選んでコピーしてください";}});
 document.getElementById("import").addEventListener("click",()=>{try{const o=JSON.parse(document.getElementById("json").value);if(!o.buttons)throw new Error("buttons が無い");snapshot();for(const k of ["buttons","ctrl","pico_cx_raw","pico_gap","slit","slit_arc","slit_pitch","l3","skin","margin"])if(o[k]!==undefined)layout[k]=o[k];if(o.pico_cx!==undefined&&o.pico_cx_raw===undefined)layout.pico_cx_raw=o.pico_cx+1;document.getElementById("l3").value=layout.l3;document.getElementById("arcAll").value=layout.slit_arc;logEv("import",{});selected=null;renderProps();fit();scheduleEval();}catch(e){document.getElementById("pystatus").textContent="JSON を読み込めません："+e.message;}});
