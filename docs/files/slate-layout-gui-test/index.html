@@ -79,6 +79,7 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
       <div class="row">
         <label>全体のスリットの弧</label><input type="number" id="arcAll" min="180" max="305" step="5" value="240"><label>°</label>
         <button id="undo">元に戻す</button>
+        <button id="redo">やり直す</button>
         <button id="reset">標準モデルに戻す</button>
       </div>
     </section>
@@ -108,10 +109,15 @@ function standard(){const b={};for(const n in STD)b[n]={x:STD[n][0],y:STD[n][1],
 const FUNCS=["L3","R3","S1","S2","A1","A2","B1","B2","B3","B4","L1","L2","R1","R2","UP","DOWN","LEFT","RIGHT"];
 const FUNC_JA={L3:"L3（左スティック押し込み）",R3:"R3（右スティック押し込み）",S1:"Select",S2:"Start",A1:"A1（Home）",A2:"A2（Capture）",B1:"B1（LK）",B2:"B2（MK）",B3:"B3（LP）",B4:"B4（MP）",L1:"L1（PP）",L2:"L2（KK）",R1:"R1（HP）",R2:"R2（HK）",UP:"上",DOWN:"下",LEFT:"左",RIGHT:"右"};
 const CTRL_FUNC={A2:"A2",A1:"A1",ST:"S2",SEL:"S1"};
-let lastFitKey=""; let layout=standard(), result=null, lastGood=null, selected=null, history=[], log=[]; const t0=Date.now();
+let lastFitKey=""; let layout=standard(), result=null, lastGood=null, selected=null, history=[], future=[], log=[]; const t0=Date.now();
 function now(){return Math.round((Date.now()-t0)/100)/10;}
 function logEv(kind,detail){log.push({t:now(),kind,...detail});}
-function snapshot(){history.push(JSON.stringify({buttons:layout.buttons,ctrl:layout.ctrl,pico_cx_raw:layout.pico_cx_raw,pico_gap:layout.pico_gap}));if(history.length>200)history.shift();}
+function stateJSON(){return JSON.stringify({buttons:layout.buttons,ctrl:layout.ctrl,pico_cx_raw:layout.pico_cx_raw,pico_gap:layout.pico_gap,slit_arc:layout.slit_arc});}
+function applyState(o){layout.buttons=o.buttons;layout.ctrl=o.ctrl;layout.pico_cx_raw=o.pico_cx_raw;layout.pico_gap=o.pico_gap;if(o.slit_arc!==undefined){layout.slit_arc=o.slit_arc;document.getElementById("arcAll").value=o.slit_arc;}}
+function snapshot(){history.push(stateJSON());if(history.length>300)history.shift();future.length=0;cancelScan();updateUndoButtons();}
+function updateUndoButtons(){const u=document.getElementById("undo"),r=document.getElementById("redo");if(u)u.disabled=!history.length;if(r)r.disabled=!future.length;}
+function doUndo(){if(!history.length)return;future.push(stateJSON());applyState(JSON.parse(history.pop()));cancelScan();logEv("undo",{});selected=null;renderProps();updateUndoButtons();scheduleEval();}
+function doRedo(){if(!future.length)return;history.push(stateJSON());applyState(JSON.parse(future.pop()));cancelScan();logEv("redo",{});selected=null;renderProps();updateUndoButtons();scheduleEval();}
 function labelOf(n){return (layout.buttons[n]&&layout.buttons[n].label)||LABEL[n]||n;}
 // ===================== Python（Pyodide） =====================
 let py=null, pyReady=false, evalQueued=false, evaluating=false;
@@ -120,7 +126,7 @@ async function initPy(){
     py=await loadPyodide();
     document.getElementById("pystatus").textContent="numpy と shapely を読み込んでいます…";
     await py.loadPackage(["numpy","shapely"]);
-    const [core,slit]=await Promise.all([fetch("slate_core.py").then(r=>r.text()),fetch("slit_patterns.py").then(r=>r.text())]);
+    const [core,slit]=await Promise.all([fetch("slate_core.py?t="+Date.now(),{cache:"no-store"}).then(r=>r.text()),fetch("slit_patterns.py?t="+Date.now(),{cache:"no-store"}).then(r=>r.text())]);
     py.FS.writeFile("slit_patterns.py",slit);py.FS.writeFile("slate_core.py",core);
     await py.runPythonAsync("import sys; sys.path.insert(0,'.'); import slate_core");
     pyReady=true;document.getElementById("pystatus").textContent="計算機の準備ができました";
@@ -141,6 +147,7 @@ async function runEval(){
   evaluating=false;renderStatus();
   if(result&&result.board){const k=result.board.W+"x"+result.board.H;if(k!==lastFitKey){lastFitKey=k;fit();}}
   draw();
+  if(selected&&result&&result.ok&&!drag)startScan(selected);   // 待機中に、選んでいるものの動かせる範囲を計算しておく
 }
 // ===================== 幾何だけの即時検査（動かしている最中） =====================
 function quickOverlaps(){const names=Object.keys(layout.buttons),bad=new Set();
@@ -159,6 +166,9 @@ function X(x){return (view.ox+x*view.s)*devicePixelRatio;}function Y(y){return (
 function draw(){ctx.clearRect(0,0,cv.width,cv.height);const R=(result&&result.board)?result:lastGood;const stale=!(result&&result.board);const DX=R?R.board.DX:0,DY=R?R.board.DY:0;const toRaw=(p)=>[p[0]-DX,p[1]-DY];
   const bb=boardRaw();ctx.fillStyle="#efece2";ctx.strokeStyle="#b4b2a9";ctx.lineWidth=S(0.5);roundRect(X(bb.x0),Y(bb.y1),S(bb.x1-bb.x0),S(bb.y1-bb.y0),S(8));ctx.fill();ctx.stroke();
   ctx.fillStyle="#777";ctx.font=`${S(3.2)}px sans-serif`;ctx.textAlign="left";ctx.fillText(`板 ${(bb.x1-bb.x0).toFixed(0)} × ${(bb.y1-bb.y0).toFixed(0)} mm（手前が下・Pico は奥）`,X(bb.x0)+S(3),Y(bb.y0)-S(3));
+  if(scanState){const st=scanState;if(st.kind==="xy"){for(const [k,code] of st.cells){const [x,y]=k.split(",").map(Number);ctx.fillStyle=SCAN_COLOR[code]||SCAN_COLOR.E;ctx.fillRect(X(x-CELL/2),Y(y+CELL/2),S(CELL),S(CELL));}}
+    else{const rowY=st.rowY;const w=(st.target==="pico")?51:((layout.ctrl||[]).find(c=>"ctrl:"+c.name===st.target)||{size:10}).size;for(const [k,code] of st.cells){const x=Number(k.split(",")[0]);ctx.fillStyle=SCAN_COLOR[code]||SCAN_COLOR.E;ctx.fillRect(X(x-CELL/2),Y(rowY+w/2+1),S(CELL),S(w+2));}}
+    ctx.fillStyle="#555";ctx.font=`${S(3)}px sans-serif`;ctx.textAlign="right";const left=st.queue.length;ctx.fillText(`動かせる範囲：緑＝設計できる・赤＝配線が交差・橙＝安全率の不足・灰＝重なる${left?`（計算中 残り ${left} 点）`:`（${(st.done/1000).toFixed(1)} 秒で ${st.n} 点）`}`,X(bb.x1)-S(2),Y(bb.y1)+S(4.5));}
   if(R&&R.pico){const p=R.pico;const cx=p.cx-DX;ctx.globalAlpha=(stale?0.35:1)*((drag&&drag.moved&&drag.n==="pico")?0.35:1);ctx.fillStyle="#e3e0d6";ctx.strokeStyle="#9a988f";ctx.lineWidth=S(0.3);ctx.fillRect(X(cx-25.5),Y(p.far_y-DY),S(51),S(p.far_y-p.sig_y));ctx.strokeRect(X(cx-25.5),Y(p.far_y-DY),S(51),S(p.far_y-p.sig_y));
     ctx.fillStyle="#888";ctx.textAlign="center";ctx.fillText("Raspberry Pi Pico",X(cx),Y((p.sig_y+p.far_y)/2-DY)+S(1.2));
     for(const q of p.top.concat(p.bot)){ctx.fillStyle="#aaa";ctx.beginPath();ctx.arc(X(q[0]-DX),Y(q[1]-DY),S(0.9),0,7);ctx.fill();}
@@ -200,9 +210,12 @@ function hit(px,py){let best=null,bd=1e9;for(const n in layout.buttons){const b=
   if(Math.abs(px-layout.pico_cx_raw)<25.5&&py>rowY-2&&py<R.pico.far_y-DY+2)return "pico";return null;}
 let drag=null;
 cv.addEventListener("pointerdown",e=>{const r=cv.getBoundingClientRect();const px=(e.clientX-r.left-view.ox)/view.s,py=(view.oy-(e.clientY-r.top))/view.s;const n=hit(px,py);
+  const keep=(scanState&&scanState.target===n)?scanState:null;
   if(n&&n.startsWith("ctrl:")){const c=layout.ctrl.find(c=>"ctrl:"+c.name===n);selected=n;drag={n,c,dx:c.x_raw-px,x0:c.x_raw};snapshot();try{cv.setPointerCapture(e.pointerId);}catch(_){}}
   else if(n==="pico"){selected=n;drag={n,dx:layout.pico_cx_raw-px,x0:layout.pico_cx_raw};snapshot();try{cv.setPointerCapture(e.pointerId);}catch(_){}}
-  else if(n){selected=n;drag={n,dx:layout.buttons[n].x-px,dy:layout.buttons[n].y-py,x0:layout.buttons[n].x,y0:layout.buttons[n].y};snapshot();try{cv.setPointerCapture(e.pointerId);}catch(_){}}else{selected=null;}renderProps();draw();});
+  else if(n){selected=n;drag={n,dx:layout.buttons[n].x-px,dy:layout.buttons[n].y-py,x0:layout.buttons[n].x,y0:layout.buttons[n].y};snapshot();try{cv.setPointerCapture(e.pointerId);}catch(_){}}else{selected=null;cancelScan();}
+  if(n){if(keep){scanState=keep;if(keep.queue.length)runScanChunk();}else startScan(n);}   // 押した瞬間に、動かせる範囲の走査を始める（待機中に計算済みならそれを使う）
+  renderProps();draw();});
 cv.addEventListener("pointermove",e=>{if(!drag)return;const r=cv.getBoundingClientRect();const px=(e.clientX-r.left-view.ox)/view.s,py=(view.oy-(e.clientY-r.top))/view.s;
   drag.gx=Math.round((px+drag.dx)*2)/2;drag.gy=Math.round((py+(drag.dy||0))*2)/2;drag.moved=true;draw();});
 cv.addEventListener("pointerup",e=>{if(!drag)return;
@@ -261,8 +274,33 @@ document.getElementById("addCtrl").addEventListener("click",()=>{layout.ctrl=lay
   const usedGp=new Set(layout.ctrl.map(c=>c.gp));const def=CTRL_DEF.find(([n,gp])=>!usedGp.has(gp));const maxx=Math.max(layout.pico_cx_raw+19*2.54/2+0.9+5+4,...layout.ctrl.map(c=>c.x_raw+c.size/2+5+2));
   layout.ctrl.push({name:def[0],gp:def[1],label:def[2],x_raw:Math.round(maxx*10)/10,size:10});logEv("add_ctrl",{btn:def[2]});selected="ctrl:"+def[0];renderProps();scheduleEval();});
 document.getElementById("arcAll").addEventListener("change",e=>{snapshot();layout.slit_arc=+e.target.value;for(const n in layout.buttons)delete layout.buttons[n].arc;logEv("arc_all",{to:layout.slit_arc});renderProps();scheduleEval();});
-document.getElementById("undo").addEventListener("click",()=>{if(!history.length)return;const o=JSON.parse(history.pop());layout.buttons=o.buttons;layout.ctrl=o.ctrl;layout.pico_cx_raw=o.pico_cx_raw;layout.pico_gap=o.pico_gap;logEv("undo",{});selected=null;renderProps();scheduleEval();});
+document.getElementById("undo").addEventListener("click",doUndo);document.getElementById("redo").addEventListener("click",doRedo);
+window.addEventListener("keydown",e=>{const mod=e.metaKey||e.ctrlKey;if(!mod)return;if(e.key==="z"||e.key==="Z"){e.preventDefault();if(e.shiftKey)doRedo();else doUndo();}else if(e.key==="y"||e.key==="Y"){e.preventDefault();doRedo();}});
 document.getElementById("reset").addEventListener("click",()=>{snapshot();layout=standard();selected=null;logEv("reset",{});document.getElementById("arcAll").value=240;renderProps();fit();scheduleEval();});
+// ===================== 動かせる範囲の走査（押した瞬間に始め、待機中にも選んだものについて計算しておく） =====================
+//  5mm の格子の各点に対象を置いたときの判定を、中核の計算（本番と同じ検査）で求める。幾何の重なりは JavaScript で先に判定して除く。
+//  近い点から順に計算し、12 点ごとに描き足す。レイアウトが変わると捨てる（配線は全ボタンの位置で決まるため）。
+const CELL=5; let scanState=null;
+const SCAN_COLOR={O:"rgba(42,125,58,.28)",X:"rgba(180,35,24,.30)",S:"rgba(183,121,31,.35)",G:"rgba(90,90,90,.14)",E:"rgba(120,60,160,.3)"};
+function cancelScan(){scanState=null;}
+function scanTargetPos(t){if(t==="pico")return [layout.pico_cx_raw,0];if(t&&t.startsWith("ctrl:")){const c=(layout.ctrl||[]).find(c=>"ctrl:"+c.name===t);return c?[c.x_raw,0]:null;}const b=layout.buttons[t];return b?[b.x,b.y]:null;}
+function startScan(target){if(!target)return;if(scanState&&scanState.target===target)return;const pos=scanTargetPos(target);if(!pos)return;
+  const bs=Object.values(layout.buttons);const x0=Math.floor((Math.min(...bs.map(b=>b.x))-30)/CELL)*CELL,x1=Math.ceil((Math.max(...bs.map(b=>b.x))+30)/CELL)*CELL,y0=Math.floor((Math.min(...bs.map(b=>b.y))-30)/CELL)*CELL,y1=Math.ceil((Math.max(...bs.map(b=>b.y))+30)/CELL)*CELL;
+  const cells=new Map(),queue=[];
+  if(target==="pico"||target.startsWith("ctrl:")){const R=lastGood;const rowY=R?R.pico.sig_y-R.board.DY:y1;const c=target.startsWith("ctrl:")?(layout.ctrl||[]).find(c=>"ctrl:"+c.name===target):null;
+    for(let x=x0-40;x<=x1+40;x+=CELL){let g=false;if(c){const r=c.size/2;g=(layout.ctrl||[]).some(o=>o!==c&&Math.abs(o.x_raw-x)<o.size/2+r+2)||(R&&(x+r>R.pico.x_lo-R.board.DX&&x-r<R.pico.x_hi-R.board.DX));}
+      if(g)cells.set(x+",0","G");else queue.push([x,0]);}
+    queue.sort((a,b)=>Math.abs(a[0]-pos[0])-Math.abs(b[0]-pos[0]));scanState={target,cells,queue,rowY,kind:"x",t0:performance.now(),n:queue.length};}
+  else{const b=layout.buttons[target];const r=b.size/2;
+    for(let x=x0;x<=x1;x+=CELL)for(let y=y0;y<=y1;y+=CELL){const g=Object.entries(layout.buttons).some(([m,o])=>m!==target&&Math.hypot(o.x-x,o.y-y)<o.size/2+r+2);if(g)cells.set(x+","+y,"G");else queue.push([x,y]);}
+    queue.sort((a,b)=>Math.hypot(a[0]-pos[0],a[1]-pos[1])-Math.hypot(b[0]-pos[0],b[1]-pos[1]));scanState={target,cells,queue,kind:"xy",t0:performance.now(),n:queue.length};}
+  draw();runScanChunk();}
+function runScanChunk(){const st=scanState;if(!st||!pyReady)return;if(evaluating||!st.queue.length){if(st.queue.length)setTimeout(runScanChunk,60);else{st.done=performance.now()-st.t0;draw();}return;}
+  const pts=st.queue.splice(0,12);const L={buttons:layout.buttons,ctrl:layout.ctrl,pico_cx_raw:layout.pico_cx_raw,pico_gap:layout.pico_gap,slit:layout.slit,slit_arc:layout.slit_arc,slit_pitch:layout.slit_pitch,l3:layout.l3,skin:layout.skin,margin:layout.margin};
+  try{const out=JSON.parse(py.runPython("import slate_core; slate_core.scan_json("+JSON.stringify(JSON.stringify({layout:L,target:st.target,points:pts}))+")"));
+    if(scanState!==st)return;for(const [x,y,code] of out)st.cells.set(x+","+y,code);}
+  catch(e){console.error(e);scanState=null;return;}
+  draw();setTimeout(runScanChunk,0);}
 document.getElementById("export").addEventListener("click",async()=>{logEv("export",{ok:result?result.ok:null});const out={...layout,result_summary:result?{ok:result.ok,errors:result.errors,warnings:result.warnings,board:result.board,worst:result.worst,gpio:Object.fromEntries(Object.entries(result.buttons||{}).map(([n,b])=>[labelOf(n),b.gp]))}:null,elapsed_s:now(),log};
   const s=JSON.stringify(out,null,1);document.getElementById("json").value=s;try{await navigator.clipboard.writeText(s);document.getElementById("pystatus").textContent="JSON をコピーしました。スレッドに貼ってください";}catch(e){document.getElementById("pystatus").textContent="下の欄の JSON を選んでコピーしてください";}});
 document.getElementById("import").addEventListener("click",()=>{try{const o=JSON.parse(document.getElementById("json").value);if(!o.buttons)throw new Error("buttons が無い");snapshot();for(const k of ["buttons","ctrl","pico_cx_raw","pico_gap","slit","slit_arc","slit_pitch","l3","skin","margin"])if(o[k]!==undefined)layout[k]=o[k];if(o.pico_cx!==undefined&&o.pico_cx_raw===undefined)layout.pico_cx_raw=o.pico_cx+1;logEv("import",{});selected=null;renderProps();fit();scheduleEval();}catch(e){document.getElementById("pystatus").textContent="JSON を読み込めません："+e.message;}});

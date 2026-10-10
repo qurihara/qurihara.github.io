@@ -21,7 +21,7 @@ GND_PIN_TOP, GND_PIN_TOP2 = 3, 18
 LABEL = {"L": "L", "D": "D", "R": "R", "Up": "UP", "c1t": "LK", "c1b": "LP", "c2t": "MK", "c2b": "MP", "c3t": "HK", "c3b": "HP", "c4t": "KK", "c4b": "PP", "thumb": "THU", "palm": "PALM"}
 CTRL_DEF = [("u1", 21, "A2"), ("u2", 20, "A1"), ("u3", 19, "ST"), ("u4", 18, "SEL")]
 K_EFF = 220.0; RPU = 50e3; VDD = 3.3; VIL = 0.35 * VDD; RTH = RPU * VIL / (VDD - VIL); RC_TYP = 5e3; SF_TGT = 1.5
-_SLIT_CACHE = {}
+_SLIT_CACHE = {}; _VIA_CACHE = {}
 
 def standard_layout(ver="v3.1.2"):
     """標準モデルのレイアウト（design_stl_v2.py の btn 辞書と同じ生の座標）。"""
@@ -57,18 +57,21 @@ def qwall_rects(b, x, y):
     return ([w(0, -R), w(xf, -R), w(xf, R), w(0, R)], [w(xf, -R), w(xb, -R), w(xb, R), w(xf, R)])
 
 def seg_dist(a, b, c, d):
-    a, b, c, d = map(np.array, (a, b, c, d)); cl = lambda t: max(0., min(1., t))
-    d1 = b - a; d2 = d - c; r = a - c; A = d1 @ d1; E = d2 @ d2; F = d2 @ r
-    if A <= 1e-9 and E <= 1e-9: return float(np.linalg.norm(r))
-    if A <= 1e-9: s = 0.; t = cl(F / E)
+    """線分 ab と線分 cd の最短距離（design_stl_v2.py と同じ式。numpy を使わない形に写した。結果は同じ）。"""
+    ax, ay = a; bx, by = b; cx, cy = c; dx, dy = d
+    d1x, d1y = bx - ax, by - ay; d2x, d2y = dx - cx, dy - cy; rx, ry = ax - cx, ay - cy
+    A = d1x * d1x + d1y * d1y; E = d2x * d2x + d2y * d2y; F = d2x * rx + d2y * ry
+    def cl(t): return 0. if t < 0. else (1. if t > 1. else t)
+    if A <= 1e-9 and E <= 1e-9: return math.hypot(rx, ry)
+    if A <= 1e-9: s_ = 0.; t_ = cl(F / E)
     else:
-        C = d1 @ r
-        if E <= 1e-9: t = 0.; s = cl(-C / A)
+        C = d1x * rx + d1y * ry
+        if E <= 1e-9: t_ = 0.; s_ = cl(-C / A)
         else:
-            B = d1 @ d2; den = A * E - B * B; s = cl((B * F - C * E) / den) if den > 1e-9 else 0.; t = (B * s + F) / E
-            if t < 0: t = 0.; s = cl(-C / A)
-            elif t > 1: t = 1.; s = cl((B - C) / A)
-    return float(np.linalg.norm((a + d1 * s) - (c + d2 * t)))
+            B = d1x * d2x + d1y * d2y; den = A * E - B * B; s_ = cl((B * F - C * E) / den) if den > 1e-9 else 0.; t_ = (B * s_ + F) / E
+            if t_ < 0: t_ = 0.; s_ = cl(-C / A)
+            elif t_ > 1: t_ = 1.; s_ = cl((B - C) / A)
+    return math.hypot((ax + d1x * s_) - (cx + d2x * t_), (ay + d1y * s_) - (cy + d2y * t_))
 def segs(r): return [(r[i], r[i + 1]) for i in range(len(r) - 1)]
 
 def footprint(b, x, y):
@@ -106,11 +109,15 @@ def evaluate(layout):
     if "pico_cx_raw" in layout: PICO_CX = round(float(layout["pico_cx_raw"]) + DX, 2)   # GUI はボタンと同じ生の座標で Pico の位置を持つ
     def br(n): return B[n]["size"] / 2
     # ---- 幾何の重なり（design_stl_v2.py には無い検査。GUI のために足した）----
-    fps = {n: footprint(B[n], *btn[n]) for n in B}
+    fps = {n: (footprint(B[n], *btn[n]) if B[n]["type"] in ("qwall", "onenail", "onenail_high") else None) for n in B}
     names = list(B)
     for i in range(len(names)):
         for j in range(i + 1, len(names)):
-            g = fps[names[i]].distance(fps[names[j]])
+            ni, nj = names[i], names[j]
+            if fps[ni] is None and fps[nj] is None: g = math.hypot(btn[ni][0] - btn[nj][0], btn[ni][1] - btn[nj][1]) - br(ni) - br(nj)
+            else:
+                from shapely.geometry import Point as _Pt
+                g = (fps[ni] if fps[ni] is not None else _Pt(*btn[ni]).buffer(br(ni), resolution=24)).distance(fps[nj] if fps[nj] is not None else _Pt(*btn[nj]).buffer(br(nj), resolution=24))
             if g < 2.0: errors.append("%s と %s の間隔が %.1fmm（2mm 以上にする）" % (LAB.get(names[i], names[i]), LAB.get(names[j], names[j]), g))
             elif g < 4.0: warnings.append("%s と %s の間隔が %.1fmm（実績は 4mm 以上）" % (LAB.get(names[i], names[i]), LAB.get(names[j], names[j]), g))
     # ---- via の位置 ----
@@ -145,7 +152,9 @@ def evaluate(layout):
                 d = _SLIT_CACHE[key]
                 if d["n_regions"] != 2: errors.append("%s：スリット %s（φ%g・弧 %g°）で領域が %d 個になる" % (LAB.get(n, n), slit, B[n]["size"], arc, d["n_regions"])); continue
                 xr = (-3.0, 3.0) if len(ns) == 1 else ((-6.0, -1.0) if off < 0 else (1.0, 6.0))
-                spv = sp.pick_via(d["A"], (off, d["sig"][1]), minc, xrange=xr); gpv = sp.pick_via(d["B"], (off, d["gnd"][1]), minc, xrange=(-6.0, 6.0))
+                vkey = key + (off, xr)
+                if vkey not in _VIA_CACHE: _VIA_CACHE[vkey] = (sp.pick_via(d["A"], (off, d["sig"][1]), minc, xrange=xr), sp.pick_via(d["B"], (off, d["gnd"][1]), minc, xrange=(-6.0, 6.0)))
+                spv, gpv = _VIA_CACHE[vkey]
                 if spv is None or gpv is None: errors.append("%s：via（半径 %.1f＋壁 %.1f）の入る場所が無い" % (LAB.get(n, n), VIA_R, WALL)); continue
                 x, y = btn[n]; sig_via[n] = (x + spv[0], y + spv[1]); gnd_via[n] = (x + gpv[0], y + gpv[1])
                 slit_info[n] = {"rho_full": 2 * d["rho_full"], "rho_lower": 2 * d["rho_lower"], "rest_clear": d["rest_clear"]}
@@ -276,6 +285,38 @@ def evaluate(layout):
            "pico": {"cx": PICO_CX, "sig_y": PICO_SIG_Y, "far_y": PICO_FAR_Y, "lane0": LANE0, "gap": PICO_GAP, "x_lo": px_top(1) - LAND_R - 1.0, "x_hi": px_top(20) + LAND_R + 1.0, "top": [[px_top(p), PICO_SIG_Y] for p in range(1, 21)], "bot": [[px_bot(p), PICO_FAR_Y] for p in range(21, 41)]},
            "crossings": cross, "via_hits": gvia_hit, "sf": sf, "worst": worst, "Z": Z}
     return out
+
+
+def classify(r):
+    """evaluate の結果を 1 文字の符号に：O=設計できる・G=幾何（重なり・端子の列）・X=配線の交差や via への接触・S=安全率の不足・E=その他。"""
+    if r["ok"]: return "O"
+    e = " ".join(r["errors"])
+    if "間隔" in e or "端子の列" in e or "重なる" in e: return "G"
+    if "交差" in e or "接触" in e: return "X"
+    if "安全率" in e: return "S"
+    return "E"
+
+def scan(layout, target, points):
+    """対象 target（主ボタンの名前・"ctrl:<name>"・"pico"）を points（生の座標 [[x,y],...]。制御ボタンと Pico は x だけ使う）の各位置に置いて
+    評価し、[[x, y, 符号, 最悪の SF], ...] を返す。layout は変更しない。"""
+    import copy
+    out = []
+    for x, y in points:
+        L = copy.deepcopy(layout)
+        if target == "pico": L["pico_cx_raw"] = x
+        elif target.startswith("ctrl:"):
+            for e in L.get("ctrl", []):
+                if e.get("name") == target[5:]: e["x_raw"] = x
+        else:
+            L["buttons"][target]["x"] = x; L["buttons"][target]["y"] = y
+        try: r = evaluate(L); out.append([x, y, classify(r), (r.get("worst") or {}).get("SF")])
+        except Exception as ex: out.append([x, y, "E", None])
+    return out
+
+def scan_json(s):
+    import json
+    o = json.loads(s)
+    return json.dumps(scan(o["layout"], o["target"], o["points"]))
 
 def evaluate_json(s):
     import json
