@@ -7,6 +7,13 @@
 <title>slate レイアウト設計</title>
 <!--
   slate のレイアウトを、ボタンを直接動かして設計する GUI（2026-10-09・評価実験の GUI 条件のための道具）。
+  版は下の VERSION（画面の左上に出る・書き出す JSON にも入る）。変更のたびに上げる。
+    v0.1 2026-10-09 初版（移動・種類・向き・弧・THUMB と PALM・書き出し・Pyodide で本番と同じ検査）
+    v0.2 2026-10-10 Pico の移動と奥行き・制御ボタンの移動と大きさと増減と機能・追加ボタン
+    v0.3 2026-10-10 移動中の半透明の写し
+    v0.4 2026-10-10 動かせる範囲の走査・元に戻す／やり直す・中核の高速化
+    v0.5 2026-10-10 自動制約解消（α版）・置いた時点で走査を捨てる
+    v0.6 2026-10-10 元に戻す／やり直すを上の帯に・版の表示・スナップ（周りのボタンの上端・下端・中心・左端・右端に吸着。Option/Alt で無効）
   1 枚の HTML で動く。配線・交差・抵抗の安全率の計算は、ブラウザの中の Python（Pyodide）で slate_core.py を実行して行う。
   slate_core.py は design_stl_v2.py の計算を写したもので、同じ入力に同じ結果を返すことを gui/verify_core.py で確かめてある。
   このページと同じ場所に slate_core.py と slit_patterns.py を置く。Pyodide と numpy・shapely は CDN から読み込む（初回 10〜20 秒）。
@@ -22,6 +29,8 @@ header{display:flex;align-items:center;gap:16px;padding:10px 16px;border-bottom:
 header h1{font-size:16px;margin:0;font-weight:600}
 header .timer{font-variant-numeric:tabular-nums;color:var(--muted)}
 header .spacer{flex:1}
+header .ver{font-size:12px;color:var(--muted);font-weight:400;margin-left:6px}
+header .hbtn{padding:3px 10px;font-size:13px}header .hbtn:disabled{opacity:.4;cursor:default}
 header .status{font-size:13px;color:var(--muted)}
 main{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:0;height:calc(100% - 49px)}
 #stage{position:relative;min-width:0;background:var(--bg)}
@@ -49,7 +58,9 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
 </head>
 <body>
 <header>
-  <h1>slate レイアウト設計</h1>
+  <h1>slate レイアウト設計 <span class="ver" id="ver"></span></h1>
+  <button class="hbtn" id="undo" title="元に戻す（Cmd/Ctrl+Z）">↶ 元に戻す</button>
+  <button class="hbtn" id="redo" title="やり直す（Shift+Cmd/Ctrl+Z）">↷ やり直す</button>
   <span class="timer" id="timer">00:00</span>
   <span class="spacer"></span>
   <span class="status" id="pystatus">計算機（Python）を読み込んでいます…</span>
@@ -81,8 +92,7 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
       </div>
       <div class="row">
         <label>全体のスリットの弧</label><input type="number" id="arcAll" min="180" max="305" step="5" value="240"><label>°</label>
-        <button id="undo">元に戻す</button>
-        <button id="redo">やり直す</button>
+
         <button id="reset">標準モデルに戻す</button>
       </div>
     </section>
@@ -101,6 +111,7 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 <script>
 // ===================== 状態 =====================
+const VERSION="v0.6";
 const LABEL={L:"L",D:"D",R:"R",Up:"UP",c1t:"LK",c1b:"LP",c2t:"MK",c2b:"MP",c3t:"HK",c3b:"HP",c4t:"KK",c4b:"PP",thumb:"THU",palm:"PALM"};
 const STD={L:[28,101],D:[58,101],R:[84,87],Up:[91,43],c1t:[110,70],c1b:[111,100],c2t:[137,82],c2b:[137,113],c3t:[165,81],c3b:[167,112],c4t:[194,76],c4b:[196,107]};
 const CTRL_DEF=[["u1",21,"A2"],["u2",20,"A1"],["u3",19,"ST"],["u4",18,"SEL"]];
@@ -108,7 +119,7 @@ function standard(){const b={};for(const n in STD)b[n]={x:STD[n][0],y:STD[n][1],
   const pico=121; // 生の座標（標準では DX=−1 なので板の座標 120 に当たる）
   const cx0=Math.round((pico+19*2.54/2+0.9+5+4)*10)/10;  // Pico の右端のピンから 4mm 外に 1 個目、以後 13mm 間隔（v3.1.2 と同じ）
   const ctrl=CTRL_DEF.map(([n,gp,lab],i)=>({name:n,gp,label:lab,x_raw:Math.round((cx0+13*i)*10)/10,size:10}));
-  return {version:"slate_layout_gui 2026-10-10",base:"v3.1.2",buttons:b,ctrl,pico_cx_raw:pico,pico_gap:0,slit:"lower_arcs",slit_arc:240,slit_pitch:5,l3:5.0,skin:0.36,margin:7};}
+  return {version:"slate_layout_gui "+VERSION,base:"v3.1.2",buttons:b,ctrl,pico_cx_raw:pico,pico_gap:0,slit:"lower_arcs",slit_arc:240,slit_pitch:5,l3:5.0,skin:0.36,margin:7};}
 const FUNCS=["L3","R3","S1","S2","A1","A2","B1","B2","B3","B4","L1","L2","R1","R2","UP","DOWN","LEFT","RIGHT"];
 const FUNC_JA={L3:"L3（左スティック押し込み）",R3:"R3（右スティック押し込み）",S1:"Select",S2:"Start",A1:"A1（Home）",A2:"A2（Capture）",B1:"B1（LK）",B2:"B2（MK）",B3:"B3（LP）",B4:"B4（MP）",L1:"L1（PP）",L2:"L2（KK）",R1:"R1（HP）",R2:"R2（HK）",UP:"上",DOWN:"下",LEFT:"左",RIGHT:"右"};
 const CTRL_FUNC={A2:"A2",A1:"A1",ST:"S2",SEL:"S1"};
@@ -198,6 +209,10 @@ function draw(){ctx.clearRect(0,0,cv.width,cv.height);const R=(result&&result.bo
     for(const [n,a] of Object.entries(agg)){let x1,y1;if(n.startsWith("ctrl:")){const c=(layout.ctrl||[]).find(c=>"ctrl:"+c.name===n);if(!c||!lastGood)continue;x1=c.x_raw;y1=lastGood.pico.sig_y-lastGood.board.DY;}else{const b=layout.buttons[n];if(!b)continue;x1=b.x;y1=b.y;}
       const x0=x1-a.dx,y0=y1-a.dy;ctx.beginPath();ctx.moveTo(X(x0),Y(y0));ctx.lineTo(X(x1),Y(y1));ctx.stroke();const ang=Math.atan2(Y(y1)-Y(y0),X(x1)-X(x0));ctx.beginPath();ctx.moveTo(X(x1),Y(y1));ctx.lineTo(X(x1)-S(3)*Math.cos(ang-0.5),Y(y1)-S(3)*Math.sin(ang-0.5));ctx.lineTo(X(x1)-S(3)*Math.cos(ang+0.5),Y(y1)-S(3)*Math.sin(ang+0.5));ctx.closePath();ctx.fill();}
     ctx.restore();}
+  if(drag&&drag.moved&&drag.snap&&drag.snap.length){ctx.save();ctx.strokeStyle="#e04a00";ctx.lineWidth=S(0.35);ctx.setLineDash([S(2),S(1.2)]);ctx.fillStyle="#e04a00";ctx.font=`${S(2.8)}px sans-serif`;
+    for(const l of drag.snap){if(l.axis==="x"){ctx.beginPath();ctx.moveTo(X(l.at),Y(bb.y0));ctx.lineTo(X(l.at),Y(bb.y1));ctx.stroke();ctx.textAlign="left";ctx.fillText(l.lab,X(l.at)+S(1),Y(bb.y1)+S(4));}
+      else{ctx.beginPath();ctx.moveTo(X(bb.x0),Y(l.at));ctx.lineTo(X(bb.x1),Y(l.at));ctx.stroke();ctx.textAlign="left";ctx.fillText(l.lab,X(bb.x0)+S(1),Y(l.at)-S(1));}}
+    ctx.restore();}
   if(drag&&drag.moved){ctx.save();ctx.globalAlpha=0.55;ctx.setLineDash([S(1.2),S(0.8)]);ctx.lineWidth=S(0.8);
     if(drag.c){const R=lastGood;const rowY=R?R.pico.sig_y-R.board.DY:0;const r=drag.c.size/2;const bad=(layout.ctrl||[]).some(o=>o!==drag.c&&Math.abs(o.x_raw-drag.gx)<o.size/2+r+2)||(R&&(drag.gx+r>R.pico.x_lo-R.board.DX&&drag.gx-r<R.pico.x_hi-R.board.DX));
       ctx.fillStyle=bad?"rgba(180,35,24,.6)":"rgba(138,136,127,.7)";ctx.strokeStyle=bad?"#b42318":"#e04a00";ctx.beginPath();ctx.arc(X(drag.gx),Y(rowY),S(r),0,7);ctx.fill();ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle="#222";ctx.font=`${S(3)}px sans-serif`;ctx.textAlign="center";ctx.fillText(`${drag.c.label}  x ${drag.gx}`,X(drag.gx),Y(rowY+r+2));}
@@ -224,7 +239,21 @@ cv.addEventListener("pointerdown",e=>{const r=cv.getBoundingClientRect();const p
   if(n){if(keep){scanState=keep;if(keep.queue.length)runScanChunk();}else startScan(n);}   // 押した瞬間に、動かせる範囲の走査を始める（待機中に計算済みならそれを使う）
   renderProps();draw();});
 cv.addEventListener("pointermove",e=>{if(!drag)return;const r=cv.getBoundingClientRect();const px=(e.clientX-r.left-view.ox)/view.s,py=(view.oy-(e.clientY-r.top))/view.s;
-  drag.gx=Math.round((px+drag.dx)*2)/2;drag.gy=Math.round((py+(drag.dy||0))*2)/2;drag.moved=true;draw();});
+  let gx=Math.round((px+drag.dx)*2)/2,gy=Math.round((py+(drag.dy||0))*2)/2;drag.snap=null;
+  if(!e.altKey){const sn=snapTo(drag,gx,gy);gx=sn.x;gy=sn.y;drag.snap=sn.lines;}
+  drag.gx=gx;drag.gy=gy;drag.moved=true;draw();});
+// 吸着：動かしているものの中心・上端・下端・左端・右端が、他のボタンの同じ線に SNAP_MM 以内で近づいたら、その線に合わせる。x と y は別々に判定する
+const SNAP_MM=3;
+function snapTo(d,gx,gy){const R=lastGood;const lines=[];let bx=gx,by=gy;
+  const r=d.c?d.c.size/2:(d.n==="pico"?25.5:layout.buttons[d.n].size/2);
+  const others=[];for(const [m,o] of Object.entries(layout.buttons)){if(d.n===m)continue;others.push({x:o.x,y:o.y,r:o.size/2,lab:labelOf(m)});}
+  if(R){const rowY=R.pico.sig_y-R.board.DY;for(const c of layout.ctrl||[]){if(d.c===c)continue;others.push({x:c.x_raw,y:rowY,r:c.size/2,lab:c.label});}}
+  // x：中心どうし・左端どうし・右端どうし
+  let best=null;for(const o of others){for(const [off,kind] of [[0,"中心"],[o.r-r,"左端"],[-(o.r-r),"右端"]]){const tx=o.x+off;const dd=Math.abs(gx-tx);if(dd<=SNAP_MM&&(!best||dd<best.d))best={d:dd,x:tx,o,kind,off};}}
+  if(best){bx=best.x;const lx=best.kind==="中心"?best.o.x:(best.kind==="左端"?best.o.x-best.o.r:best.o.x+best.o.r);lines.push({axis:"x",at:lx,lab:`${best.o.lab} の${best.kind}`});}
+  if(!d.c&&d.n!=="pico"){best=null;for(const o of others){for(const [off,kind] of [[0,"中心"],[o.r-r,"上端"],[-(o.r-r),"下端"]]){const ty=o.y+off;const dd=Math.abs(gy-ty);if(dd<=SNAP_MM&&(!best||dd<best.d))best={d:dd,y:ty,o,kind,off};}}
+    if(best){by=best.y;const ly=best.kind==="中心"?best.o.y:(best.kind==="上端"?best.o.y+best.o.r:best.o.y-best.o.r);lines.push({axis:"y",at:ly,lab:`${best.o.lab} の${best.kind}`});}}
+  return {x:bx,y:by,lines};}
 cv.addEventListener("pointerup",e=>{if(!drag)return;
   // 置いた位置でレイアウトが変わるので、それまでの走査は捨て、評価のあとで計算し直す（評価の末尾で startScan が走る）
   if(drag.c){if(drag.moved&&drag.gx!==drag.x0){drag.c.x_raw=drag.gx;cancelScan();logEv("move_ctrl",{btn:drag.c.label,from:drag.x0,to:drag.c.x_raw});scheduleEval();}else history.pop();}
@@ -237,7 +266,7 @@ window.addEventListener("keydown",e=>{if(!selected||!["ArrowLeft","ArrowRight","
   else if(selected.startsWith("ctrl:")){const c=layout.ctrl.find(c=>"ctrl:"+c.name===selected);c.x_raw+=dx;logEv("nudge_ctrl",{btn:c.label,to:c.x_raw});}
   else{const b=layout.buttons[selected];const from=[b.x,b.y];b.x+=dx;b.y+=dy;logEv("nudge",{btn:labelOf(selected),from,to:[b.x,b.y]});}
   renderProps();scheduleEval();});
-function renderProps(){const el=document.getElementById("props");if(!selected){el.innerHTML='<span class="hint">板の上のボタン、制御ボタン、Pico を押すと選べます。指やマウスで動かせます。矢印キーで 1mm ずつ動きます（Shift で 5mm）。</span>';return;}
+function renderProps(){const el=document.getElementById("props");if(!selected){el.innerHTML='<span class="hint">板の上のボタン、制御ボタン、Pico を押すと選べます。指やマウスで動かせます。矢印キーで 1mm ずつ動きます（Shift で 5mm）。動かすと周りのボタンの中心や端に吸着します（Option/Alt を押しながらで無効）。</span>';return;}
   if(selected==="pico"){el.innerHTML=`<div class="row"><b>Raspberry Pi Pico</b><span class="hint">x ${layout.pico_cx_raw} mm（左右に動かせます）</span></div>
     <div class="row"><label>ボタン列からの奥行き</label><input type="number" id="pGap" min="0" max="40" step="1" value="${layout.pico_gap||0}"><label>mm 追加</label></div>
     <div class="hint">Pico の端子の列の上には制御ボタンを置けません。Pico を動かすと配線の長さが変わり、安全率も変わります。</div>`;
@@ -348,7 +377,7 @@ function renderStatus(){const v=document.getElementById("verdict"),m=document.ge
   const tb=document.querySelector("#sftable tbody");tb.innerHTML="";for(const r of result.sf||[]){const tr=document.createElement("tr");if(result.worst&&r.n===result.worst.n)tr.className="worst";tr.innerHTML=`<td>${r.label}</td><td>${r.gp}</td><td>${r.Ls.toFixed(0)}</td><td>${r.Lg.toFixed(0)}</td><td>${r.Rlow_k.toFixed(1)}</td><td>${r.SF.toFixed(2)}</td>`;tb.appendChild(tr);}
   if(pyReady)document.getElementById("pystatus").textContent="計算機の準備ができました";}
 setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000);document.getElementById("timer").textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");},1000);
-window.addEventListener("resize",fit);fit();renderProps();initPy();
+document.getElementById("ver").textContent=VERSION;updateUndoButtons();window.addEventListener("resize",fit);fit();renderProps();initPy();
 </script>
 </body>
 </html>
