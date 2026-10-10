@@ -147,7 +147,7 @@ async function runEval(){
   evaluating=false;renderStatus();
   if(result&&result.board){const k=result.board.W+"x"+result.board.H;if(k!==lastFitKey){lastFitKey=k;fit();}}
   draw();
-  if(selected&&result&&result.ok&&!drag)startScan(selected);   // 待機中に、選んでいるものの動かせる範囲を計算しておく
+  if(selected&&result&&!drag)startScan(selected);   // 待機中に、選んでいるものの動かせる範囲を計算しておく
 }
 // ===================== 幾何だけの即時検査（動かしている最中） =====================
 function quickOverlaps(){const names=Object.keys(layout.buttons),bad=new Set();
@@ -219,9 +219,10 @@ cv.addEventListener("pointerdown",e=>{const r=cv.getBoundingClientRect();const p
 cv.addEventListener("pointermove",e=>{if(!drag)return;const r=cv.getBoundingClientRect();const px=(e.clientX-r.left-view.ox)/view.s,py=(view.oy-(e.clientY-r.top))/view.s;
   drag.gx=Math.round((px+drag.dx)*2)/2;drag.gy=Math.round((py+(drag.dy||0))*2)/2;drag.moved=true;draw();});
 cv.addEventListener("pointerup",e=>{if(!drag)return;
-  if(drag.c){if(drag.moved&&drag.gx!==drag.x0){drag.c.x_raw=drag.gx;logEv("move_ctrl",{btn:drag.c.label,from:drag.x0,to:drag.c.x_raw});scheduleEval();}else history.pop();}
-  else if(drag.n==="pico"){if(drag.moved&&drag.gx!==drag.x0){layout.pico_cx_raw=drag.gx;logEv("move_pico",{from:drag.x0,to:layout.pico_cx_raw});scheduleEval();}else history.pop();}
-  else{const b=layout.buttons[drag.n];if(drag.moved&&(drag.gx!==drag.x0||drag.gy!==drag.y0)){b.x=drag.gx;b.y=drag.gy;logEv("move",{btn:labelOf(drag.n),from:[drag.x0,drag.y0],to:[b.x,b.y]});scheduleEval();}else history.pop();}
+  // 置いた位置でレイアウトが変わるので、それまでの走査は捨て、評価のあとで計算し直す（評価の末尾で startScan が走る）
+  if(drag.c){if(drag.moved&&drag.gx!==drag.x0){drag.c.x_raw=drag.gx;cancelScan();logEv("move_ctrl",{btn:drag.c.label,from:drag.x0,to:drag.c.x_raw});scheduleEval();}else history.pop();}
+  else if(drag.n==="pico"){if(drag.moved&&drag.gx!==drag.x0){layout.pico_cx_raw=drag.gx;cancelScan();logEv("move_pico",{from:drag.x0,to:layout.pico_cx_raw});scheduleEval();}else history.pop();}
+  else{const b=layout.buttons[drag.n];if(drag.moved&&(drag.gx!==drag.x0||drag.gy!==drag.y0)){b.x=drag.gx;b.y=drag.gy;cancelScan();logEv("move",{btn:labelOf(drag.n),from:[drag.x0,drag.y0],to:[b.x,b.y]});scheduleEval();}else history.pop();}
   drag=null;renderProps();draw();});
 cv.addEventListener("pointercancel",()=>{if(drag){history.pop();drag=null;draw();}});
 window.addEventListener("keydown",e=>{if(!selected||!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(e.key))return;e.preventDefault();snapshot();const st=e.shiftKey?5:1;const dx=e.key==="ArrowLeft"?-st:e.key==="ArrowRight"?st:0,dy=e.key==="ArrowUp"?st:e.key==="ArrowDown"?-st:0;
