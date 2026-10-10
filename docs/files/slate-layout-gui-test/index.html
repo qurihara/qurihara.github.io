@@ -15,6 +15,7 @@
     v0.5 2026-10-10 自動制約解消（α版）・置いた時点で走査を捨てる
     v0.6 2026-10-10 元に戻す／やり直すを上の帯に・版の表示・スナップ（周りのボタンの上端・下端・中心・左端・右端に吸着。Option/Alt で無効）
     v0.7 2026-10-10 スナップの距離（吸着する範囲 mm）をスライダで変えられる（0 で無効・既定 3・最大 10。書き出す JSON と操作の記録に残す）
+    v0.9 2026-10-10 mm のグリッド（板の左端と手前の端を 0 とする。10mm ごとに目盛り・5mm の細線。上の帯で表示と非表示、間隔 5/10mm）。選んだボタンに板の端からの距離を表示
     v0.8 2026-10-10 端への吸着を足した：相手の端に「接する」（隙間はスライダ・既定 4mm）と、相手の端に「そろえる」（大きさが違うときに意味がある）。同じ大きさの丸では端をそろえることと中心をそろえることが同じになり、端に吸着していないように見えていた
   1 枚の HTML で動く。配線・交差・抵抗の安全率の計算は、ブラウザの中の Python（Pyodide）で slate_core.py を実行して行う。
   slate_core.py は design_stl_v2.py の計算を写したもので、同じ入力に同じ結果を返すことを gui/verify_core.py で確かめてある。
@@ -33,6 +34,7 @@ header .timer{font-variant-numeric:tabular-nums;color:var(--muted)}
 header .spacer{flex:1}
 header .ver{font-size:12px;color:var(--muted);font-weight:400;margin-left:6px}
 header .hbtn{padding:3px 10px;font-size:13px}header .hbtn:disabled{opacity:.4;cursor:default}
+header .hchk{font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:4px}header .hsel{padding:2px 6px;font-size:12px}
 header .status{font-size:13px;color:var(--muted)}
 main{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:0;height:calc(100% - 49px)}
 #stage{position:relative;min-width:0;background:var(--bg)}
@@ -63,6 +65,8 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
   <h1>slate レイアウト設計 <span class="ver" id="ver"></span></h1>
   <button class="hbtn" id="undo" title="元に戻す（Cmd/Ctrl+Z）">↶ 元に戻す</button>
   <button class="hbtn" id="redo" title="やり直す（Shift+Cmd/Ctrl+Z）">↷ やり直す</button>
+  <label class="hchk"><input type="checkbox" id="gridOn" checked> グリッド</label>
+  <select id="gridPitch" class="hsel"><option value="10" selected>10 mm</option><option value="5">5 mm</option></select>
   <span class="timer" id="timer">00:00</span>
   <span class="spacer"></span>
   <span class="status" id="pystatus">計算機（Python）を読み込んでいます…</span>
@@ -119,7 +123,7 @@ textarea{width:100%;height:120px;font-family:ui-monospace,Menlo,monospace;font-s
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 <script>
 // ===================== 状態 =====================
-const VERSION="v0.8";
+const VERSION="v0.9";
 const LABEL={L:"L",D:"D",R:"R",Up:"UP",c1t:"LK",c1b:"LP",c2t:"MK",c2b:"MP",c3t:"HK",c3b:"HP",c4t:"KK",c4b:"PP",thumb:"THU",palm:"PALM"};
 const STD={L:[28,101],D:[58,101],R:[84,87],Up:[91,43],c1t:[110,70],c1b:[111,100],c2t:[137,82],c2b:[137,113],c3t:[165,81],c3b:[167,112],c4t:[194,76],c4b:[196,107]};
 const CTRL_DEF=[["u1",21,"A2"],["u2",20,"A1"],["u3",19,"ST"],["u4",18,"SEL"]];
@@ -188,6 +192,12 @@ function X(x){return (view.ox+x*view.s)*devicePixelRatio;}function Y(y){return (
 function draw(){ctx.clearRect(0,0,cv.width,cv.height);const R=(result&&result.board)?result:lastGood;const stale=!(result&&result.board);const DX=R?R.board.DX:0,DY=R?R.board.DY:0;const toRaw=(p)=>[p[0]-DX,p[1]-DY];
   const bb=boardRaw();ctx.fillStyle="#efece2";ctx.strokeStyle="#b4b2a9";ctx.lineWidth=S(0.5);roundRect(X(bb.x0),Y(bb.y1),S(bb.x1-bb.x0),S(bb.y1-bb.y0),S(8));ctx.fill();ctx.stroke();
   ctx.fillStyle="#777";ctx.font=`${S(3.2)}px sans-serif`;ctx.textAlign="left";ctx.fillText(`板 ${(bb.x1-bb.x0).toFixed(0)} × ${(bb.y1-bb.y0).toFixed(0)} mm（手前が下・Pico は奥）`,X(bb.x0)+S(3),Y(bb.y0)-S(3));
+  if(GRID_ON){ctx.save();const major=GRID_PITCH,minor=GRID_PITCH/2;const W=bb.x1-bb.x0,H=bb.y1-bb.y0;
+    ctx.lineWidth=S(0.12);ctx.strokeStyle="rgba(60,60,60,.22)";for(let m=minor;m<W;m+=major){ctx.beginPath();ctx.moveTo(X(bb.x0+m),Y(bb.y0));ctx.lineTo(X(bb.x0+m),Y(bb.y1));ctx.stroke();}for(let m=minor;m<H;m+=major){ctx.beginPath();ctx.moveTo(X(bb.x0),Y(bb.y0+m));ctx.lineTo(X(bb.x1),Y(bb.y0+m));ctx.stroke();}
+    ctx.lineWidth=S(0.2);ctx.strokeStyle="rgba(60,60,60,.4)";ctx.fillStyle="#555";ctx.font=`${S(2.6)}px sans-serif`;const lab=(m)=>(m%(major*(view.s<2.2?5:(major===5?4:2)))===0);
+    for(let m=0;m<=W+0.01;m+=major){ctx.beginPath();ctx.moveTo(X(bb.x0+m),Y(bb.y0));ctx.lineTo(X(bb.x0+m),Y(bb.y1));ctx.stroke();if(lab(m)){ctx.textAlign="center";ctx.fillText(m,X(bb.x0+m),Y(bb.y0)+S(3.4));ctx.fillText(m,X(bb.x0+m),Y(bb.y1)-S(1));}}
+    for(let m=0;m<=H+0.01;m+=major){ctx.beginPath();ctx.moveTo(X(bb.x0),Y(bb.y0+m));ctx.lineTo(X(bb.x1),Y(bb.y0+m));ctx.stroke();if(lab(m)){ctx.textAlign="right";ctx.fillText(m,X(bb.x0)-S(1),Y(bb.y0+m)+S(1));ctx.textAlign="left";ctx.fillText(m,X(bb.x1)+S(1),Y(bb.y0+m)+S(1));}}
+    ctx.textAlign="left";ctx.fillStyle="#777";ctx.fillText("mm（板の左端と手前の端が 0）",X(bb.x0),Y(bb.y0)+S(7));ctx.restore();}
   if(scanState){const st=scanState;if(st.kind==="xy"){for(const [k,code] of st.cells){const [x,y]=k.split(",").map(Number);ctx.fillStyle=SCAN_COLOR[code]||SCAN_COLOR.E;ctx.fillRect(X(x-CELL/2),Y(y+CELL/2),S(CELL),S(CELL));}}
     else{const rowY=st.rowY;const w=(st.target==="pico")?51:((layout.ctrl||[]).find(c=>"ctrl:"+c.name===st.target)||{size:10}).size;for(const [k,code] of st.cells){const x=Number(k.split(",")[0]);ctx.fillStyle=SCAN_COLOR[code]||SCAN_COLOR.E;ctx.fillRect(X(x-CELL/2),Y(rowY+w/2+1),S(CELL),S(w+2));}}
     ctx.fillStyle="#555";ctx.font=`${S(3)}px sans-serif`;ctx.textAlign="right";const left=st.queue.length;ctx.fillText(`動かせる範囲：緑＝設計できる・赤＝配線が交差・橙＝安全率の不足・灰＝重なる${left?`（計算中 残り ${left} 点）`:`（${(st.done/1000).toFixed(1)} 秒で ${st.n} 点）`}`,X(bb.x1)-S(2),Y(bb.y1)+S(4.5));}
@@ -228,7 +238,7 @@ function draw(){ctx.clearRect(0,0,cv.width,cv.height);const R=(result&&result.bo
     else{const b=layout.buttons[drag.n];const r=b.size/2;const bad=Object.entries(layout.buttons).some(([m,o])=>m!==drag.n&&Math.hypot(o.x-drag.gx,o.y-drag.gy)<o.size/2+r+2);
       ctx.fillStyle=bad?"rgba(180,35,24,.6)":"rgba(200,115,26,.75)";ctx.strokeStyle=bad?"#b42318":"#e04a00";ctx.beginPath();ctx.arc(X(drag.gx),Y(drag.gy),S(r),0,7);ctx.fill();ctx.stroke();
       ctx.globalAlpha=1;ctx.fillStyle="#222";ctx.font=`bold ${S(4)}px sans-serif`;ctx.textAlign="center";ctx.fillText(labelOf(drag.n),X(drag.gx),Y(drag.gy)+S(1.4));
-      ctx.font=`${S(3)}px sans-serif`;ctx.fillText(`${drag.gx}, ${drag.gy}（${drag.gx-drag.x0>=0?"+":""}${drag.gx-drag.x0}, ${drag.gy-drag.y0>=0?"+":""}${drag.gy-drag.y0}）`,X(drag.gx),Y(drag.gy-r-1.5));}
+      ctx.font=`${S(3)}px sans-serif`;ctx.fillText(`左から ${(drag.gx-bb.x0).toFixed(1)}・手前から ${(drag.gy-bb.y0).toFixed(1)} mm（${drag.gx-drag.x0>=0?"+":""}${drag.gx-drag.x0}, ${drag.gy-drag.y0>=0?"+":""}${drag.gy-drag.y0}）`,X(drag.gx),Y(drag.gy-r-1.5));}
     ctx.restore();}
   if(!pyReady){ctx.fillStyle="rgba(0,0,0,.5)";ctx.font=`${S(4)}px sans-serif`;ctx.textAlign="center";ctx.fillText("配線と安全率は、計算機の読み込みが終わると表示されます",X((bb.x0+bb.x1)/2),Y(bb.y1)+S(8));}
 }
@@ -251,6 +261,7 @@ cv.addEventListener("pointermove",e=>{if(!drag)return;const r=cv.getBoundingClie
   if(!e.altKey&&SNAP_MM>0){const sn=snapTo(drag,gx,gy);gx=sn.x;gy=sn.y;drag.snap=sn.lines;}
   drag.gx=gx;drag.gy=gy;drag.moved=true;draw();});
 // 吸着：動かしているものの中心・上端・下端・左端・右端が、他のボタンの同じ線に SNAP_MM 以内で近づいたら、その線に合わせる。x と y は別々に判定する
+let GRID_ON=true, GRID_PITCH=10;
 let SNAP_MM=3;   // 吸着する距離（mm）。スライダで変える。0 で無効
 let SNAP_GAP=4;  // 相手の端に「接する」ときに空ける隙間（mm）。スライダで変える
 function snapTo(d,gx,gy){const R=lastGood;const lines=[];let bx=gx,by=gy;
@@ -278,12 +289,12 @@ window.addEventListener("keydown",e=>{if(!selected||!["ArrowLeft","ArrowRight","
   else{const b=layout.buttons[selected];const from=[b.x,b.y];b.x+=dx;b.y+=dy;logEv("nudge",{btn:labelOf(selected),from,to:[b.x,b.y]});}
   renderProps();scheduleEval();});
 function renderProps(){const el=document.getElementById("props");if(!selected){el.innerHTML='<span class="hint">板の上のボタン、制御ボタン、Pico を押すと選べます。指やマウスで動かせます。矢印キーで 1mm ずつ動きます（Shift で 5mm）。動かすと周りのボタンの中心や端に吸着します（距離は下のスライダ。Option/Alt を押しながらで無効）。</span>';return;}
-  if(selected==="pico"){el.innerHTML=`<div class="row"><b>Raspberry Pi Pico</b><span class="hint">x ${layout.pico_cx_raw} mm（左右に動かせます）</span></div>
+  if(selected==="pico"){const bb=boardRaw();el.innerHTML=`<div class="row"><b>Raspberry Pi Pico</b><span class="hint">中心は板の左端から ${(layout.pico_cx_raw-bb.x0).toFixed(1)} mm（左右に動かせます）</span></div>
     <div class="row"><label>ボタン列からの奥行き</label><input type="number" id="pGap" min="0" max="40" step="1" value="${layout.pico_gap||0}"><label>mm 追加</label></div>
     <div class="hint">Pico の端子の列の上には制御ボタンを置けません。Pico を動かすと配線の長さが変わり、安全率も変わります。</div>`;
     document.getElementById("pGap").addEventListener("change",e=>{snapshot();layout.pico_gap=+e.target.value;logEv("pico_gap",{to:layout.pico_gap});scheduleEval();});return;}
   if(selected.startsWith("ctrl:")){const c=layout.ctrl.find(c=>"ctrl:"+c.name===selected);if(!c){selected=null;renderProps();return;}
-    el.innerHTML=`<div class="row"><b>制御ボタン ${c.label}</b><span class="hint">x ${c.x_raw} mm（左右に動かせます）・GP${c.gp}</span></div>
+    const bb=boardRaw();el.innerHTML=`<div class="row"><b>制御ボタン ${c.label}</b><span class="hint">板の左端から ${(c.x_raw-bb.x0).toFixed(1)} mm（左右に動かせます）・GP${c.gp}</span></div>
     <div class="row"><label>大きさ</label><select id="cSize">${[10,14,18,24].map(v=>`<option value="${v}"${c.size==v?" selected":""}>φ${v}</option>`).join("")}</select></div>
     <div class="row"><label>機能</label><select id="cFunc">${FUNCS.map(f=>`<option value="${f}"${(c.func||CTRL_FUNC[c.label])===f?" selected":""}>${FUNC_JA[f]}</option>`).join("")}</select></div>
     <div class="row"><button class="danger" id="cDel">この制御ボタンを削除する</button></div>`;
@@ -291,7 +302,8 @@ function renderProps(){const el=document.getElementById("props");if(!selected){e
     document.getElementById("cFunc").addEventListener("change",e=>{snapshot();c.func=e.target.value;logEv("ctrl_func",{btn:c.label,to:c.func});});
     document.getElementById("cDel").addEventListener("click",()=>{snapshot();layout.ctrl=layout.ctrl.filter(x=>x!==c);logEv("delete_ctrl",{btn:c.label});selected=null;renderProps();scheduleEval();});return;}
   const b=layout.buttons[selected];const t=b.type||"round";
-  el.innerHTML=`<div class="row"><b>${labelOf(selected)}</b><span class="hint">x ${b.x} / y ${b.y} mm</span></div>
+  const bb=boardRaw();
+  el.innerHTML=`<div class="row"><b>${labelOf(selected)}</b><span class="hint">板の左端から ${(b.x-bb.x0).toFixed(1)} mm・手前の端から ${(b.y-bb.y0).toFixed(1)} mm（内部の座標 ${b.x}, ${b.y}）</span></div>
   ${selected.startsWith("x")?`<div class="row"><label>機能</label><select id="pFunc">${FUNCS.map(f=>`<option value="${f}"${b.func===f?" selected":""}>${FUNC_JA[f]}</option>`).join("")}</select></div>`:""}
   <div class="row"><label>種類</label><select id="pType"><option value="round"${t==="round"?" selected":""}>丸いタッチパッド</option><option value="qwall"${t==="qwall"?" selected":""}>壁型（手を引いて当てる）</option><option value="onenail"${t==="onenail"?" selected":""}>One-Nail Low（指を折り込んで当てる）</option><option value="onenail_high"${t==="onenail_high"?" selected":""}>One-Nail High</option><option value="dna"${t==="dna"?" selected":""}>DNA（押し込みと横の接触）</option></select></div>
   <div class="row"><label>大きさ</label><select id="pSize"><option value="24"${b.size==24?" selected":""}>φ24</option><option value="30"${b.size==30?" selected":""}>φ30</option></select></div>
@@ -321,6 +333,8 @@ document.getElementById("addExtra").addEventListener("click",()=>{const n=Object
 document.getElementById("addCtrl").addEventListener("click",()=>{layout.ctrl=layout.ctrl||[];if(layout.ctrl.length>=4){document.getElementById("pystatus").textContent="制御ボタンは 4 個までです（GP18〜GP21）";return;}snapshot();
   const usedGp=new Set(layout.ctrl.map(c=>c.gp));const def=CTRL_DEF.find(([n,gp])=>!usedGp.has(gp));const maxx=Math.max(layout.pico_cx_raw+19*2.54/2+0.9+5+4,...layout.ctrl.map(c=>c.x_raw+c.size/2+5+2));
   layout.ctrl.push({name:def[0],gp:def[1],label:def[2],x_raw:Math.round(maxx*10)/10,size:10});logEv("add_ctrl",{btn:def[2]});selected="ctrl:"+def[0];renderProps();scheduleEval();});
+document.getElementById("gridOn").addEventListener("change",e=>{GRID_ON=e.target.checked;logEv("grid",{on:GRID_ON});draw();});
+document.getElementById("gridPitch").addEventListener("change",e=>{GRID_PITCH=+e.target.value;logEv("grid_pitch",{to:GRID_PITCH});draw();});
 document.getElementById("snapMm").addEventListener("input",e=>{SNAP_MM=+e.target.value;document.getElementById("snapMmVal").textContent=(SNAP_MM?SNAP_MM+" mm":"無効");});
 document.getElementById("snapMm").addEventListener("change",e=>{logEv("snap_mm",{to:SNAP_MM});});
 document.getElementById("snapGap").addEventListener("input",e=>{SNAP_GAP=+e.target.value;document.getElementById("snapGapVal").textContent=SNAP_GAP+" mm";});
