@@ -1,0 +1,40 @@
+/* 1年セミナー「笛の未来」から作った試作ページの共通の見た目（sem_*.html） */
+:root {
+  --bg: #0b0d14;
+  --panel: #151925;
+  --fg: #eef0f6;
+  --dim: #9aa1b4;
+  --line: #2a3042;
+  --accent: #6cf0c2;
+  --warn: #ffb35c;
+  --bad: #ff6b6b;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--fg); }
+body {
+  font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+  line-height: 1.6;
+  padding-block: 16px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+main { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1 { font-size: 1.5rem; margin: 0; text-wrap: balance; }
+.lead { color: var(--dim); margin: 0; }
+.ver { color: var(--dim); font-size: 0.8rem; font-weight: normal; margin-left: 0.5em; }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+section h2 { font-size: 1rem; margin: 0; color: var(--dim); letter-spacing: 0.04em; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button, select, input { font: inherit; color: var(--fg); background: #1e2333; border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; }
+button { cursor: pointer; }
+button.primary { background: var(--accent); color: #062018; border-color: var(--accent); font-weight: bold; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.status { font-size: 0.9rem; color: var(--dim); }
+.meter { height: 10px; background: #1e2333; border-radius: 5px; overflow: hidden; }
+.meter > div { height: 100%; width: 0; background: var(--accent); transition: width 0.05s linear; }
+.note-chip { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; min-width: 3.2em; padding: 6px 8px; border-radius: 10px; border: 2px solid var(--line); font-weight: bold; }
+.note-chip small { font-weight: normal; color: var(--dim); font-size: 0.7em; }
+.note-chip.done { border-color: var(--accent); color: var(--accent); }
+.note-chip.next { border-color: var(--warn); }
+.foot { color: var(--dim); font-size: 0.8rem; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

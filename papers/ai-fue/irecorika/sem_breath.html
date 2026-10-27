@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ふうせん息トレーニング</title>
+<link rel="stylesheet" href="sem_common.css?v=1">
+<style>
+  #cv { width: 100%; height: min(58vh, 480px); display: block; border-radius: 14px; background: #10182a; border: 1px solid var(--line); touch-action: none; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(9em, 1fr)); gap: 10px; }
+  .stat { background: #10141f; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+  .stat .v { font-size: 1.8rem; font-weight: bold; font-variant-numeric: tabular-nums; }
+  .stat .k { color: var(--dim); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<script src="lib/fft_peak.js?v=2"></script>
+<script src="lib/irk-common.js?v=2"></script>
+<script src="lib/irk-audio.js?v=2"></script>
+<main>
+  <h1>ふうせん息トレーニング<span class="ver">v1</span></h1>
+  <p class="lead">笛を吹く息の強さで、ふうせんが上がります。緑の帯の中にふうせんを保ったまま、決めた秒数だけ吹き続けると成功です。成功するたびに帯の高さが変わるので、息の強さを細かく調節する練習になります。1年セミナー「笛の未来」で出たアイディア「高齢者の嚥下機能を向上させよう」を、そのまま動く形にした試作です。</p>
+  <div class="row">
+    <button id="prep" class="primary">マイクを使って始める</button>
+    <label>保つ秒数 <select id="goal"><option value="2">2秒</option><option value="3" selected>3秒</option><option value="5">5秒</option><option value="8">8秒</option></select></label>
+    <label>帯の幅 <select id="width"><option value="0.3">広い（やさしい）</option><option value="0.2" selected>ふつう</option><option value="0.12">せまい（むずかしい）</option></select></label>
+    <span class="status" id="prepStatus">まだ始めていません</span>
+  </div>
+  <canvas id="cv" aria-label="ふうせんと目標の帯"></canvas>
+  <div class="stats">
+    <div class="stat"><div class="v" id="sNow">0.0</div><div class="k">いま吹き続けている秒数</div></div>
+    <div class="stat"><div class="v" id="sBest">0.0</div><div class="k">今日いちばん長く吹けた秒数</div></div>
+    <div class="stat"><div class="v" id="sOk">0</div><div class="k">成功した回数</div></div>
+    <div class="stat"><div class="v" id="sNote">–</div><div class="k">吹いている笛の音</div></div>
+  </div>
+  <section>
+    <h2>使い方と注意</h2>
+    <div class="foot">
+      どの高さの笛を吹いてもかまいません。息を強くするとふうせんが上がり、弱めると下がります。息を止めるとゆっくり落ちます。
+      無理をせず、疲れたら休んでください。このページは遊びの試作で、医療機器ではありません。訓練としての効果は、言語聴覚士などの専門家と一緒に確かめる必要があります。
+      笛は G#6〜G7 の12本の笛を想定しています。笛がないときは、アドレスの末尾に <code>?sim=1</code> を付けると、キーボードの 1〜0、-、^ のキーを押している間だけ吹いている扱いになります（強さは一定です）。
+    </div>
+  </section>
+  <p class="foot">ai-fue（栗原一貴）／1年セミナー 2026-10-27</p>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const cv = $("cv"), g = cv.getContext("2d");
+  const st = { y: 0, target: 0.5, hold: 0, ok: 0, blowStart: null, best: 0, last: performance.now(), strength: 0, note: null, flash: 0 };
+  window.semBreath = st;   // 動作の確認用
+  try { const d = JSON.parse(localStorage.getItem("sem.breath.best") || "null"); if (d && d.day === new Date().toDateString()) st.best = d.v; } catch (_) {}
+  $("sBest").textContent = st.best.toFixed(1);
+
+  const det = IRKAudio.Detector({
+    onNote(ev) { st.note = ev.midi; if (st.blowStart === null) st.blowStart = performance.now(); },
+    onOff(ev) {
+      if (ev.changed) return;                       // 笛を持ち替えただけなら吹き続けとみなす
+      if (st.blowStart !== null) {
+        const sec = (performance.now() - st.blowStart) / 1000;
+        if (sec > st.best) { st.best = sec; try { localStorage.setItem("sem.breath.best", JSON.stringify({ day: new Date().toDateString(), v: sec })); } catch (_) {} }
+      }
+      st.blowStart = null; st.note = null;
+    },
+    onFrame(fr) { st.strength = fr.cur ? (det.sim ? 0.45 : fr.strength) : 0; },
+  });
+  $("prep").onclick = async () => {
+    const ok = await det.start();
+    $("prepStatus").textContent = ok ? (det.sim ? "始めました（キーボードで試す設定）" : "マイクで聞いています。笛を吹いてください") : "マイクを使えませんでした。ブラウザの設定でマイクを許可してください";
+  };
+
+  function newTarget() {
+    const w = +$("width").value;
+    let t;
+    do { t = w / 2 + 0.08 + Math.random() * (0.84 - w); } while (Math.abs(t - st.target) < 0.15);
+    st.target = t;
+  }
+
+  function resize() {
+    const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+    cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d);
+    g.setTransform(d, 0, 0, d, 0, 0);
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  function frame(now) {
+    try { step(now); } catch (e) { console.error(e); }
+    requestAnimationFrame(frame);
+  }
+  function step(now) {
+    const dt = Math.min(0.1, (now - st.last) / 1000); st.last = now;
+    // ふうせんの高さ：吹いている間は息の強さへ近づき、止めるとゆっくり落ちる
+    const goalY = st.strength > 0 ? Math.min(1, st.strength * 1.1) : 0;
+    const k = st.strength > 0 ? 6 : 1.5;
+    st.y += (goalY - st.y) * Math.min(1, k * dt);
+    const w = +$("width").value, goal = +$("goal").value;
+    const inBand = st.strength > 0 && Math.abs(st.y - st.target) <= w / 2;
+    st.hold = inBand ? st.hold + dt : Math.max(0, st.hold - dt * 0.5);
+    if (st.hold >= goal) { st.ok++; st.hold = 0; st.flash = 1; newTarget(); IRKAudio.note(84, { type: "bell", vel: 0.4 }); }
+    st.flash = Math.max(0, st.flash - dt * 1.5);
+    const blowing = st.blowStart !== null ? (now - st.blowStart) / 1000 : 0;
+    $("sNow").textContent = blowing.toFixed(1);
+    $("sBest").textContent = Math.max(st.best, blowing).toFixed(1);
+    $("sOk").textContent = st.ok;
+    $("sNote").textContent = st.note ? IRK.noteName(st.note, "doremi") : "–";
+    draw(inBand, goal, w);
+  }
+
+  function draw(inBand, goal, w) {
+    const W = cv.clientWidth, H = cv.clientHeight;
+    const top = 24, bottom = H - 40, span = bottom - top;
+    const yOf = v => bottom - v * span;
+    g.clearRect(0, 0, W, H);
+    // 空
+    const sky = g.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, "#1b2b4f"); sky.addColorStop(1, "#0f1626");
+    g.fillStyle = sky; g.fillRect(0, 0, W, H);
+    // 地面
+    g.fillStyle = "#1f3a2c"; g.fillRect(0, bottom + 18, W, H - bottom);
+    // 目標の帯
+    const y0 = yOf(st.target + w / 2), y1 = yOf(st.target - w / 2);
+    g.fillStyle = inBand ? "rgba(108,240,194,0.35)" : "rgba(108,240,194,0.16)";
+    g.fillRect(0, y0, W, y1 - y0);
+    g.strokeStyle = "rgba(108,240,194,0.8)"; g.lineWidth = 2;
+    g.strokeRect(1, y0, W - 2, y1 - y0);
+    // 保った時間の目盛り
+    const pw = Math.min(W - 40, 360);
+    g.fillStyle = "rgba(255,255,255,0.15)"; g.fillRect(20, 10, pw, 8);
+    g.fillStyle = "#6cf0c2"; g.fillRect(20, 10, pw * Math.min(1, st.hold / goal), 8);
+    g.fillStyle = "#eef0f6"; g.font = "13px sans-serif"; g.fillText("帯の中で " + st.hold.toFixed(1) + " / " + goal + " 秒", 26 + pw, 18);
+    // ふうせん
+    const bx = W * 0.5, by = yOf(st.y) - 10, r = Math.max(18, Math.min(34, H * 0.06));
+    g.strokeStyle = "rgba(238,240,246,0.6)"; g.lineWidth = 1.5;
+    g.beginPath(); g.moveTo(bx, by + r); g.quadraticCurveTo(bx - 8, by + r + 25, bx, bottom + 18); g.stroke();
+    g.fillStyle = st.flash > 0 ? "hsl(150 80% " + (55 + st.flash * 20) + "%)" : (inBand ? "#6cf0c2" : "#ff7a8a");
+    g.beginPath(); g.ellipse(bx, by, r * 0.85, r, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "rgba(255,255,255,0.45)";
+    g.beginPath(); g.ellipse(bx - r * 0.3, by - r * 0.35, r * 0.18, r * 0.28, -0.5, 0, Math.PI * 2); g.fill();
+    if (st.flash > 0.3) { g.fillStyle = "#eef0f6"; g.font = "bold 28px sans-serif"; g.textAlign = "center"; g.fillText("せいこう！", bx, top + 50); g.textAlign = "left"; }
+  }
+  window.semBreathStep = step;   // 動作の確認用
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>笛で止める目覚まし</title>
+<link rel="stylesheet" href="sem_common.css?v=1">
+<style>
+  #ring { display: none; position: fixed; inset: 0; z-index: 10; background: #2a0b12; flex-direction: column; align-items: center; justify-content: center; gap: 20px; text-align: center;
+          padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+  #ring.on { display: flex; }
+  #ring.ok { background: #0b2a20; }
+  #ring .clock { font-size: clamp(3rem, 14vw, 7rem); font-variant-numeric: tabular-nums; font-weight: bold; line-height: 1; }
+  #ring .msg { font-size: 1.3rem; }
+  #seq { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  #seq .note-chip { font-size: clamp(1.6rem, 7vw, 2.6rem); min-width: 2.4em; }
+  #heard { color: var(--dim); min-height: 1.6em; }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.55 } }
+  #ring:not(.ok) .clock { animation: pulse 1s infinite; }
+</style>
+</head>
+<body>
+<script src="lib/fft_peak.js?v=2"></script>
+<script src="lib/irk-common.js?v=2"></script>
+<script src="lib/irk-audio.js?v=2"></script>
+<main>
+  <h1>笛で止める目覚まし<span class="ver">v1</span></h1>
+  <p class="lead">アラームを止めるには、画面に出た音を、出た順に笛で吹きます。毎回ちがう音の並びが出題されます。1年セミナー「笛の未来」で出たアイディア「音楽式目覚まし」を、そのまま動く形にした試作です。</p>
+
+  <section>
+    <h2>1. 準備</h2>
+    <div class="row">
+      <button id="prep" class="primary">マイクを使って準備する</button>
+      <span class="status" id="prepStatus">まだ準備していません</span>
+    </div>
+    <div class="meter" aria-label="聞こえている笛の強さ"><div id="lvl"></div></div>
+    <div class="status" id="live">笛を吹くと、ここに聞こえた音が出ます</div>
+  </section>
+
+  <section>
+    <h2>2. アラームの設定</h2>
+    <div class="row">
+      <label>鳴らす時刻 <input type="time" id="time"></label>
+      <button id="set">この時刻に鳴らす</button>
+      <button id="now">いますぐ鳴らす（試し）</button>
+    </div>
+    <div class="row">
+      <label>音の数 <select id="len"><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label>
+      <label>使う笛 <select id="pool">
+        <option value="ab">A♭長調の7本</option>
+        <option value="all">12本すべて</option>
+        <option value="c">ドレミファソの5本</option>
+      </select></label>
+      <label><input type="checkbox" id="strict" checked> 間違えたら最初から</label>
+    </div>
+    <div class="row">
+      <label>止めたあとの確認（二度寝の防止）
+        <select id="recheck"><option value="0">しない</option><option value="30">30秒後（試し）</option><option value="180">3分後</option><option value="300" selected>5分後</option></select>
+      </label>
+    </div>
+    <div class="status" id="setStatus">アラームは設定されていません</div>
+  </section>
+
+  <section>
+    <h2>使い方</h2>
+    <div class="foot">
+      このページを開いたまま、画面を消さずに置いておきます。ブラウザを閉じたり別のアプリに切り替えたりすると鳴りません。
+      アラームの音は笛の音域（約1600〜3300Hz）を抜いて鳴らしているので、鳴っている最中でも笛の音を聞き分けられます。
+      笛は G#6〜G7 の12本の笛を想定しています。笛がないときは、アドレスの末尾に <code>?sim=1</code> を付けると、キーボードの 1〜0、-、^ の12個のキーで笛の代わりに試せます。
+    </div>
+  </section>
+  <p class="foot">ai-fue（栗原一貴）／1年セミナー 2026-10-27</p>
+</main>
+
+<div id="ring" role="alertdialog" aria-live="assertive">
+  <div class="clock" id="clock">--:--</div>
+  <div class="msg" id="msg">この順に笛を吹いてください</div>
+  <div id="seq"></div>
+  <div id="heard"></div>
+  <button id="giveup" style="opacity:0.35">止められないときの非常用（3秒長押し）</button>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const AB_MAJOR = [0, 1, 3, 5, 6, 8, 10];          // G#6 を A♭ と読んだときの A♭長調の笛（スロット番号）
+  const POOLS = { ab: AB_MAJOR, all: [...Array(12).keys()], c: [4, 6, 8, 9, 11] };   // c: C7 D7 E7 F7 G7
+  const st = { armed: null, ringing: false, seq: [], pos: 0, timer: null, beepTimer: null, recheckTimer: null, wake: null, isRecheck: false };
+
+  function label(slot) {
+    const m = IRK.slotToMidi(slot);
+    return IRK.noteName(m, "doremi") + "<small>" + IRK.noteName(m, "flat") + "</small>";
+  }
+
+  // ---- マイク
+  const det = IRKAudio.Detector({
+    onNote(ev) {
+      $("live").textContent = "聞こえた音： " + IRK.noteName(ev.midi, "doremi") + "（" + IRK.noteName(ev.midi, "flat") + "）";
+      if (st.ringing) onBlow(ev.slot);
+    },
+    onFrame(fr) { $("lvl").style.width = Math.round(fr.strength * 100) + "%"; },
+  });
+  $("prep").onclick = async () => {
+    const ok = await det.start();
+    $("prepStatus").textContent = ok ? (det.sim ? "準備できました（キーボードで試す設定）" : "準備できました。マイクで聞いています") : "マイクを使えませんでした。ブラウザの設定でマイクを許可してください";
+    keepAwake();
+  };
+  async function keepAwake() {
+    try { if (navigator.wakeLock) st.wake = await navigator.wakeLock.request("screen"); } catch (_) {}
+  }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && st.wake) keepAwake(); });
+
+  // ---- 設定
+  const pad = n => String(n).padStart(2, "0");
+  try { $("time").value = localStorage.getItem("sem.alarm.time") || ""; } catch (_) {}
+  if (!$("time").value) { const d = new Date(Date.now() + 60000); $("time").value = pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+  $("set").onclick = async () => {
+    if (!det.running()) await $("prep").onclick();
+    st.armed = $("time").value;
+    try { localStorage.setItem("sem.alarm.time", st.armed); } catch (_) {}
+    $("setStatus").textContent = st.armed + " に鳴らします。このページを開いたままにしてください";
+  };
+  $("now").onclick = async () => {
+    if (!det.running()) await $("prep").onclick();
+    ring(false);
+  };
+  setInterval(() => {
+    const d = new Date();
+    const hm = pad(d.getHours()) + ":" + pad(d.getMinutes());
+    $("clock").textContent = hm;
+    if (st.armed && hm === st.armed && !st.ringing) { st.armed = null; $("setStatus").textContent = "鳴らしました"; ring(false); }
+  }, 1000);
+
+  // ---- 出題
+  function makeSeq() {
+    const pool = POOLS[$("pool").value] || POOLS.ab;
+    const n = parseInt($("len").value, 10);
+    const s = [];
+    while (s.length < n) {
+      const c = pool[Math.floor(Math.random() * pool.length)];
+      if (c !== s[s.length - 1]) s.push(c);                   // 同じ笛を続けて出さない
+    }
+    return s;
+  }
+  function drawSeq() {
+    $("seq").innerHTML = st.seq.map((s, i) => "<span class='note-chip" + (i < st.pos ? " done" : i === st.pos ? " next" : "") + "'>" + label(s) + "</span>").join("");
+  }
+
+  // ---- 鳴らす・止める
+  function ring(isRecheck) {
+    st.ringing = true; st.isRecheck = isRecheck;
+    st.seq = makeSeq(); st.pos = 0;
+    $("ring").className = "on";
+    $("msg").textContent = isRecheck ? "起きていますか？　もう一度、この順に吹いてください" : "この順に笛を吹いてください";
+    $("heard").textContent = "";
+    drawSeq();
+    startBeep();
+  }
+  function startBeep() {
+    stopBeep();
+    let k = 0;
+    const beep = () => {
+      // 笛の音域より下の音で鳴らし、さらに保護の経路（笛の音域を抜く）を通す
+      const m = [76, 79, 84][k % 3];
+      IRKAudio.note(m, { type: "square", vel: 0.5, dur: 0.18 });
+      k++;
+    };
+    beep();
+    st.beepTimer = setInterval(beep, 260);
+  }
+  function stopBeep() { if (st.beepTimer) clearInterval(st.beepTimer); st.beepTimer = null; }
+  function onBlow(slot) {
+    if (!st.ringing) return;
+    const want = st.seq[st.pos];
+    if (slot === want) {
+      st.pos++;
+      $("heard").textContent = "○ " + IRK.noteName(IRK.slotToMidi(slot), "doremi");
+      if (st.pos >= st.seq.length) return solved();
+    } else {
+      $("heard").textContent = "✕ " + IRK.noteName(IRK.slotToMidi(slot), "doremi") + " ではありません" + ($("strict").checked ? "。最初からやり直しです" : "");
+      if ($("strict").checked) st.pos = 0;
+    }
+    drawSeq();
+  }
+  function solved() {
+    stopBeep();
+    st.ringing = false;
+    drawSeq();
+    $("ring").className = "on ok";
+    const sec = parseInt($("recheck").value, 10);
+    $("msg").textContent = "おはようございます！" + (sec && !st.isRecheck ? "　" + (sec >= 60 ? sec / 60 + "分" : sec + "秒") + "後に、起きているかをもう一度確かめます" : "");
+    setTimeout(() => { if (!st.ringing) $("ring").className = ""; }, 2500);
+    if (sec && !st.isRecheck) {
+      clearTimeout(st.recheckTimer);
+      st.recheckTimer = setTimeout(() => ring(true), sec * 1000);
+    }
+  }
+  // 非常用：3秒長押しで止める（笛が手元にないときなど）
+  let holdT = null;
+  const holdStart = () => { holdT = setTimeout(() => { stopBeep(); st.ringing = false; $("ring").className = ""; }, 3000); };
+  const holdEnd = () => clearTimeout(holdT);
+  $("giveup").addEventListener("pointerdown", holdStart);
+  ["pointerup", "pointerleave", "pointercancel"].forEach(e => $("giveup").addEventListener(e, holdEnd));
+})();
+</script>
+</body>
+</html>

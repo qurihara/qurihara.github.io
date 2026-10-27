@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>笛の合図ボード</title>
+<link rel="stylesheet" href="sem_common.css?v=1">
+<style>
+  #board { min-height: 46vh; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 24px 16px; background: #10141f; border: 1px solid var(--line); transition: background 0.2s; }
+  #board .big { font-size: clamp(2rem, 9vw, 5rem); font-weight: bold; line-height: 1.2; text-wrap: balance; }
+  #board .sub { color: var(--dim); font-size: 1.1rem; }
+  #board.fs { position: fixed; inset: 0; z-index: 10; border-radius: 0; min-height: 0; }
+  table { border-collapse: collapse; width: 100%; }
+  td, th { border-bottom: 1px solid var(--line); padding: 6px 4px; text-align: left; vertical-align: middle; }
+  th { color: var(--dim); font-weight: normal; font-size: 0.85rem; }
+  td input[type=text] { width: 100%; min-width: 0; }
+  td select { max-width: 7.5em; }
+  .tablewrap { overflow-x: auto; }
+  #log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; max-height: 12em; overflow-y: auto; }
+  #log li { color: var(--dim); }
+  #log b { color: var(--fg); font-weight: normal; }
+  .swatch { display: inline-block; width: 1em; height: 1em; border-radius: 3px; vertical-align: -0.15em; }
+</style>
+</head>
+<body>
+<script src="lib/fft_peak.js?v=2"></script>
+<script src="lib/irk-common.js?v=2"></script>
+<script src="lib/irk-audio.js?v=2"></script>
+<main>
+  <h1>笛の合図ボード<span class="ver">v1</span></h1>
+  <p class="lead">先生が笛を吹くと、その音に割り当てた指示が教室の画面に大きく出ます。1音だけでなく、2音の組み合わせにも別の指示を割り当てられます。1年セミナー「笛の未来」で出たアイディア「授業用の笛」を、そのまま動く形にした試作です。</p>
+
+  <div class="row">
+    <button id="prep" class="primary">マイクを使って聞き始める</button>
+    <button id="full">ボードを全画面にする</button>
+    <span class="status" id="prepStatus">まだ聞いていません</span>
+  </div>
+  <div id="board" aria-live="polite"><div class="big" id="bigMsg">笛を吹いてください</div><div class="sub" id="subMsg">ここに指示が出ます</div></div>
+  <div class="meter" aria-label="聞こえている笛の強さ"><div id="lvl"></div></div>
+
+  <section>
+    <h2>音と指示の対応表（書き換えられます）</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>1音目</th><th>2音目</th><th>表示する指示</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+    <div class="row">
+      <button id="add">行を足す</button>
+      <button id="reset">はじめの対応表に戻す</button>
+      <label>2音目を待つ時間 <select id="wait"><option value="700">0.7秒</option><option value="1000" selected>1.0秒</option><option value="1500">1.5秒</option></select></label>
+    </div>
+    <div class="foot">2音目を「なし」にした行は1音だけの合図です。1音目を吹いたあと、待つ時間のうちに2音目が来なければ、1音だけの合図として表示します。対応表はこのブラウザに保存されます。</div>
+  </section>
+
+  <section>
+    <h2>これまでの合図</h2>
+    <ul id="log"><li>まだありません</li></ul>
+  </section>
+  <p class="foot">笛は G#6〜G7 の12本の笛を想定しています。笛がないときは、アドレスの末尾に <code>?sim=1</code> を付けると、キーボードの 1〜0、-、^ の12個のキーで笛の代わりに試せます。ai-fue（栗原一貴）／1年セミナー 2026-10-27</p>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  // スロット番号 0..11 = G#6..G7。ド=4(C7) レ=6 ミ=8 ファ=9 ソ=11
+  const DEFAULT_ROWS = [
+    [4, -1, "静かにしてください"],
+    [6, -1, "前を見てください"],
+    [8, -1, "あと5分です"],
+    [9, -1, "グループで話し合ってください"],
+    [11, -1, "よくできました！"],
+    [4, 11, "休憩にします"],
+    [11, 4, "授業を再開します"],
+    [8, 4, "質問はありますか？"],
+  ];
+  let rows = DEFAULT_ROWS.map(r => r.slice());
+  try { const s = JSON.parse(localStorage.getItem("sem.signal.rows") || "null"); if (Array.isArray(s) && s.length) rows = s; } catch (_) {}
+  const save = () => { try { localStorage.setItem("sem.signal.rows", JSON.stringify(rows)); } catch (_) {} };
+  const name = slot => IRK.noteName(IRK.slotToMidi(slot), "doremi") + "（" + IRK.noteName(IRK.slotToMidi(slot), "flat") + "）";
+
+  function options(sel, allowNone) {
+    let h = allowNone ? "<option value='-1'" + (sel === -1 ? " selected" : "") + ">なし</option>" : "";
+    for (let i = 0; i < 12; i++) h += "<option value='" + i + "'" + (sel === i ? " selected" : "") + ">" + name(i) + "</option>";
+    return h;
+  }
+  function drawTable() {
+    $("rows").innerHTML = rows.map((r, i) =>
+      "<tr><td><select id='a" + i + "' aria-label='1音目'>" + options(r[0], false) + "</select></td>"
+      + "<td><select id='b" + i + "' aria-label='2音目'>" + options(r[1], true) + "</select></td>"
+      + "<td><input type='text' id='m" + i + "' aria-label='表示する指示'></td>"
+      + "<td><button id='d" + i + "' aria-label='この行を消す'>消す</button></td></tr>").join("");
+    rows.forEach((r, i) => {
+      $("m" + i).value = r[2];
+      $("a" + i).onchange = e => { rows[i][0] = +e.target.value; save(); };
+      $("b" + i).onchange = e => { rows[i][1] = +e.target.value; save(); };
+      $("m" + i).oninput = e => { rows[i][2] = e.target.value; save(); };
+      $("d" + i).onclick = () => { rows.splice(i, 1); save(); drawTable(); };
+    });
+  }
+  $("add").onclick = () => { rows.push([0, -1, "新しい指示"]); save(); drawTable(); };
+  $("reset").onclick = () => { rows = DEFAULT_ROWS.map(r => r.slice()); save(); drawTable(); };
+  drawTable();
+
+  // ---- 聞き取り：1音目を受けたら、2音目を待つ時間だけ待って決める
+  let pending = null, timer = null;
+  function resolve(seq) {
+    pending = null;
+    let hit = null;
+    if (seq.length === 2) hit = rows.find(r => r[0] === seq[0] && r[1] === seq[1]);
+    if (!hit && seq.length === 2) {                              // 組み合わせが無ければ、2つの1音の合図として扱う
+      resolve([seq[0]]); resolve([seq[1]]); return;
+    }
+    if (!hit) hit = rows.find(r => r[0] === seq[0] && r[1] === -1);
+    show(seq, hit ? hit[2] : null);
+  }
+  function show(seq, msg) {
+    const hue = Math.round(seq[seq.length - 1] * 30);
+    $("board").style.background = msg ? "hsl(" + hue + " 45% 22%)" : "#10141f";
+    $("bigMsg").textContent = msg || "？";
+    $("subMsg").textContent = seq.map(name).join(" → ") + (msg ? "" : "　この合図は対応表にありません");
+    const t = new Date();
+    const li = document.createElement("li");
+    li.innerHTML = String(t.getHours()).padStart(2, "0") + ":" + String(t.getMinutes()).padStart(2, "0") + ":" + String(t.getSeconds()).padStart(2, "0") + "　<span class='swatch' style='background:hsl(" + hue + " 60% 50%)'></span> ";
+    const b = document.createElement("b"); b.textContent = msg || "（対応表にない合図）";
+    li.appendChild(b);
+    li.appendChild(document.createTextNode("　" + seq.map(s => IRK.noteName(IRK.slotToMidi(s), "doremi")).join("→")));
+    const log = $("log");
+    if (log.firstElementChild && log.firstElementChild.textContent === "まだありません") log.innerHTML = "";
+    log.insertBefore(li, log.firstChild);
+  }
+  const det = IRKAudio.Detector({
+    onNote(ev) {
+      clearTimeout(timer);
+      if (pending === null) {
+        pending = [ev.slot];
+        $("subMsg").textContent = name(ev.slot) + " …";
+        timer = setTimeout(() => resolve(pending), +$("wait").value);
+      } else {
+        const seq = [pending[0], ev.slot];
+        resolve(seq);
+      }
+    },
+    onFrame(fr) { $("lvl").style.width = Math.round(fr.strength * 100) + "%"; },
+  });
+  $("prep").onclick = async () => {
+    const ok = await det.start();
+    $("prepStatus").textContent = ok ? (det.sim ? "聞いています（キーボードで試す設定）" : "マイクで聞いています") : "マイクを使えませんでした。ブラウザの設定でマイクを許可してください";
+    try { if (navigator.wakeLock) await navigator.wakeLock.request("screen"); } catch (_) {}
+  };
+  $("full").onclick = () => {
+    const b = $("board");
+    if (b.requestFullscreen) b.requestFullscreen().catch(() => b.classList.toggle("fs"));
+    else b.classList.toggle("fs");
+  };
+  $("board").addEventListener("click", () => { if ($("board").classList.contains("fs")) $("board").classList.remove("fs"); });
+})();
+</script>
+</body>
+</html>
