@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ふうせん息トレーニング</title>
+<title>ふうせん息トレーニング v2</title>
 <link rel="stylesheet" href="sem_common.css?v=1">
 <style>
   #cv { width: 100%; height: min(58vh, 480px); display: block; border-radius: 14px; background: #10182a; border: 1px solid var(--line); touch-action: none; }
@@ -16,9 +16,9 @@
 <body>
 <script src="lib/fft_peak.js?v=2"></script>
 <script src="lib/irk-common.js?v=2"></script>
-<script src="lib/irk-audio.js?v=2"></script>
+<script src="lib/irk-audio.js?v=3"></script>
 <main>
-  <h1>ふうせん息トレーニング<span class="ver">v1</span></h1>
+  <h1>ふうせん息トレーニング<span class="ver">v2</span></h1>
   <p class="lead">笛を吹く息の強さで、ふうせんが上がります。緑の帯の中にふうせんを保ったまま、決めた秒数だけ吹き続けると成功です。成功するたびに帯の高さが変わるので、息の強さを細かく調節する練習になります。1年セミナー「笛の未来」で出たアイディア「高齢者の嚥下機能を向上させよう」を、そのまま動く形にした試作です。</p>
   <div class="row">
     <button id="prep" class="primary">マイクを使って始める</button>
@@ -38,7 +38,7 @@
     <div class="foot">
       どの高さの笛を吹いてもかまいません。息を強くするとふうせんが上がり、弱めると下がります。息を止めるとゆっくり落ちます。
       無理をせず、疲れたら休んでください。このページは遊びの試作で、医療機器ではありません。訓練としての効果は、言語聴覚士などの専門家と一緒に確かめる必要があります。
-      笛は G#6〜G7 の12本の笛を想定しています。笛がないときは、アドレスの末尾に <code>?sim=1</code> を付けると、キーボードの 1〜0、-、^ のキーを押している間だけ吹いている扱いになります（強さは一定です）。
+      笛は Recorika の A♭長調の8本（A♭6〜A♭7）を想定しています。ドレミは、いちばん低い笛をドとして数えた階名です。笛がないときは、アドレスの末尾に <code>?sim=1</code> を付けると、キーボードの 1〜8 のキー（ド〜高いド）を押している間だけ吹いている扱いになります（強さは一定です）。
     </div>
   </section>
   <p class="foot">ai-fue（栗原一貴）／1年セミナー 2026-10-27</p>
@@ -54,7 +54,14 @@
   try { const d = JSON.parse(localStorage.getItem("sem.breath.best") || "null"); if (d && d.day === new Date().toDateString()) st.best = d.v; } catch (_) {}
   $("sBest").textContent = st.best.toFixed(1);
 
+  // Recorika A♭長調の8本。スロット番号は G#6(=A♭6) を0とした半音の数。高いド(A♭7)はスロット12
+  const AB_MAJOR = [0, 2, 4, 5, 7, 9, 11, 12];
+  const DEGREE = ["ド", "レ", "ミ", "ファ", "ソ", "ラ", "シ", "高いド"];
+  const degName = midi => { const i = AB_MAJOR.indexOf(midi - IRK.FLUTE.lowMidi); return i >= 0 ? DEGREE[i] : "音階の外"; };
+  const simKeys = {};
+  AB_MAJOR.forEach((slot, i) => { simKeys["Digit" + (i + 1)] = slot; });   // キーボードの 1〜8 = ド〜高いド
   const det = IRKAudio.Detector({
+    slotCount: 13, simKeys: simKeys,
     onNote(ev) { st.note = ev.midi; if (st.blowStart === null) st.blowStart = performance.now(); },
     onOff(ev) {
       if (ev.changed) return;                       // 笛を持ち替えただけなら吹き続けとみなす
@@ -105,7 +112,7 @@
     $("sNow").textContent = blowing.toFixed(1);
     $("sBest").textContent = Math.max(st.best, blowing).toFixed(1);
     $("sOk").textContent = st.ok;
-    $("sNote").textContent = st.note ? IRK.noteName(st.note, "doremi") : "–";
+    $("sNote").textContent = st.note ? degName(st.note) : "–";
     draw(inBand, goal, w);
   }
 

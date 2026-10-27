@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>笛の合図ボード</title>
+<title>笛の合図ボード v2</title>
 <link rel="stylesheet" href="sem_common.css?v=1">
 <style>
   #board { min-height: 46vh; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 24px 16px; background: #10141f; border: 1px solid var(--line); transition: background 0.2s; }
@@ -25,10 +25,10 @@
 <body>
 <script src="lib/fft_peak.js?v=2"></script>
 <script src="lib/irk-common.js?v=2"></script>
-<script src="lib/irk-audio.js?v=2"></script>
+<script src="lib/irk-audio.js?v=3"></script>
 <main>
-  <h1>笛の合図ボード<span class="ver">v1</span></h1>
-  <p class="lead">先生が笛を吹くと、その音に割り当てた指示が教室の画面に大きく出ます。1音だけでなく、2音の組み合わせにも別の指示を割り当てられます。1年セミナー「笛の未来」で出たアイディア「授業用の笛」を、そのまま動く形にした試作です。</p>
+  <h1>笛の合図ボード<span class="ver">v2</span></h1>
+  <p class="lead">先生が笛を吹くと、その音に割り当てた指示が教室の画面に大きく出ます。1音だけでなく、2音の組み合わせにも別の指示を割り当てられます。笛は Recorika（A♭長調の8本）を使い、音はドレミファソラシドで表します。1年セミナー「笛の未来」で出たアイディア「授業用の笛」を、そのまま動く形にした試作です。</p>
 
   <div class="row">
     <button id="prep" class="primary">マイクを使って聞き始める</button>
@@ -56,32 +56,38 @@
     <h2>これまでの合図</h2>
     <ul id="log"><li>まだありません</li></ul>
   </section>
-  <p class="foot">笛は G#6〜G7 の12本の笛を想定しています。笛がないときは、アドレスの末尾に <code>?sim=1</code> を付けると、キーボードの 1〜0、-、^ の12個のキーで笛の代わりに試せます。ai-fue（栗原一貴）／1年セミナー 2026-10-27</p>
+  <p class="foot">笛は Recorika の A♭長調の8本（A♭6〜A♭7）を想定しています。ドレミは、いちばん低い笛をドとして数えた階名です（ド＝A♭、レ＝B♭、ミ＝C、ファ＝D♭、ソ＝E♭、ラ＝F、シ＝G、高いド＝A♭）。笛がないときは、アドレスの末尾に <code>?sim=1</code> を付けると、キーボードの 1〜8 のキーがド〜高いドの笛の代わりになります。ai-fue（栗原一貴）／1年セミナー 2026-10-27</p>
 </main>
 
 <script>
 (function () {
   "use strict";
   const $ = id => document.getElementById(id);
-  // スロット番号 0..11 = G#6..G7。ド=4(C7) レ=6 ミ=8 ファ=9 ソ=11
+  // Recorika A♭長調の8本。スロット番号は G#6(=A♭6) を0とした半音の数。高いド(A♭7)はスロット12
+  const AB_MAJOR = [0, 2, 4, 5, 7, 9, 11, 12];
+  const DEGREE = ["ド", "レ", "ミ", "ファ", "ソ", "ラ", "シ", "高いド"];
+  const D = i => AB_MAJOR[i];   // 階名の番号（0=ド … 7=高いド）からスロット番号へ
   const DEFAULT_ROWS = [
-    [4, -1, "静かにしてください"],
-    [6, -1, "前を見てください"],
-    [8, -1, "あと5分です"],
-    [9, -1, "グループで話し合ってください"],
-    [11, -1, "よくできました！"],
-    [4, 11, "休憩にします"],
-    [11, 4, "授業を再開します"],
-    [8, 4, "質問はありますか？"],
+    [D(0), -1, "静かにしてください"],
+    [D(1), -1, "前を見てください"],
+    [D(2), -1, "あと5分です"],
+    [D(3), -1, "グループで話し合ってください"],
+    [D(4), -1, "よくできました！"],
+    [D(0), D(4), "休憩にします"],
+    [D(4), D(0), "授業を再開します"],
+    [D(2), D(0), "質問はありますか？"],
   ];
+  // v1 は12本の笛の番号で保存していたので、保存先を替えて v1 の対応表は読まない
+  const STORE = "sem.signal.rows.v2";
   let rows = DEFAULT_ROWS.map(r => r.slice());
-  try { const s = JSON.parse(localStorage.getItem("sem.signal.rows") || "null"); if (Array.isArray(s) && s.length) rows = s; } catch (_) {}
-  const save = () => { try { localStorage.setItem("sem.signal.rows", JSON.stringify(rows)); } catch (_) {} };
-  const name = slot => IRK.noteName(IRK.slotToMidi(slot), "doremi") + "（" + IRK.noteName(IRK.slotToMidi(slot), "flat") + "）";
+  try { const s = JSON.parse(localStorage.getItem(STORE) || "null"); if (Array.isArray(s) && s.length) rows = s; } catch (_) {}
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(rows)); } catch (_) {} };
+  const name = slot => { const i = AB_MAJOR.indexOf(slot); return i >= 0 ? DEGREE[i] : "音階の外の音"; };
+  const hueOf = slot => Math.max(0, AB_MAJOR.indexOf(slot)) * 45;
 
   function options(sel, allowNone) {
     let h = allowNone ? "<option value='-1'" + (sel === -1 ? " selected" : "") + ">なし</option>" : "";
-    for (let i = 0; i < 12; i++) h += "<option value='" + i + "'" + (sel === i ? " selected" : "") + ">" + name(i) + "</option>";
+    for (const sl of AB_MAJOR) h += "<option value='" + sl + "'" + (sel === sl ? " selected" : "") + ">" + name(sl) + "</option>";
     return h;
   }
   function drawTable() {
@@ -115,7 +121,7 @@
     show(seq, hit ? hit[2] : null);
   }
   function show(seq, msg) {
-    const hue = Math.round(seq[seq.length - 1] * 30);
+    const hue = hueOf(seq[seq.length - 1]);
     $("board").style.background = msg ? "hsl(" + hue + " 45% 22%)" : "#10141f";
     $("bigMsg").textContent = msg || "？";
     $("subMsg").textContent = seq.map(name).join(" → ") + (msg ? "" : "　この合図は対応表にありません");
@@ -124,12 +130,15 @@
     li.innerHTML = String(t.getHours()).padStart(2, "0") + ":" + String(t.getMinutes()).padStart(2, "0") + ":" + String(t.getSeconds()).padStart(2, "0") + "　<span class='swatch' style='background:hsl(" + hue + " 60% 50%)'></span> ";
     const b = document.createElement("b"); b.textContent = msg || "（対応表にない合図）";
     li.appendChild(b);
-    li.appendChild(document.createTextNode("　" + seq.map(s => IRK.noteName(IRK.slotToMidi(s), "doremi")).join("→")));
+    li.appendChild(document.createTextNode("　" + seq.map(name).join("→")));
     const log = $("log");
     if (log.firstElementChild && log.firstElementChild.textContent === "まだありません") log.innerHTML = "";
     log.insertBefore(li, log.firstChild);
   }
+  const simKeys = {};
+  AB_MAJOR.forEach((slot, i) => { simKeys["Digit" + (i + 1)] = slot; });   // キーボードの 1〜8 = ド〜高いド
   const det = IRKAudio.Detector({
+    slotCount: 13, simKeys: simKeys,
     onNote(ev) {
       clearTimeout(timer);
       if (pending === null) {
