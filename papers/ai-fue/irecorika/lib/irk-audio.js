@@ -49,7 +49,22 @@
     offFrames: 3,          // この回数続けて読めなかったら止んだとする
     noiseWindowMs: 8000,   // 暗騒音を見積もる期間
     centsOffset: 0,
+    slotCount: 12,         // 聞き取る笛の本数。13 にすると A♭7（Recorika A♭長調の8本目、約3322Hz）まで聞く
   };
+  /* 聞き取る本数に合わせた、検出に使う音域の上限[Hz]。12本なら従来どおり BAND_HI */
+  function bandHiFor(slotCount) {
+    if (!slotCount || slotCount <= IRK.FLUTE.count) return BAND_HI;
+    return Math.round(IRK.midiToFreq(IRK.FLUTE.lowMidi + slotCount - 1 + 0.4));
+  }
+  /* 周波数を最寄りの笛に当てる。12本を超える分は IRK.freqToSlot の範囲の外なので、ここで延ばす */
+  function freqToSlotN(f, centsOffset, slotCount) {
+    if (!slotCount || slotCount <= IRK.FLUTE.count) return IRK.freqToSlot(f, centsOffset);
+    if (!f || !isFinite(f)) return null;
+    const mf = IRK.freqToMidiFloat(f) - (centsOffset || 0) / 100;
+    const m = Math.round(mf), slot = m - IRK.FLUTE.lowMidi;
+    if (slot < 0 || slot >= slotCount) return null;
+    return { slot: slot, midi: m, cents: Math.round((mf - m) * 100) };
+  }
   function NoteTracker(opts) {
     opts = Object.assign({}, TRACKER_DEFAULTS, opts || {});
     const hist = [];        // [t, level]
@@ -80,7 +95,7 @@
       const need = cur ? onDb - opts.releaseDb : onDb;
       let hit = null;
       if (isFinite(level) && level >= need) {
-        const h = IRK.freqToSlot(freq, opts.centsOffset);
+        const h = freqToSlotN(freq, opts.centsOffset, opts.slotCount);
         if (h && cur && h.slot === cur.slot) hit = h;                       // 鳴り続けは強さだけで見る
         else if (h && (ft.prominence === undefined || ft.prominence >= opts.minProminenceDb)
                  && (ft.conc === undefined || ft.conc >= opts.minConc)
@@ -135,10 +150,11 @@
    *   prominence … 山と音域の中央値の差[dB]。息の擦れや拍手は平たいので小さい
    *   conc       … 音域の力のうち、山の前後3ビンに集まっている割合（0〜1）。笛は1本の正弦波に近いので1に近い
    * マイクで拾うときも、録音で評価するときも、この同じ関数を通す。 */
-  function bandFeatures(spec, binHz) {
+  function bandFeatures(spec, binHz, bandHi) {
     const FP = root.FftPeak || (typeof require === "function" ? require("../../cipher/fft_peak.js") : null);
-    const pk = FP.peakInBand(spec, binHz, BAND_LO, BAND_HI);
-    const k0 = Math.ceil(BAND_LO / binHz), k1 = Math.floor(BAND_HI / binHz);
+    const hi = bandHi || BAND_HI;
+    const pk = FP.peakInBand(spec, binHz, BAND_LO, hi);
+    const k0 = Math.ceil(BAND_LO / binHz), k1 = Math.floor(hi / binHz);
     const band = [];
     let total = 0, near = 0;
     for (let k = k0; k <= k1; k++) {
@@ -175,7 +191,9 @@
     opts = opts || {};
     const s = IRK.load();
     const sim = opts.sim !== undefined ? opts.sim : IRK.param("sim") === "1";
-    const tracker = NoteTracker({ marginDb: s.onMarginDb, centsOffset: s.centsOffset });
+    const slotCount = opts.slotCount || IRK.FLUTE.count;
+    const bandHi = bandHiFor(slotCount);
+    const tracker = NoteTracker({ marginDb: s.onMarginDb, centsOffset: s.centsOffset, slotCount: slotCount });
     const st = { running: false, analyser: null, data: null, timer: null, stream: null,
                  muteUntil: 0, simOsc: null, simGain: null, last: null, t0: 0 };
     const listeners = { note: [], off: [], frame: [] };
@@ -225,7 +243,7 @@
       const ac = ctx();
       st.analyser.getFloatFrequencyData(st.data);
       const binHz = ac.sampleRate / st.analyser.fftSize;
-      const ft = bandFeatures(st.data, binHz);
+      const ft = bandFeatures(st.data, binHz, bandHi);
       const now = performance.now();
       const level = ft.level, freq = ft.freq, prominence = ft.prominence;
       let events = [];
@@ -248,7 +266,7 @@
     function simOn(slot) {
       if (!sim || !st.running) return;
       const ac = ctx();
-      const f = IRK.FLUTE.freqs[slot];
+      const f = IRK.FLUTE.freqs[slot] || IRK.midiToFreq(IRK.FLUTE.lowMidi + slot);
       if (!st.simOsc) {
         st.simOsc = new OscillatorNode(ac, { type: "sine", frequency: f });
         st.simOsc.connect(st.simGain);
@@ -263,14 +281,16 @@
     }
     // 模擬の入力はキーボードでも入れられる（1〜0、-、^ の12個がスロット0〜11）
     if (sim && typeof document !== "undefined") {
+      // opts.simKeys に { キーの code: スロット番号 } を渡すと、その割り当てに替わる
       const codes = ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "Digit0", "Minus", "Equal"];
+      const keyToSlot = code => opts.simKeys ? (code in opts.simKeys ? opts.simKeys[code] : -1) : codes.indexOf(code);
       let held = -1;
       document.addEventListener("keydown", e => {
-        const i = codes.indexOf(e.code);
+        const i = keyToSlot(e.code);
         if (i >= 0 && !e.repeat) { held = i; simOn(i); }
       });
       document.addEventListener("keyup", e => {
-        const i = codes.indexOf(e.code);
+        const i = keyToSlot(e.code);
         if (i >= 0 && i === held) { held = -1; simOff(); }
       });
     }

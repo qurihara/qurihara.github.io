@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>笛で止める目覚まし</title>
+<title>笛で止める目覚まし v2</title>
 <link rel="stylesheet" href="sem_common.css?v=1">
 <style>
   #ring { display: none; position: fixed; inset: 0; z-index: 10; background: #2a0b12; flex-direction: column; align-items: center; justify-content: center; gap: 20px; text-align: center;
@@ -22,10 +22,10 @@
 <body>
 <script src="lib/fft_peak.js?v=2"></script>
 <script src="lib/irk-common.js?v=2"></script>
-<script src="lib/irk-audio.js?v=2"></script>
+<script src="lib/irk-audio.js?v=3"></script>
 <main>
-  <h1>笛で止める目覚まし<span class="ver">v1</span></h1>
-  <p class="lead">アラームを止めるには、画面に出た音を、出た順に笛で吹きます。毎回ちがう音の並びが出題されます。1年セミナー「笛の未来」で出たアイディア「音楽式目覚まし」を、そのまま動く形にした試作です。</p>
+  <h1>笛で止める目覚まし<span class="ver">v2</span></h1>
+  <p class="lead">アラームを止めるには、画面に出た音を、出た順に笛で吹きます。毎回ちがう音の並びが出題されます。笛は Recorika（A♭長調の8本）を使い、音はドレミファソラシドで表します。1年セミナー「笛の未来」で出たアイディア「音楽式目覚まし」を、そのまま動く形にした試作です。</p>
 
   <section>
     <h2>1. 準備</h2>
@@ -47,9 +47,8 @@
     <div class="row">
       <label>音の数 <select id="len"><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label>
       <label>使う笛 <select id="pool">
-        <option value="ab">A♭長調の7本</option>
-        <option value="all">12本すべて</option>
-        <option value="c">ドレミファソの5本</option>
+        <option value="eight">8本すべて（ド〜高いド）</option>
+        <option value="five">5本（ド〜ソ、やさしい）</option>
       </select></label>
       <label><input type="checkbox" id="strict" checked> 間違えたら最初から</label>
     </div>
@@ -65,8 +64,9 @@
     <h2>使い方</h2>
     <div class="foot">
       このページを開いたまま、画面を消さずに置いておきます。ブラウザを閉じたり別のアプリに切り替えたりすると鳴りません。
-      アラームの音は笛の音域（約1600〜3300Hz）を抜いて鳴らしているので、鳴っている最中でも笛の音を聞き分けられます。
-      笛は G#6〜G7 の12本の笛を想定しています。笛がないときは、アドレスの末尾に <code>?sim=1</code> を付けると、キーボードの 1〜0、-、^ の12個のキーで笛の代わりに試せます。
+      アラームの音は笛の音域（約1600〜3400Hz）を抜いて鳴らしているので、鳴っている最中でも笛の音を聞き分けられます。
+      笛は Recorika の A♭長調の8本（A♭6〜A♭7）を想定しています。ドレミは、いちばん低い笛をドとして数えた階名です（ド＝A♭、レ＝B♭、ミ＝C、ファ＝D♭、ソ＝E♭、ラ＝F、シ＝G、高いド＝A♭）。
+      笛がないときは、アドレスの末尾に <code>?sim=1</code> を付けると、キーボードの 1〜8 のキーがド〜高いドの笛の代わりになります。
     </div>
   </section>
   <p class="foot">ai-fue（栗原一貴）／1年セミナー 2026-10-27</p>
@@ -84,19 +84,31 @@
 (function () {
   "use strict";
   const $ = id => document.getElementById(id);
-  const AB_MAJOR = [0, 1, 3, 5, 6, 8, 10];          // G#6 を A♭ と読んだときの A♭長調の笛（スロット番号）
-  const POOLS = { ab: AB_MAJOR, all: [...Array(12).keys()], c: [4, 6, 8, 9, 11] };   // c: C7 D7 E7 F7 G7
+  // Recorika A♭長調の8本。スロット番号は G#6(=A♭6) を0とした半音の数。高いド(A♭7)はスロット12
+  const AB_MAJOR = [0, 2, 4, 5, 7, 9, 11, 12];
+  const DEGREE = ["ド", "レ", "ミ", "ファ", "ソ", "ラ", "シ", "ド"];
+  const POOLS = { eight: AB_MAJOR, five: AB_MAJOR.slice(0, 5) };
   const st = { armed: null, ringing: false, seq: [], pos: 0, timer: null, beepTimer: null, recheckTimer: null, wake: null, isRecheck: false };
 
-  function label(slot) {
-    const m = IRK.slotToMidi(slot);
-    return IRK.noteName(m, "doremi") + "<small>" + IRK.noteName(m, "flat") + "</small>";
+  // 階名（ドレミ）。最初と最後のドは「低い」「高い」で見分ける
+  function degName(slot) {
+    const i = AB_MAJOR.indexOf(slot);
+    if (i < 0) return null;
+    return (i === 7 ? "高い" : "") + DEGREE[i];
   }
+  function label(slot) {
+    const i = AB_MAJOR.indexOf(slot);
+    return DEGREE[i] + "<small>" + (i === 0 ? "低い" : i === 7 ? "高い" : "&nbsp;") + "</small>";
+  }
+  const heardName = slot => degName(slot) || "音階の外の音";
 
   // ---- マイク
+  const simKeys = {};
+  AB_MAJOR.forEach((slot, i) => { simKeys["Digit" + (i + 1)] = slot; });   // キーボードの 1〜8 = ド〜高いド
   const det = IRKAudio.Detector({
+    slotCount: 13, simKeys: simKeys,
     onNote(ev) {
-      $("live").textContent = "聞こえた音： " + IRK.noteName(ev.midi, "doremi") + "（" + IRK.noteName(ev.midi, "flat") + "）";
+      $("live").textContent = "聞こえた音： " + heardName(ev.slot);
       if (st.ringing) onBlow(ev.slot);
     },
     onFrame(fr) { $("lvl").style.width = Math.round(fr.strength * 100) + "%"; },
@@ -134,7 +146,7 @@
 
   // ---- 出題
   function makeSeq() {
-    const pool = POOLS[$("pool").value] || POOLS.ab;
+    const pool = POOLS[$("pool").value] || POOLS.eight;
     const n = parseInt($("len").value, 10);
     const s = [];
     while (s.length < n) {
@@ -175,10 +187,10 @@
     const want = st.seq[st.pos];
     if (slot === want) {
       st.pos++;
-      $("heard").textContent = "○ " + IRK.noteName(IRK.slotToMidi(slot), "doremi");
+      $("heard").textContent = "○ " + heardName(slot);
       if (st.pos >= st.seq.length) return solved();
     } else {
-      $("heard").textContent = "✕ " + IRK.noteName(IRK.slotToMidi(slot), "doremi") + " ではありません" + ($("strict").checked ? "。最初からやり直しです" : "");
+      $("heard").textContent = "✕ " + heardName(slot) + " ではありません" + ($("strict").checked ? "。最初からやり直しです" : "");
       if ($("strict").checked) st.pos = 0;
     }
     drawSeq();
