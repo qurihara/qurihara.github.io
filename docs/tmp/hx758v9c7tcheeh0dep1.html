@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>CipherFlute 宝探しチャレンジ</title>
+<style>
+  :root { --bg:#fbf7ee; --fg:#1c2430; --muted:#5d646d; --accent:#9a3b1e; --gold:#c8a04a; --card:#fff; --line:#e5dccb; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#14181e; --fg:#eef1f4; --muted:#a9b0b8; --card:#1e242c; --line:#333b45; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font-family:"Hiragino Sans","Noto Sans JP",sans-serif; line-height:1.7; }
+  main { max-width:560px; margin:0 auto; padding:28px 16px 48px; }
+  h1 { font-size:1.35rem; margin:0 0 4px; }
+  .sub { color:var(--muted); font-size:.9rem; margin:0 0 20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin:16px 0; }
+  .big { font-size:1.6rem; font-weight:700; color:var(--accent); margin:0 0 8px; }
+  .btn { display:inline-block; width:100%; text-align:center; padding:14px; border-radius:10px; border:0;
+         background:var(--gold); color:#1c2430; font-size:1.05rem; font-weight:700; text-decoration:none; cursor:pointer; }
+  .btn[disabled] { opacity:.5; cursor:default; }
+  input[type=text] { width:100%; padding:12px; font-size:1rem; border-radius:8px; border:1px solid var(--line);
+         background:var(--bg); color:var(--fg); margin:8px 0 12px; }
+  .note { color:var(--muted); font-size:.85rem; }
+  .test { background:#ffe9a8; color:#5a4300; border-radius:8px; padding:8px 12px; font-weight:700; }
+  .hide { display:none; }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>CipherFlute 宝探しチャレンジ</h1>
+  <p class="sub">WISS 2026</p>
+
+  <div id="locked" class="card">
+    <p>このページは、会場に隠された CipherFlute を吹いて復号したときにだけ開けます。</p>
+    <p class="note">詳しくは <a href="https://scrapbox.io/qurihara/WISS%202026%20CipherFlute%20%E5%AE%9D%E6%8E%A2%E3%81%97%E3%83%81%E3%83%A3%E3%83%AC%E3%83%B3%E3%82%B8%EF%BC%88%E4%BB%AE%E3%83%9A%E3%83%BC%E3%82%B8%EF%BC%89" target="_blank" rel="noopener">cosense の宝探しのページ</a> をご覧ください。</p>
+  </div>
+
+  <div id="opened" class="hide">
+    <p id="testBanner" class="test hide">これは試験用のページです。本番の財宝ではありません。</p>
+    <div class="card">
+      <p class="big">財宝を発見しました！🎉</p>
+      <p>おめでとうございます。財宝は Amazon eギフトカードです。下のボタンから受け取りのページを開き、ご自分の Amazon のアカウントに登録してください。</p>
+      <a id="giftLink" class="btn" href="#" target="_blank" rel="noopener noreferrer">財宝を受け取る</a>
+      <p class="note">早い者勝ちです。先にほかの方が登録していた場合は受け取れません。ご了承ください。</p>
+    </div>
+    <div class="card">
+      <p><b>お名前を教えてください</b></p>
+      <p class="note">ギフトカードの登録が済んだら、お名前（ハンドル名でも構いません）を送ってください。栗原が会場でお祝いします。</p>
+      <input id="who" type="text" maxlength="60" placeholder="お名前またはハンドル名" autocomplete="nickname">
+      <button id="send" class="btn">名乗る</button>
+      <p id="sent" class="note"></p>
+    </div>
+  </div>
+</main>
+<script>
+"use strict";
+const BLOB = "tu22Fi1GDG-4j0sATvXUiw0HAiP33sjG3DkP27rri6yY1_EI-rGPo4jmDIv4RFU9edKnRIyRodXFyJ8wE_kmxEvQjYJDl8BzJOsLYAfze_2fClrklDPbT9yqYbAiACGvUYXMtc7Pu72xlc2XBfnKuw";
+function b64u(s) { s = s.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "=";
+  const bin = atob(s); const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out; }
+async function open_(k) {
+  const key = await crypto.subtle.importKey("raw", b64u(k), "AES-GCM", false, ["decrypt"]);
+  const blob = b64u(BLOB);
+  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: blob.slice(0, 12) }, key, blob.slice(12));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+function notify(topic, title, message, tags) {
+  return fetch("https://ntfy.sh/", { method: "POST", body: JSON.stringify({ topic, title, message, tags }) });
+}
+(async () => {
+  const m = /(?:^|[#&])k=([A-Za-z0-9_-]+)/.exec(location.hash);
+  if (!m) return;
+  let d;
+  try { d = await open_(m[1]); } catch (_) { return; }
+  // 鍵をアドレス欄から消す（画面を写されても鍵が残らないように）
+  history.replaceState(null, "", location.pathname);
+  const pre = d.test ? "【試験】" : "";
+  document.getElementById("locked").classList.add("hide");
+  document.getElementById("opened").classList.remove("hide");
+  if (d.test) document.getElementById("testBanner").classList.remove("hide");
+  document.getElementById("giftLink").href = d.gift;
+  const when = new Date().toLocaleString("ja-JP");
+  notify(d.topic, pre + "宝探し：財宝のページが開かれました", when + " に、財宝のページが開かれました。", ["tada"]).catch(() => {});
+  const btn = document.getElementById("send");
+  btn.onclick = async () => {
+    const who = document.getElementById("who").value.trim().slice(0, 60);
+    if (!who) { document.getElementById("sent").textContent = "お名前を入れてください。"; return; }
+    btn.disabled = true;
+    try {
+      const r = await notify(d.topic, pre + "宝探し：財宝を手にした人", who + "（" + new Date().toLocaleString("ja-JP") + "）", ["trophy"]);
+      if (!r.ok) throw new Error(r.status);
+      document.getElementById("sent").textContent = "送りました。ありがとうございます！";
+    } catch (_) {
+      btn.disabled = false;
+      document.getElementById("sent").textContent = "送れませんでした。電波のよい場所で、もう一度押してください。";
+    }
+  };
+})();
+</script>
+</body>
+</html>
