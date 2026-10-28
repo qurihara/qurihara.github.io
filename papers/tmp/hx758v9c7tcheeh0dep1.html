@@ -41,22 +41,17 @@
     <p id="testBanner" class="test hide">これは試験用のページです。本番の財宝ではありません。</p>
     <div class="card">
       <p class="big">財宝を発見しました！🎉</p>
-      <p>おめでとうございます。財宝は Amazon eギフトカードです。下のボタンから受け取りのページを開き、ご自分の Amazon のアカウントに登録してください。</p>
-      <a id="giftLink" class="btn" href="#" target="_blank" rel="noopener noreferrer">財宝を受け取る</a>
-      <p class="note">早い者勝ちです。先にほかの方が登録していた場合は受け取れません。ご了承ください。</p>
-    </div>
-    <div class="card">
-      <p><b>お名前を教えてください</b></p>
-      <p class="note">ギフトカードの登録が済んだら、お名前（ハンドル名でも構いません）を送ってください。栗原が会場でお祝いします。</p>
+      <p>おめでとうございます。財宝は Amazon eギフトカードです。お名前（ハンドル名でも構いません）を入れてボタンを押すと、受け取りのページに進みます。ご自分の Amazon のアカウントに登録してください。</p>
       <input id="who" type="text" maxlength="60" placeholder="お名前またはハンドル名" autocomplete="nickname">
-      <button id="send" class="btn">名乗る</button>
+      <button id="send" class="btn">名乗って財宝を受け取る</button>
       <p id="sent" class="note"></p>
+      <p class="note">お名前は栗原に届き、会場でお祝いします。早い者勝ちです。先にほかの方が登録していた場合は受け取れません。ご了承ください。</p>
     </div>
   </div>
 </main>
 <script>
 "use strict";
-const BLOB = "tu22Fi1GDG-4j0sATvXUiw0HAiP33sjG3DkP27rri6yY1_EI-rGPo4jmDIv4RFU9edKnRIyRodXFyJ8wE_kmxEvQjYJDl8BzJOsLYAfze_2fClrklDPbT9yqYbAiACGvUYXMtc7Pu72xlc2XBfnKuw";
+const BLOB = "Q8Ayt0qNxFyxGoOY6hZn3_cd_78up17LkgjLU4OFSTpH2vgYKyhw3HcmoTWpEKcgZVM_js5f_K4PtYGgWkozNaoE-8zPjDBm__16oN3kSbiZKRhFE4xl8qBV66jh_62l1t5YoHrE8XGn8RHXYGtSog";
 function b64u(s) { s = s.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "=";
   const bin = atob(s); const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out; }
 async function open_(k) {
@@ -66,7 +61,8 @@ async function open_(k) {
   return JSON.parse(new TextDecoder().decode(pt));
 }
 function notify(topic, title, message, tags) {
-  return fetch("https://ntfy.sh/", { method: "POST", body: JSON.stringify({ topic, title, message, tags }) });
+  // keepalive：送っている途中で受け取りのページへ移っても、送信を最後まで続ける
+  return fetch("https://ntfy.sh/", { method: "POST", keepalive: true, body: JSON.stringify({ topic, title, message, tags }) });
 }
 (async () => {
   const m = /(?:^|[#&])k=([A-Za-z0-9_-]+)/.exec(location.hash);
@@ -79,22 +75,20 @@ function notify(topic, title, message, tags) {
   document.getElementById("locked").classList.add("hide");
   document.getElementById("opened").classList.remove("hide");
   if (d.test) document.getElementById("testBanner").classList.remove("hide");
-  document.getElementById("giftLink").href = d.gift;
   const when = new Date().toLocaleString("ja-JP");
   notify(d.topic, pre + "宝探し：財宝のページが開かれました", when + " に、財宝のページが開かれました。", ["tada"]).catch(() => {});
   const btn = document.getElementById("send");
+  const who = document.getElementById("who");
+  who.addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) btn.click(); });
   btn.onclick = async () => {
-    const who = document.getElementById("who").value.trim().slice(0, 60);
-    if (!who) { document.getElementById("sent").textContent = "お名前を入れてください。"; return; }
+    const name = who.value.trim().slice(0, 60);
+    if (!name) { document.getElementById("sent").textContent = "お名前を入れてください。"; who.focus(); return; }
     btn.disabled = true;
-    try {
-      const r = await notify(d.topic, pre + "宝探し：財宝を手にした人", who + "（" + new Date().toLocaleString("ja-JP") + "）", ["trophy"]);
-      if (!r.ok) throw new Error(r.status);
-      document.getElementById("sent").textContent = "送りました。ありがとうございます！";
-    } catch (_) {
-      btn.disabled = false;
-      document.getElementById("sent").textContent = "送れませんでした。電波のよい場所で、もう一度押してください。";
-    }
+    document.getElementById("sent").textContent = "お名前を送って、受け取りのページへ進みます…";
+    // 名乗りを送る。届くのを最大2.5秒だけ待ち、届かなくても受け取りのページへ進む（財宝を優先する）
+    const sent = notify(d.topic, pre + "宝探し：財宝を手にした人", name + "（" + new Date().toLocaleString("ja-JP") + "）", ["trophy"]).catch(() => {});
+    await Promise.race([sent, new Promise(r => setTimeout(r, 2500))]);
+    location.assign(d.gift);
   };
 })();
 </script>
