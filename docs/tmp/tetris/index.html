@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>テトリス</title>
+<meta name="robots" content="noindex">
+<style>
+  :root { --bg:#f6f5f1; --fg:#222; --sub:#666; --line:#d6d3ca; --on:#1f8a4c; --off:#e9e6de; --warn:#b5541b; --panel:#fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#1d1d1b; --fg:#eee; --sub:#aaa; --line:#444; --on:#3cc27a; --off:#333; --warn:#f0a060; --panel:#262624; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font-family:-apple-system,"Hiragino Sans",sans-serif; }
+  .wrap { display:flex; gap:16px; padding:16px; align-items:flex-start; flex-wrap:wrap; }
+  iframe { width:640px; height:620px; max-width:100%; border:1px solid var(--line); background:#000; border-radius:6px; }
+  .side { flex:1; min-width:280px; max-width:420px; background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:12px 14px; }
+  h1 { font-size:17px; margin:0 0 8px; }
+  .row { display:flex; align-items:center; gap:8px; margin:6px 0; }
+  .lamp { width:14px; height:14px; border-radius:50%; background:var(--off); border:1px solid var(--line); flex:none; }
+  .lamp.on { background:var(--on); }
+  .name { width:96px; } .bind { color:var(--sub); font-size:12px; }
+  button { font:inherit; padding:6px 10px; border-radius:6px; border:1px solid var(--line); background:var(--bg); color:var(--fg); cursor:pointer; }
+  #msg { margin:10px 0; padding:8px; border-radius:6px; background:var(--bg); min-height:2.6em; }
+  #msg.warn { color:var(--warn); }
+  .note { font-size:12px; color:var(--sub); line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <iframe id="game" src="game/index.html" title="テトリス"></iframe>
+  <div class="side">
+    <div id="pad" class="note">ゲームパッド：未接続（コントローラのボタンを1つ押してください）</div>
+    <div id="msg">「開始」のボタンでゲームが始まります。</div>
+    <div id="lamps"></div>
+    <div class="row" style="margin-top:10px">
+      <button id="learn">ボタンを覚えさせる</button>
+      <button id="reset">覚えた対応を消す</button>
+    </div>
+  </div>
+</div>
+<script>
+(() => {
+  // 操作 → 送るキー。repeat は押し続けたときに繰り返すか。
+  const ACTIONS = [
+    { id: "left",  label: "左へ移動",     key: ["ArrowLeft",  "ArrowLeft",  37], repeat: true  },
+    { id: "right", label: "右へ移動",     key: ["ArrowRight", "ArrowRight", 39], repeat: true  },
+    { id: "down",  label: "1マス落とす",  key: ["ArrowDown",  "ArrowDown",  40], repeat: true  },
+    { id: "rot",   label: "回転",         key: ["ArrowUp",    "ArrowUp",    38], repeat: false },
+    { id: "start", label: "開始",         key: [" ",          "Space",      32], repeat: false },
+  ];
+  const STANDARD = { left: {t:"b", i:14}, right: {t:"b", i:15}, down: {t:"b", i:13}, rot: {t:"b", i:0}, start: {t:"b", i:9} };
+  const STORE = "tetris-binding-v1";
+  const DELAY = 170, RATE = 50;            // 押し続けたときの繰り返し（最初の待ち・間隔 ms）
+
+  let binding = null;
+  try { binding = JSON.parse(localStorage.getItem(STORE) || "null"); } catch (e) { binding = null; }
+  const $ = (id) => document.getElementById(id);
+  const msg = (t, warn) => { $("msg").textContent = t; $("msg").className = warn ? "warn" : ""; };
+
+  // 操作ごとのランプ
+  for (const a of ACTIONS) {
+    const r = document.createElement("div"); r.className = "row";
+    r.innerHTML = `<span class="lamp" id="lamp-${a.id}"></span><span class="name">${a.label}</span><span class="bind" id="bind-${a.id}"></span>`;
+    $("lamps").appendChild(r);
+  }
+  function showBinding(pad) {
+    const b = currentBinding(pad);
+    for (const a of ACTIONS) {
+      const x = b && b[a.id];
+      $("bind-" + a.id).textContent = !x ? "（未設定）" : x.t === "b" ? `ボタン ${x.i}` : `軸 ${x.i} = ${x.v.toFixed(2)}`;
+    }
+  }
+  function currentBinding(pad) {
+    if (binding) return binding;
+    if (pad && pad.mapping === "standard") return STANDARD;
+    return null;
+  }
+
+  // ゲームの frame へキーを送る（document に1回だけ）
+  function fire(type, def) {
+    const doc = $("game").contentDocument;
+    if (!doc) return;
+    const e = new KeyboardEvent(type, { key: def[0], code: def[1], bubbles: true, cancelable: true });
+    Object.defineProperty(e, "keyCode", { get: () => def[2] });
+    Object.defineProperty(e, "which", { get: () => def[2] });
+    doc.dispatchEvent(e);
+  }
+
+  function firstPad() {
+    const ps = navigator.getGamepads ? navigator.getGamepads() : [];
+    for (const p of ps) if (p && p.connected) return p;
+    return null;
+  }
+  function isOn(pad, x) {
+    if (!pad || !x) return false;
+    if (x.t === "b") { const b = pad.buttons[x.i]; return !!b && (b.pressed || b.value > 0.5); }
+    const v = pad.axes[x.i]; return v !== undefined && Math.abs(v - x.v) < 0.15;
+  }
+
+  // 「ボタンを覚えさせる」：表示の順に押されたボタン（または軸の値）を記録する
+  let learning = null;   // { step, base, waitRelease, result }
+  function snapshot(pad) { return { b: pad.buttons.map(b => b.pressed || b.value > 0.5), a: pad.axes.slice() }; }
+  function detect(pad, base) {
+    for (let i = 0; i < pad.buttons.length; i++) {
+      const on = pad.buttons[i].pressed || pad.buttons[i].value > 0.5;
+      if (on && !base.b[i]) return { t: "b", i };
+    }
+    for (let i = 0; i < pad.axes.length; i++) {
+      if (Math.abs(pad.axes[i] - base.a[i]) > 0.3) return { t: "a", i, v: pad.axes[i] };
+    }
+    return null;
+  }
+  function anyChange(pad, base) { return detect(pad, base) !== null; }
+  $("learn").onclick = () => {
+    const pad = firstPad();
+    if (!pad) { msg("ゲームパッドが見つかりません。コントローラのボタンを1つ押してから、もう一度押してください。", true); return; }
+    learning = { step: 0, base: snapshot(pad), waitRelease: false, result: {} };
+    msg(`「${ACTIONS[0].label}」のボタンを押してください（1/5）`);
+  };
+  $("reset").onclick = () => {
+    binding = null; try { localStorage.removeItem(STORE); } catch (e) {}
+    msg("覚えた対応を消しました。"); showBinding(firstPad());
+  };
+
+  const held = {};       // id -> { on, next }
+  // 入力は画面の更新（requestAnimationFrame）とは別に 8ms ごとに読む。画面の更新は窓が隠れると間引かれ、短い押し込みを取りこぼすため。
+  function loop() {
+    const t = performance.now();
+    const pad = firstPad();
+    $("pad").textContent = pad ? `ゲームパッド：${pad.id}（並び：${pad.mapping || "標準ではない"}）` : "ゲームパッド：未接続（コントローラのボタンを1つ押してください）";
+    if (pad) {
+      if (learning) {
+        const L = learning;
+        if (L.waitRelease) {
+          if (!anyChange(pad, L.base)) {
+            L.waitRelease = false; L.step++;
+            if (L.step >= ACTIONS.length) {
+              binding = L.result; learning = null;
+              try { localStorage.setItem(STORE, JSON.stringify(binding)); } catch (e) {}
+              msg("5つのボタンを覚えました。「開始」でゲームを始めてください。"); showBinding(pad);
+            } else msg(`「${ACTIONS[L.step].label}」のボタンを押してください（${L.step + 1}/5）`);
+          }
+        } else {
+          const d = detect(pad, L.base);
+          if (d) { L.result[ACTIONS[L.step].id] = d; L.waitRelease = true; msg(`「${ACTIONS[L.step].label}」を記録しました。指を離してください。`); }
+        }
+      } else {
+        const b = currentBinding(pad);
+        if (!b) msg("このゲームパッドのボタンの並びが分かりません。「ボタンを覚えさせる」を押してください。", true);
+        for (const a of ACTIONS) {
+          const on = !!b && isOn(pad, b[a.id]);
+          const h = held[a.id] || (held[a.id] = { on: false, next: 0 });
+          $("lamp-" + a.id).classList.toggle("on", on);
+          if (on && !h.on) { fire("keydown", a.key); h.next = t + DELAY; }
+          else if (on && h.on && a.repeat && t >= h.next) { fire("keydown", a.key); h.next = t + RATE; }
+          else if (!on && h.on) { fire("keyup", a.key); }
+          h.on = on;
+        }
+      }
+    }
+  }
+  window.addEventListener("gamepadconnected", (e) => { showBinding(e.gamepad); msg(binding || e.gamepad.mapping === "standard" ? "ゲームパッドをつなぎました。「開始」でゲームが始まります。" : "ゲームパッドをつなぎました。「ボタンを覚えさせる」を押してください。", !(binding || e.gamepad.mapping === "standard")); });
+  $("game").addEventListener("load", () => {
+    if (!$("game").contentDocument || !$("game").contentDocument.getElementById("canvas"))
+      msg("テトリスの本体を読み込めませんでした。", true);
+  });
+  showBinding(null);
+  setInterval(loop, 8);
+})();
+</script>
+</body>
+</html>
