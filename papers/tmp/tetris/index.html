@@ -9,9 +9,12 @@
   :root { --bg:#f6f5f1; --fg:#222; --sub:#666; --line:#d6d3ca; --on:#1f8a4c; --off:#e9e6de; --warn:#b5541b; --panel:#fff; }
   @media (prefers-color-scheme: dark) { :root { --bg:#1d1d1b; --fg:#eee; --sub:#aaa; --line:#444; --on:#3cc27a; --off:#333; --warn:#f0a060; --panel:#262624; } }
   body { margin:0; background:var(--bg); color:var(--fg); font-family:-apple-system,"Hiragino Sans",sans-serif; }
-  .wrap { display:flex; gap:16px; padding:16px; align-items:flex-start; flex-wrap:wrap; }
+  .wrap { display:flex; justify-content:center; padding:16px; }
   iframe { width:640px; height:620px; max-width:100%; border:1px solid var(--line); background:#000; border-radius:6px; }
-  .side { flex:1; min-width:280px; max-width:420px; background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:12px 14px; }
+  .side { display:none; position:fixed; top:52px; right:12px; width:320px; max-width:calc(100vw - 24px); box-sizing:border-box; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px 14px; box-shadow:0 6px 24px rgba(0,0,0,.25); z-index:10; }
+  .side.open { display:block; }
+  #gear { position:fixed; top:12px; right:12px; width:32px; height:32px; padding:0; font-size:18px; line-height:30px; text-align:center; z-index:11; opacity:.7; }
+  #gear:hover { opacity:1; }
   h1 { font-size:17px; margin:0 0 8px; }
   .row { display:flex; align-items:center; gap:8px; margin:6px 0; }
   .lamp { width:14px; height:14px; border-radius:50%; background:var(--off); border:1px solid var(--line); flex:none; }
@@ -24,9 +27,10 @@
 </style>
 </head>
 <body>
+<button id="gear" title="設定" aria-label="設定" aria-expanded="false">⚙</button>
 <div class="wrap">
   <iframe id="game" src="game/index.html" title="テトリス"></iframe>
-  <div class="side">
+  <div class="side" id="side">
     <div id="pad" class="note">ゲームパッド：未接続（コントローラのボタンを1つ押してください）</div>
     <div id="msg">「開始」のボタンでゲームが始まります。</div>
     <div id="lamps"></div>
@@ -46,12 +50,15 @@
     { id: "rot",   label: "回転",         key: ["ArrowUp",    "ArrowUp",    38], repeat: false },
     { id: "start", label: "開始",         key: [" ",          "Space",      32], repeat: false },
   ];
+  const MAC_DEFAULT = { left: {t:"a", i:9, v:-3/7}, right: {t:"a", i:9, v:-1}, down: {t:"b", i:1}, rot: {t:"a", i:9, v:1/7}, start: {t:"a", i:9, v:5/7} };
   const STANDARD = { left: {t:"b", i:14}, right: {t:"b", i:15}, down: {t:"b", i:13}, rot: {t:"b", i:0}, start: {t:"b", i:9} };
   const STORE = "tetris-binding-v1";
   const DELAY = 170, RATE = 50;            // 押し続けたときの繰り返し（最初の待ち・間隔 ms）
 
   let binding = null;
-  try { binding = JSON.parse(localStorage.getItem(STORE) || "null"); } catch (e) { binding = null; }
+  const readCookie = () => { const m = document.cookie.match(new RegExp("(?:^|; )" + STORE + "=([^;]*)")); return m ? decodeURIComponent(m[1]) : null; };
+  const writeCookie = (v) => { document.cookie = STORE + "=" + (v === null ? "; max-age=0" : encodeURIComponent(v) + "; max-age=31536000") + "; path=/tmp/tetris/; SameSite=Lax; Secure"; };
+  try { binding = JSON.parse(readCookie() || "null"); } catch (e) { binding = null; }
   const $ = (id) => document.getElementById(id);
   const msg = (t, warn) => { $("msg").textContent = t; $("msg").className = warn ? "warn" : ""; };
 
@@ -71,7 +78,7 @@
   function currentBinding(pad) {
     if (binding) return binding;
     if (pad && pad.mapping === "standard") return STANDARD;
-    return null;
+    return MAC_DEFAULT;
   }
 
   // ゲームの frame へキーを送る（document に1回だけ）
@@ -92,7 +99,7 @@
   function isOn(pad, x) {
     if (!pad || !x) return false;
     if (x.t === "b") { const b = pad.buttons[x.i]; return !!b && (b.pressed || b.value > 0.5); }
-    const v = pad.axes[x.i]; return v !== undefined && Math.abs(v - x.v) < 0.15;
+    const v = pad.axes[x.i]; return v !== undefined && Math.abs(v - x.v) < 0.1;
   }
 
   // 「ボタンを覚えさせる」：表示の順に押されたボタン（または軸の値）を記録する
@@ -116,7 +123,7 @@
     msg(`「${ACTIONS[0].label}」のボタンを押してください（1/5）`);
   };
   $("reset").onclick = () => {
-    binding = null; try { localStorage.removeItem(STORE); } catch (e) {}
+    binding = null; writeCookie(null);
     msg("覚えた対応を消しました。"); showBinding(firstPad());
   };
 
@@ -134,7 +141,7 @@
             L.waitRelease = false; L.step++;
             if (L.step >= ACTIONS.length) {
               binding = L.result; learning = null;
-              try { localStorage.setItem(STORE, JSON.stringify(binding)); } catch (e) {}
+              writeCookie(JSON.stringify(binding));
               msg("5つのボタンを覚えました。「開始」でゲームを始めてください。"); showBinding(pad);
             } else msg(`「${ACTIONS[L.step].label}」のボタンを押してください（${L.step + 1}/5）`);
           }
@@ -157,11 +164,13 @@
       }
     }
   }
-  window.addEventListener("gamepadconnected", (e) => { showBinding(e.gamepad); msg(binding || e.gamepad.mapping === "standard" ? "ゲームパッドをつなぎました。「開始」でゲームが始まります。" : "ゲームパッドをつなぎました。「ボタンを覚えさせる」を押してください。", !(binding || e.gamepad.mapping === "standard")); });
+  window.addEventListener("gamepadconnected", (e) => { showBinding(e.gamepad); msg("ゲームパッドをつなぎました。「開始」でゲームが始まります。"); });
   $("game").addEventListener("load", () => {
     if (!$("game").contentDocument || !$("game").contentDocument.getElementById("canvas"))
       msg("テトリスの本体を読み込めませんでした。", true);
   });
+  $("gear").onclick = () => { const o = $("side").classList.toggle("open"); $("gear").setAttribute("aria-expanded", o); };
+  $("learn").addEventListener("click", () => $("side").classList.add("open"));
   showBinding(null);
   setInterval(loop, 8);
 })();
