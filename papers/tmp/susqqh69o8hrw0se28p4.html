@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0b1026">
+<title>財宝の間 — CipherFlute 宝探し</title>
+<style>
+  /* 世界観は復号ページ（hunt.html）と同じ：扉の向こうの「財宝の間」。守り人が台帳に名を記させて財宝を授ける */
+  :root { --night:#0b1026; --gold:#e8c766; --gold2:#c8a04a; --ink:#f3ecd8; --mist:#a9b3d6; }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; color:var(--ink);
+         background: radial-gradient(ellipse at 50% 20%, #3a2f12 0%, #1d2550 35%, var(--night) 70%, #05070f 100%);
+         font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif; line-height:1.8; }
+  main { max-width:520px; margin:0 auto; padding:36px 16px 56px; text-align:center; }
+  h1 { font-size:.85rem; font-weight:400; letter-spacing:.35em; color:var(--mist); margin:0 0 18px; }
+  .gem { font-size:3.2rem; filter: drop-shadow(0 0 18px rgba(232,199,102,.9)); animation: float 3s ease-in-out infinite alternate; }
+  @keyframes float { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+  .say { font-size:1.25rem; margin:14px 0 6px; white-space:pre-line; text-shadow:0 0 12px rgba(0,0,0,.6); }
+  .plain { font-family:"Hiragino Sans","Noto Sans JP",sans-serif; font-size:.85rem; color:var(--mist); margin:0 0 18px; }
+  .ledger { background: linear-gradient(#f6ecd2, #e9d9b0); color:#3a2400; border-radius:6px; padding:20px 18px 16px; margin:22px 0;
+            box-shadow: 0 0 0 2px #c8a04a, 0 10px 30px rgba(0,0,0,.5); text-align:left; }
+  .ledger b { display:block; font-size:1.05rem; margin-bottom:4px; }
+  .ledger .plain { color:#6a5530; margin:0 0 10px; }
+  input[type=text] { width:100%; padding:12px; font-size:1.05rem; border-radius:6px; border:1px solid #b89a5a; background:#fffaf0;
+                     color:#2a1a00; font-family:inherit; margin:4px 0 12px; }
+  .btn { display:block; width:100%; text-align:center; padding:14px; border-radius:10px; border:0; cursor:pointer;
+         background:linear-gradient(#f0d58a, #c8a04a); color:#2a1a00; font-size:1.08rem; font-weight:700; font-family:inherit;
+         box-shadow:0 0 22px rgba(232,199,102,.45); }
+  .btn[disabled] { opacity:.6; cursor:default; }
+  #sent { min-height:1.4em; margin:8px 0 0; }
+  .test { background:#ffe9a8; color:#5a4300; border-radius:8px; padding:8px 12px; font-weight:700; font-family:"Hiragino Sans",sans-serif; font-size:.85rem; }
+  .hide { display:none; }
+  a { color:var(--gold); }
+</style>
+</head>
+<body>
+<main>
+  <h1>財宝の間</h1>
+
+  <div id="locked">
+    <div class="gem">🔒</div>
+    <p class="say">この扉は、魔法の笛の調べによってのみ開かれる。</p>
+    <p class="plain">このページは、会場に隠された CipherFlute を吹いて復号したときにだけ開けます。詳しくは <a href="https://scrapbox.io/wiss2026/WISS_2026_CipherFlute_%E5%AE%9D%E6%8E%A2%E3%81%97%E3%83%81%E3%83%A3%E3%83%AC%E3%83%B3%E3%82%B8" target="_blank" rel="noopener">cosense の宝探しのページ</a> をご覧ください。</p>
+  </div>
+
+  <div id="opened" class="hide">
+    <p id="testBanner" class="test hide">これは試験用のページです。本番の財宝ではありません。</p>
+    <div class="gem">💎</div>
+    <p class="say">よくぞ、ここまで辿り着いた。
+財宝は、汝のものだ。</p>
+    <p class="plain">おめでとうございます。財宝は栗原が手渡しします。</p>
+    <div class="ledger">
+      <b>守り人の台帳に、汝の名を記せ。</b>
+      <p class="plain">お名前（ハンドル名でも構いません）を入れてボタンを押してください。お名前は栗原に届き、会場でお祝いします。</p>
+      <input id="who" type="text" maxlength="60" placeholder="お名前またはハンドル名" autocomplete="nickname">
+      <button id="send" class="btn">名を記す</button>
+      <p id="sent" class="plain"></p>
+    </div>
+  </div>
+</main>
+<script>
+"use strict";
+const BLOB = "-A9j3h73tl8jQWayjVuZHnCDI1X8Bn0lsNFEwyKYl4gcsilOUylAYK8CByMHGVfAmcddnUHqQq6DcUSgjNrmvqItji3fLtuukJLqCGqBgna1CztKHB7krwtB2A";
+function b64u(s) { s = s.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "=";
+  const bin = atob(s); const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out; }
+async function open_(k) {
+  const key = await crypto.subtle.importKey("raw", b64u(k), "AES-GCM", false, ["decrypt"]);
+  const blob = b64u(BLOB);
+  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: blob.slice(0, 12) }, key, blob.slice(12));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+function notify(topic, title, message, tags) {
+  // keepalive：送っている途中で受け取りのページへ移っても、送信を最後まで続ける
+  return fetch("https://ntfy.sh/", { method: "POST", keepalive: true, body: JSON.stringify({ topic, title, message, tags }) });
+}
+(async () => {
+  const m = /(?:^|[#&])k=([A-Za-z0-9_-]+)/.exec(location.hash);
+  if (!m) return;
+  let d;
+  try { d = await open_(m[1]); } catch (_) { return; }
+  // 鍵をアドレス欄から消す（画面を写されても鍵が残らないように）
+  history.replaceState(null, "", location.pathname);
+  const pre = d.test ? "【試験】" : "";
+  document.getElementById("locked").classList.add("hide");
+  document.getElementById("opened").classList.remove("hide");
+  if (d.test) document.getElementById("testBanner").classList.remove("hide");
+  const when = new Date().toLocaleString("ja-JP");
+  notify(d.topic, pre + "宝探し：財宝のページが開かれました", when + " に、財宝のページが開かれました。", ["gem"]).catch(() => {});
+  const btn = document.getElementById("send");
+  const who = document.getElementById("who");
+  who.addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) btn.click(); });
+  btn.onclick = async () => {
+    const name = who.value.trim().slice(0, 60);
+    if (!name) { document.getElementById("sent").textContent = "お名前を入れてください。"; who.focus(); return; }
+    btn.disabled = true;
+    document.getElementById("sent").textContent = "台帳に名を記しています……";
+    // 名乗りを送る。届くのを最大2.5秒だけ待ち、届かなくても受け取りのページへ進む（財宝を優先する）
+    const sent = notify(d.topic, pre + "宝探し：財宝を手にした人", name + "（" + new Date().toLocaleString("ja-JP") + "）", ["crown"]).catch(() => {});
+    await Promise.race([sent, new Promise(r => setTimeout(r, 2500))]);
+    document.getElementById("sent").textContent = "台帳に名を記しました。財宝は栗原が手渡しします。";
+  };
+})();
+</script>
+</body>
+</html>
