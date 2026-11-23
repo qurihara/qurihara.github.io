@@ -51,7 +51,7 @@
     <div class="gem">💎</div>
     <p class="say">よくぞ、ここまで辿り着いた。
 財宝は、汝のものだ。</p>
-    <p class="plain">おめでとうございます。財宝は栗原が手渡しします。</p>
+    <p class="plain">おめでとうございます。財宝は栗原が手渡しします。栗原を探してください。</p>
     <div class="ledger">
       <b>守り人の台帳に、汝の名を記せ。</b>
       <p class="plain">お名前（ハンドル名でも構いません）を入れてボタンを押してください。お名前は栗原に届き、会場でお祝いします。</p>
@@ -63,7 +63,7 @@
 </main>
 <script>
 "use strict";
-const BLOB = "-A9j3h73tl8jQWayjVuZHnCDI1X8Bn0lsNFEwyKYl4gcsilOUylAYK8CByMHGVfAmcddnUHqQq6DcUSgjNrmvqItji3fLtuukJLqCGqBgna1CztKHB7krwtB2A";
+const BLOB = "0UsjxgSV7kzQHWRJjHoD8luY-Zchmz_ukyMmLPM0Itz1zTYJlRTIKWJGI5l5a00e4TDzXZ19JGy-Bq5caI1NGPz1xf5Z0pik7mDAAkMCeisLD94N81pdNwhQ2w";
 function b64u(s) { s = s.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "=";
   const bin = atob(s); const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out; }
 async function open_(k) {
@@ -100,7 +100,7 @@ function notify(topic, title, message, tags) {
     // 名乗りを送る。届くのを最大2.5秒だけ待ち、届かなくても受け取りのページへ進む（財宝を優先する）
     const sent = notify(d.topic, pre + "宝探し：財宝を手にした人", name + "（" + new Date().toLocaleString("ja-JP") + "）", ["crown"]).catch(() => {});
     await Promise.race([sent, new Promise(r => setTimeout(r, 2500))]);
-    document.getElementById("sent").textContent = "台帳に名を記しました。財宝は栗原が手渡しします。";
+    document.getElementById("sent").textContent = "台帳に名を記しました。財宝は栗原が手渡しします。栗原を探してください。";
   };
 })();
 </script>
